@@ -1475,7 +1475,7 @@ resources:
   - id: "#resource_2"
     type: Registry
     timelines: ["#clt_6", "#dpt_1"]
-    url: registry/
+    url: registry.parquet
 ```
 
 `resources` lists the files the manifest names, each one descriptor:
@@ -1501,8 +1501,9 @@ it, not in its subfolders, none starting with `.` or `_` (a file being
 written, a `_delta_log`); their schemas are unified by column name, a
 column a file lacks reading as null, and one column of two Arrow types in
 two files is refused. A folder has no `size` and no `integrity`
-(`folder_descriptor`). The registry is a resource like any other, with
-the same descriptor whether it is one file or a folder of parts.
+(`folder_descriptor`). The registry is a resource like any other, but
+always one Parquet file, never a folder (`registry_not_a_file`,
+[Packages](#packages)).
 
 A manifest names the registry by one resource of type `Registry`, whose
 `timelines` are the timelines whose event rows it keeps, and the
@@ -1534,11 +1535,15 @@ name, where its source gives one, is a column of its pre-parsed table
 files](#pre-parsed-re-parsed-and-source-files)). A **non-event row**
 stands for any other ID: a manifest element, a MatchClaim or an
 extraction, and says where it lies. A non-event row of a manifest
-element holds no name: the manifest holds it. A package has one registry,
-named in `package.yaml` by its table entry of type `Registry` and in each
-manifest by a resource of that type ([Resources](#resources)). It holds
-one row per ID and one column per property, each of the Arrow type given;
-a column whose Null is "never" holds a value in every row, and one whose
+element holds no name: the manifest holds it. The non-event rows are the
+rows whose `kind` is one of the registry's `non_event_kinds`, a filter
+on the registry, not a part or a file of their own. A package has one
+registry, one Parquet file holding every row, its event rows and its
+non-event rows, named in `package.yaml` by its table entry of type
+`Registry` (by convention `registry.parquet` at the package root) and in
+each manifest by a resource of that type ([Resources](#resources)). It
+holds one row per ID and one column per property, each of the Arrow type
+given; a column whose Null is "never" holds a value in every row, and one whose
 Null is "event row" holds a value in every event row:
 
 | Column | Arrow type | Null | Holds |
@@ -1616,17 +1621,11 @@ non-event rows of one `location`: the same element ID may stand in two manifests
 of the package, as their identity rules allow ([Identity](#identity)), and
 resolving it through the package root gives both.
 
-**A folder of parts.** A registry is one Parquet file or a folder of
-files read as one table ([Resources](#resources)). A writer of a folder
-writes the non-event rows into one part, `non_events.parquet`, and the event rows
-of each extraction into a part of their own, `<extraction_id>.parquet`
-(where an ID cannot name a file, a writer names the part otherwise); an
-extraction or an update then writes one file and leaves the others
-untouched. A writer sorts each event part by `timeline_id` (by code
-point), then `start` (by exact value), then `id`, and the non-event part by
-`location`, then `id`, so that a filter on a timeline or a location skips
-the row groups that hold none of it. Readers never rely on the order or
-on the names of the parts.
+**Order.** A writer of the registry writes its non-event rows first,
+sorted by `location`, then `id`, and then its event rows, sorted by
+`timeline_id` (by code point), then `start` (by exact value), then `id`,
+so that a filter on a timeline, a location or an ID skips the row groups
+that hold none of it. Readers never rely on the order.
 
 ### The Extraction table
 
@@ -2125,7 +2124,7 @@ tables:
   -
     media_type: application/vnd.apache.parquet
     type: Registry
-    url: registry/
+    url: registry.parquet
   -
     media_type: application/vnd.apache.parquet
     type: Extraction
@@ -2151,7 +2150,7 @@ open:
 | `id` | no | the package's IRI where it is published, such as its repository or its DOI |
 | `name`, `meta` | no | its name and free-form metadata, as a manifest's |
 | `manifests` | yes | the manifests, each once, each a descriptor ([Resources](#resources)): its `url`, and optionally its `media_type`, `size` and `integrity` |
-| `tables` | yes | the tables, each a descriptor with the `type` of its rows: `Registry` for the registry, exactly one entry; `Extraction` for the Extraction table, at most one entry; `MatchClaim` for the MatchClaim table; and an event type for a pre-parsed table of it, such as `Projection`. A type other than `Registry` and `Extraction` may have several entries, for rows kept in different files |
+| `tables` | yes | the tables, each a descriptor with the `type` of its rows: `Registry` for the registry, exactly one entry, a file; `Extraction` for the Extraction table, at most one entry; `MatchClaim` for the MatchClaim table; and an event type for a pre-parsed table of it, such as `Projection`. A type other than `Registry` and `Extraction` may have several entries, for rows kept in different files |
 
 - **URLs** are resolved against the address of the document stating
   them: an entry of `package.yaml` against the package's root, a
@@ -2159,7 +2158,7 @@ open:
   extraction's `source` against the package's root. A URL leading
   outside the package names nothing in it. A `url` ending in `/` names a
   folder, read as one table ([Resources](#resources)); a folder has no
-  `size` and no `integrity`.
+  `size` and no `integrity`. The registry is never a folder.
 - **The manifests are listed one by one**, never by a pattern.
 - **Each manifest's resources name the tables it reads**, the registry
   and the MatchClaim tables, with the timelines whose rows it keeps, and
@@ -2286,24 +2285,27 @@ name of its definition in the schema), per MatchClaim and per extraction,
 each with the `location` and, for an element, the `timeline_id`
 [The registry](#the-registry) gives them. `timetoshare registry
 [--check] [PACKAGE]`, `PACKAGE` a folder holding `package.yaml` (by
-default the current folder), rebuilds them and writes the non-event part
-of the registry, `non_events.parquet` in its folder, or, where the
-registry is one file, that file with its event rows kept; the non-event rows at a
-manifest or table that could not be read cannot be rebuilt and are kept
-as they were; it writes a new file
-beside the old one and renames it into place, leaves every event part
-untouched, prints `wrote <file>` and exits 0. With `--check` it changes
-nothing; where the non-event rows differ from what it would write, it
+default the current folder), rebuilds them and rewrites them inside the
+registry file, keeping its event rows unchanged in value and writing
+the rows in the writer's order ([The registry](#the-registry)); the
+non-event rows at a manifest or table that could not be read cannot be
+rebuilt and are kept as they were; it writes a new file beside the old
+one and renames it into place, prints `wrote <file>` and exits 0. With
+`--check` it changes nothing; where the non-event rows differ from what it would write, it
 prints one line per `stale_non_event_row` problem (below), `<file>: row
 <row>: stale_non_event_row: <message>` (`<file>: stale_non_event_row:
 <message>` for a missing row), and
 exits 1, else it prints nothing and exits 0. A folder without
-`package.yaml`, or a `package.yaml` listing no registry or two, exits 1
-with one line on standard error starting `timetoshare:`.
+`package.yaml`, or a `package.yaml` listing no registry, two, or one
+whose `url` names a folder, exits 1 with one line on standard error
+starting `timetoshare:`. Python's `write_non_event_rows(package_root)`
+writes as the command does, and `stale_non_event_rows(package_root)`
+lists the problems `--check` prints, each `file` the registry file's
+path from the package root.
 
 ```console
 $ timetoshare registry --check
-registry/non_events.parquet: stale_non_event_row: the registry lacks the non-event row of the ID 'region_9' at 'bach/manifest.yaml'
+registry.parquet: stale_non_event_row: the registry lacks the non-event row of the ID 'region_9' at 'bach/manifest.yaml'
 ```
  This repository's
 `.pre-commit-hooks.yaml` offers the hook `timetoshare-registry`, which
@@ -2327,10 +2329,12 @@ order:
 
 1. `package.yaml` itself, by `validate_package`; a problem there ends the
    check, another version being reported as `version_mismatch`. Then its
-   registry: no table of the type `Registry`, a second one, or a second
+   registry: no table of the type `Registry`, a second one, a registry
+   entry whose `url` names a folder, which is then not read, or a second
    table of the type `Extraction`; only the first of each is read.
-2. Manifest by manifest, as listed: a missing manifest, and a manifest
-   that is not valid, with its validation's code and path.
+2. Manifest by manifest, as listed: a missing manifest, a manifest
+   that is not valid, with its validation's code and path, and a
+   resource of type `Registry` whose `url` names a folder.
 3. Table by table and file by file: a missing file or folder, a file an
    earlier entry of the same type reaches already, such as a file entry
    inside a listed folder (the later entry reads its other files only, so
@@ -2352,8 +2356,8 @@ order:
    non-event rows are compared as `timetoshare registry --check` compares them, by
    one function, by `location`, resolved against the package root (so
    that `./bach/manifest.yaml` and `bach/manifest.yaml` are one
-   location), and `id`: the part's extra or differing rows in its order,
-   one problem per row at its first differing column, then the missing
+   location), and `id`: the registry's extra or differing non-event rows
+   in its order, one problem per row at its first differing column, then the missing
    rows by `location` and `id`. A manifest or table that could not be read
    gives no non-event row and has none compared.
 5. The table checks, each problem placed in its file and row ([Checking
@@ -2372,6 +2376,7 @@ order:
 | `package.yaml` lists no table of the type `Registry` | `missing_registry` | `package.yaml`, `tables` | `the package lists no table of the type Registry` |
 | `package.yaml` lists a second table of the type `Registry` | `duplicate_registry` | `package.yaml`, the later entry's `type` | `the package lists a second table of the type Registry, first at <pointer>` |
 | `package.yaml` lists a second table of the type `Extraction` | `duplicate_extraction` | `package.yaml`, the later entry's `type` | `the package lists a second table of the type Extraction, first at <pointer>` |
+| A table entry of the type `Registry` in `package.yaml`, or a manifest's resource of that type, has a `url` ending in `/`, naming a folder | `registry_not_a_file` | `package.yaml` or the manifest, the entry's or the resource's `url` | `the registry '<url>' names a folder; a registry is one Parquet file` |
 | A manifest `package.yaml` lists is missing | `missing_file` | `package.yaml`, the entry's `url` | `no manifest lies at '<url>' in the package` |
 | A manifest declares another version than the package | `version_mismatch` | the manifest, `timetoshare` | `the manifest declares the version '<version>', the package '<version>'` |
 | A table's file or folder is missing | `missing_file` | `package.yaml`, the entry's `url` | `no file lies at '<url>' in the package` (`no folder lies at …`) |
@@ -2381,7 +2386,7 @@ order:
 | One column has two Arrow types in two files | `column_type_mismatch` | the folder, the column | `the column '<name>' is <type> in '<file>' and <type> in '<file>'` |
 | A table of another type than `Registry`, `Extraction` and `MatchClaim` holds no `id` column of strings without a null | `foreign_table` | the table's file or folder, `[]` | `the table '<path>' of type '<type>' has no 'id' column: a package's tables hold the registry, the Extraction table, MatchClaim tables and pre-parsed tables of events keyed by 'id'` |
 | A table resource's URL names no table entry of its type, or leads outside the package | `unknown_table` | the manifest, the resource's `url` | `the resource '<id>' names '<url>', which is no table of the type <type> in the package` |
-| In the registry, an event, MatchClaim or extraction ID held by an earlier row of these, in any part, or a manifest element's ID held by an earlier row of the same `location`; an event ID held twice among the rows of the pre-parsed tables, of every type and file; a MatchClaim ID held twice among the MatchClaims | `duplicate_id` | the later row's file and row, `id` | `the ID '<id>' is given twice, first in '<file>' at row <row>` (`the ID '<id>' is given twice at '<location>', first in …` for an element, `the event ID …` in the pre-parsed tables, `the MatchClaim ID …`) |
+| In the registry, an event, MatchClaim or extraction ID held by an earlier row of these, or a manifest element's ID held by an earlier row of the same `location`; an event ID held twice among the rows of the pre-parsed tables, of every type and file; a MatchClaim ID held twice among the MatchClaims | `duplicate_id` | the later row's file and row, `id` | `the ID '<id>' is given twice, first in '<file>' at row <row>` (`the ID '<id>' is given twice at '<location>', first in …` for an element, `the event ID …` in the pre-parsed tables, `the MatchClaim ID …`) |
 | An event row's timeline, or a MatchClaim's either, column by column, is null, where the file holds the column as strings | `schema_violation` | the row, the column | `'<column>' is null` |
 | Such a timeline is held by no manifest | `unknown_timeline` | the row, the column | `no manifest of the package has the timeline '<id>'` |
 | An event row's timeline is listed by no manifest's `Registry` resource naming the registry, a MatchClaim's by no manifest's `MatchClaim` resource naming its table | `unlisted_timeline` | the row, the column | `the timeline '<id>' of '<manifest>' is listed by no resource of the type <type> naming this table` |
@@ -2392,7 +2397,7 @@ order:
 | A row of a pre-parsed table has an `id` no event row of the table's type has | `unregistered_id` | that table's file and row, `id` | `no event row of the type <type> in the registry has the ID '<id>'` |
 | A pre-parsed Projection stands for an event of its own registry row's timeline | `invalid_projection_of` | the Projection table's file and row, `projection_of.timeline_id` | `a Projection stands for an event of another timeline than '<id>'` |
 | A pre-parsed Projection stands for an event of a timeline no manifest holds | `unknown_timeline` | the Projection table's file and row, `projection_of.timeline_id` | `no manifest of the package has the timeline '<id>'` |
-| A non-event row stands for nothing a manifest element, a MatchClaim or an extraction gives at its `location`, or repeats an earlier non-event row there; its `kind` or `timeline_id` differs from what they give; or a row they give is missing, one problem per row | `stale_non_event_row` | the non-event part, the row (`None` for a missing row), `id` for an extra or a missing row, else the differing column | `the registry holds the non-event row of the ID '<id>' at '<location>', which no manifest or table holds there`, `the non-event row of the ID '<id>' at '<location>' has the <column> <value>, not <value>`, `the registry lacks the non-event row of the ID '<id>' at '<location>'` |
+| A non-event row stands for nothing a manifest element, a MatchClaim or an extraction gives at its `location`, or repeats an earlier non-event row there; its `kind` or `timeline_id` differs from what they give; or a row they give is missing, one problem per row | `stale_non_event_row` | the registry file, the row (`None` for a missing row), `id` for an extra or a missing row, else the differing column | `the registry holds the non-event row of the ID '<id>' at '<location>', which no manifest or table holds there`, `the non-event row of the ID '<id>' at '<location>' has the <column> <value>, not <value>`, `the registry lacks the non-event row of the ID '<id>' at '<location>'` |
 | No manifest holds both timelines of a MatchClaim | `claim_across_manifests` | the row, `timeline_b_id` | `no manifest of the package holds both the timeline '<id>' and the timeline '<id>'` |
 
 In the message of a differing non-event row, each `<value>` is written as
@@ -2400,9 +2405,8 @@ Python's `repr` writes it: a string in single quotes, a missing value
 `None`.
 
 `fixtures/packages/0.2.0/` holds the package fixtures: `shared/`, two
-manifests sharing a registry of a non-event part and two extraction parts,
-an Extraction table, a pre-parsed Projection table and a folder of
-MatchClaims, beside an `expected.yaml` naming the rows each resource
+manifests sharing one registry file, `registry.parquet`, an Extraction
+table, a pre-parsed Projection table and a folder of MatchClaims, beside an `expected.yaml` naming the rows each resource
 reads and what IDs resolve to, `acceptances/<case>/`, the shared package
 with one change each that the package check accepts, such as a manifest
 naming a recording, and `rejections/<case>/`, the shared package broken
@@ -3397,11 +3401,10 @@ else:
   `kind`, `location`, `manifest` and registry `row`;
   `non_event_rows(package_root)` builds the registry's non-event rows
   from the package's sources, `write_non_event_rows(package_root)` writes
-  them into the registry's non-event part (`NON_EVENT_PART`,
-  `"non_events.parquet"` in a registry folder) and
-  `stale_non_event_rows(package_root)` lists where the part disagrees
-  with them ([Packages](#packages)); `ELEMENT_KINDS` names the non-event
-  kinds of manifest elements, `NON_EVENT_KINDS` those and `MatchClaim` and
+  them into the registry file, keeping its event rows, and
+  `stale_non_event_rows(package_root)` lists where the registry's
+  non-event rows disagree with them ([Packages](#packages));
+  `ELEMENT_KINDS` names the non-event kinds of manifest elements, `NON_EVENT_KINDS` those and `MatchClaim` and
   `Extraction`; `is_table_resource(resource)` says whether a
   manifest's resource names a table, and `package_problems(path)` checks a package
   whole, each problem a `PackageProblem` (`code`, `file`, `row`, `path`,

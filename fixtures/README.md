@@ -587,14 +587,14 @@ version whose tag `v<version>` exists. Python's
 tables: `bach/manifest.yaml` (a score `clt_1` in quarters, a performance
 `dpt_1` in samples) and `handel/manifest.yaml` (a score `clt_2` with a
 child `clt_3` starting at the quarter 4, a performance `dpt_2`). They
-share the registry `registry/`, a folder of parts: `non_events.parquet`,
-the non-event rows of both manifests' elements, of the MatchClaims and of the
-extractions, sorted by location and ID, and one part per extraction
-holding its event rows, sorted by timeline, start and ID:
-`extraction_1.parquet`, Bach's Projections, made from the source file
-`bach/alignment.csv`, each with its locator, and `extraction_2.parquet`,
-Handel's, made by a tool without a source file, the two on the child
-`clt_3` stored at their positions on its root `clt_2`. The Extraction
+share the registry `registry.parquet` at the package root, one file
+holding every row: first the non-event rows of both manifests' elements,
+of the MatchClaims and of the extractions, sorted by location and ID,
+then the event rows of both extractions, sorted by timeline, start and
+ID: those of `extraction_1`, Bach's Projections, made from the source
+file `bach/alignment.csv`, each with its locator, and those of
+`extraction_2`, Handel's, made by a tool without a source file, the two
+on the child `clt_3` stored at their positions on its root `clt_2`. The Extraction
 table `tables/extractions.parquet` records both runs, the first with the
 source file's digest. The pre-parsed Projection table `tables/Projection/`
 holds each Projection's `projection_of` in two files, `part_a.parquet`
@@ -613,8 +613,7 @@ the IDs of the rows read for the resource's timelines, sorted, and under
 `.` for the package root), an `id` and the `found` list of `Resolution`s,
 each its `kind`, `location`, `manifest` and the registry `row`, in the
 order `resolve` returns them: through a manifest, its element first, then
-the registry rows belonging to it in the registry's order (the files of
-the registry folder in code-point order, then each file's rows); through
+the registry rows belonging to it in the registry file's order; through
 the package root, every row of the ID in the registry's order.
 
 `acceptances/<case>/` are the shared package with one change each that
@@ -627,7 +626,6 @@ resolutions of some IDs:
 | `external_location` | the content of Bach's `projection_1` lies outside the package: its `location` is the absolute URI `https://example.org/events/projection_1`, which the package check does not follow, and the pre-parsed tables hold no row of it; it resolves through Bach's manifest with that location |
 | `recording_resource` | Bach's manifest names a recording beside it (`Audio`, `recording.flac`, `audio/flac`), a resource naming no table, which `package.yaml` does not list; the registry holds a non-event row of the resource |
 | `timeline_in_two_manifests` | Handel's manifest holds a timeline `dpt_1`, as Bach's does, and keeps its event rows too; `dpt_1` resolves through each manifest to its own element, and through the package root to both, and Bach's `projection_1` resolves through Handel's manifest |
-| `single_file_registry` | the registry is one file, `registry.parquet`, holding the non-event rows and the event rows of both extractions |
 | `re_parsable_event` | an onset of Bach's extraction, `onset_9`, has no pre-parsed content: its `location` is null, its content re-parsable from the extraction's source file; it resolves through Bach's manifest with the location `None` |
 
 `rejections/<case>/` are the shared package with one change each, beside
@@ -651,6 +649,7 @@ order (`code`, `file` from the package's root, `row` in that file or null,
 | `file_in_a_listed_folder` | `package.yaml` lists a file of the folder of Projections as a table of its own | `duplicate_url` |
 | `registry_missing` | `package.yaml` lists no registry | `missing_registry` |
 | `registry_listed_twice` | `package.yaml` lists a second registry | `duplicate_registry` |
+| `registry_folder` | `package.yaml` names the registry `registry/`, a folder | `registry_not_a_file` |
 | `extraction_table_listed_twice` | `package.yaml` lists a second Extraction table | `duplicate_extraction` |
 | `unknown_extraction` | an event row of Handel's names `extraction_9`, which the Extraction table does not hold | `unknown_extraction` |
 | `vanished_in_an_unknown_extraction` | an event row of Handel's vanished in `extraction_3`, which the Extraction table does not hold | `unknown_extraction` |
@@ -1087,16 +1086,16 @@ default context. There is one case per rule:
 | `manifest_added` | that file added | minor |
 
 The cases of tables compare packages: an `old/` and a `new/` package,
-each a `package.yaml`, the manifest `score.yaml`, a registry folder of a
-non-event part and one extraction part, an Extraction table and a pre-parsed
-Projection table, the `new/` one edit of the `old/`. Every finding lies at
+each a `package.yaml`, the manifest `score.yaml`, a registry file of
+non-event rows and the event rows of one extraction, an Extraction table
+and a pre-parsed Projection table, the `new/` one edit of the `old/`. Every finding lies at
 the manifest whose registry resource lists the row's timeline
 (`score.yaml`, scope `score`); the manifests validate and the non-event
-parts are not stale. Their YAML files and `expected.yaml` are written by hand,
+rows are not stale. Their YAML files and `expected.yaml` are written by hand,
 like every other case; their Parquet files are emitted by
 `scripts/emit_versions.py` (run from `python/` as `uv run python
 ../scripts/emit_versions.py`; it needs pyarrow), whose rows are literal
-data in the script, the non-event part of each tree written by
+data in the script, the non-event rows of each tree's registry written by
 `write_non_event_rows`
 from the tree's manifest and tables. It rewrites a Parquet file only when
 its table changes and refuses to replace the files while the tag
@@ -1104,7 +1103,7 @@ its table changes and refuses to replace the files while the tag
 
 | Case | Change | Findings |
 | --- | --- | --- |
-| `registry_row_removed` | the event `note_2` removed from its extraction part | `removed_row`, major |
+| `registry_row_removed` | the event `note_2` removed from the registry | `removed_row`, major |
 | `registry_row_added` | an event `note_3` added | `added_row`, minor |
 | `registry_projection_moved` | the start of the Projection `proj_1` moved | `edited_row`, minor |
 | `registry_row_vanished` | the `vanished_in` of `note_2` set | `vanished_row`, minor |

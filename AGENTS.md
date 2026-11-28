@@ -130,8 +130,8 @@ These rules apply to every contributor, human or automated.
   written in the script, the Parquet files of the version cases of tables
   under `fixtures/versions/` only through `scripts/emit_versions.py`,
   whose rows are literal data written in the script (their YAML files and
-  `expected.yaml` are written by hand, their non-event parts by
-  `write_non_event_rows`), and the vectors under
+  `expected.yaml` are written by hand, the non-event rows of their
+  registries by `write_non_event_rows`), and the vectors under
   `fixtures/ids/` only through `scripts/emit_id_vectors.py`; never
   hand-edit any of them.
   The manifests of flow control under `fixtures/<version>/flow/` are
