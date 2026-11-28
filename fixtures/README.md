@@ -660,7 +660,7 @@ order (`code`, `file` from the package's root, `row` in that file or null,
 | `locator_twice` | two event rows of Bach's extraction give the locator `row 1` | `duplicate_locator` |
 | `registry_id_twice` | an onset of Handel's has the ID `claim_1`, a MatchClaim's | `duplicate_id` |
 | `non_event_row_with_a_position` | a non-event row states a position | `schema_violation` |
-| `stale_non_event_row` | the non-event rows misstate a column of a row of Bach's manifest, hold a region it does not hold, and lack the group Handel's manifest gained | `stale_non_event_row` (three rows) |
+| `stale_non_event_row` | the non-event rows give Bach's score timeline the kind of a virtual timeline, hold a region the manifest does not hold, and lack the group Handel's manifest gained | `stale_non_event_row` (three rows) |
 | `projection_of_its_own_timeline` | a pre-parsed Projection of Bach's on `dpt_1` stands for an event of `dpt_1` | `invalid_projection_of` |
 | `projection_of_no_timeline` | a pre-parsed Projection stands for an event of `clt_9`, which no manifest holds | `unknown_timeline` |
 | `foreign_table` | `package.yaml` lists a table of the type `Features` whose file holds a column `x` and no `id` | `foreign_table` |
