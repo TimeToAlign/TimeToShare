@@ -420,8 +420,8 @@ manifest files in place, each in the form and serialization it was read
 in:
 
 ```bash
-python scripts/convert_flow_control.py score.yaml other.json
-python scripts/convert_flow_control.py --check score.yaml   # report only
+python scripts/convert_flow_control.py score.tts.yaml other.tts.json
+python scripts/convert_flow_control.py --check score.tts.yaml   # report only
 ```
 
 The script reads one of the three words under `role` as it reads it
@@ -1618,7 +1618,7 @@ has no event of its own is a Projection or the sentinel CHUNK:
 
 **Locations.** A `location` is a URI reference resolved against the
 **package root**, the folder of `package.yaml`, or, for a manifest alone,
-the manifest's folder: a path such as `bach/manifest.yaml` or
+the manifest's folder: a path such as `bach.tts.yaml` or
 `tables/MidiNote/`, and equally the URI of a service or of another
 serialization of the table, such as a database file. A relative
 reference names a table entry of `package.yaml`, resolved as its URL is,
@@ -2097,16 +2097,20 @@ columns in the type's order; `check_succession` raises the first.
 ### Packages
 
 A **package** is a folder of manifests and the tables of their events
-and MatchClaims, with a file `package.yaml` at its root listing them:
+and MatchClaims, with a file `package.yaml` at its root listing them. A
+manifest file is named after the piece or case it describes,
+`<name>.tts.yaml` (`<name>.tts.yml`, `<name>.tts.json`), such as
+`bach.tts.yaml`, or `bpsd/op106.tts.yaml` where a dataset keeps a
+folder for each of its parts; the tables lie at the package's level:
 
 ```yaml
 manifests:
   -
     media_type: application/yaml
-    url: bach/manifest.yaml
+    url: bach.tts.yaml
   -
     media_type: application/yaml
-    url: handel/manifest.yaml
+    url: handel.tts.yaml
 name: "Two manifests sharing their registry and tables"
 tables:
   -
@@ -2298,7 +2302,7 @@ path from the package root.
 
 ```console
 $ timetoshare registry --check
-registry.parquet: stale_non_event_row: the registry lacks the non-event row of the ID 'region_9' at 'bach/manifest.yaml'
+registry.parquet: stale_non_event_row: the registry lacks the non-event row of the ID 'group_1' at 'handel.tts.yaml'
 ```
  This repository's
 `.pre-commit-hooks.yaml` offers the hook `timetoshare-registry`, which
@@ -2350,7 +2354,7 @@ order:
    MatchClaim tables. The
    non-event rows are compared as `timetoshare registry --check` compares them, by
    one function, by `location`, resolved against the package root (so
-   that `./bach/manifest.yaml` and `bach/manifest.yaml` are one
+   that `./bach.tts.yaml` and `bach.tts.yaml` are one
    location), and `id`: the registry's extra or differing non-event rows
    in its order, one problem per row at its first differing column, then the missing
    rows by `location` and `id`. A manifest or table that could not be read
@@ -3652,10 +3656,16 @@ change and one line per finding (`--json` for the whole report): between
 two directories, between two git references of the repository `--repo`
 (default `.`), or between a reference and the changes staged for the next
 commit, when the second argument is left out; OLD `-` is the empty tree,
-the state before a first release. From git it reads only the
-manifests (the files ending `.yaml`, `.yml` or `.json`), the table files
-their resources name and the tables a `package.yaml` lists, never the
-rest of the tree; a table file is read
+the state before a first release. In each state, the manifests are exactly
+the files whose names end `.tts.yaml`, `.tts.yml` or `.tts.json` and that
+read as an object holding `timetoshare`; any other YAML or JSON file is
+none, and a `package.yaml` is read for the tables it lists, never
+validated or compared as a manifest. A manifest is matched across the two states by
+its path without `.tts.<ext>`, so that `bpsd/op106.tts.yaml` and
+`bpsd/op106.tts.json` are one manifest. From git it reads only the
+manifests and the `package.yaml` files, the table files the manifests'
+resources name and the tables a `package.yaml` lists, never the rest of
+the tree; a table file is read
 through the filters git's attributes name for its path, so a table kept by
 Git LFS is compared as the table where git-lfs is installed. It exits 2
 when a change is refused.
@@ -3685,7 +3695,7 @@ to `HEAD`; the hooks below compare two states only.
 $ timetoshare step v2.1.0 HEAD
 step: major
 scope: op106
-major	removed	op106.yaml	#clt_3	Timeline #clt_3 removed
+major	removed	bpsd/op106.tts.yaml	#clt_3	Timeline #clt_3 removed
 ```
 
 In Python, `manifest_step(old, new)` compares two manifests,
@@ -3694,10 +3704,11 @@ new_ref, repo, history=False)` two references (`new_ref=None`: the staged
 changes); the last two return a `StepReport` with the `step`, the
 `findings` (each a `Finding` with `kind`, `step`, `path`, `id` and
 `detail`), the flags `refused` and `undetermined`, and the `scope`, where
-every finding lies: the manifest file's name without extension, or for a
-file named `manifest.<ext>` its folder's name (`bpsd/op106/manifest.yaml`
-gives `op106`); where the findings lie in several manifest files, the top
-folder that holds them all (`bpsd`), or none.
+every finding lies: the manifest file's name without `.tts.<ext>`
+(`bpsd/op106.tts.yaml` gives `op106`; a single finding in a file of
+another name gives its stem, `package` for a row placed at
+`package.yaml`); where the findings lie in several
+manifest files, the top folder that holds them all (`bpsd`), or none.
 
 The release tool [release-please](https://github.com/googleapis/release-please)
 computes the version from Conventional Commits: a `feat` commit makes a
@@ -3768,9 +3779,9 @@ and is compared with `HEAD`.
 This repository is a pre-commit hook repository: its
 `.pre-commit-hooks.yaml` offers both hooks and two more,
 `timetoshare-validate`, which runs `timetoshare validate` on every staged
-`.yaml`, `.yml` and `.json` file, and `timetoshare-registry`, which runs
-`timetoshare registry --check` on the package at the repository's root
-before every commit, so that the registry's non-event rows agree with the
+file named `*.tts.yaml`, `*.tts.yml` or `*.tts.json`, and
+`timetoshare-registry`, which runs `timetoshare registry --check` on the
+package at the repository's root before every commit, so that the registry's non-event rows agree with the
 manifests ([Packages](#packages)). pre-commit installs them by running `pip
 install .` in its clone of this repository; the root `setup.py` is an empty
 distribution, and each hook installs the package from `./python` of the
@@ -3793,10 +3804,11 @@ and, once per clone, `pre-commit install --hook-type pre-commit
 a commit, never a branch: pre-commit keeps the environment of a `rev` and
 never reinstalls it.
 
-`timetoshare validate [PATH ...]` validates the files named, or, without
-arguments, every `.yaml`, `.yml` and `.json` file under the current
-directory outside `.git`, and prints one line per problem, `<path>: <code>
-at <JSON pointer>: <message>`, a warning's code preceded by `warning: `. A
+`timetoshare validate [PATH ...]` validates the files named, whatever
+their names, or, without arguments, every file under the current
+directory outside `.git` whose name ends `.tts.yaml`, `.tts.yml` or
+`.tts.json`, and prints one line per problem, `<path>: <code> at <JSON
+pointer>: <message>`, a warning's code preceded by `warning: `. A
 file is a manifest when `loads` reads it as an object holding
 `timetoshare`; other files are skipped. A manifest is refused for its first
 violation, with the code `validate` raises it with, or
@@ -3810,8 +3822,8 @@ when a file is refused, else 0, warnings included; the hook is `verbose`,
 so pre-commit shows the warnings of an accepted manifest too.
 
 ```console
-$ timetoshare validate op106.yaml notes.yaml
-op106.yaml: duplicate_id at #/timelines/1/id: 'score' is not unique in the manifest, first at #/timelines/0/id
+$ timetoshare validate bpsd/op106.tts.yaml notes.yaml
+bpsd/op106.tts.yaml: duplicate_id at #/timelines/1/id: 'score' is not unique in the manifest, first at #/timelines/0/id
 ```
 
 release-please's configuration of a dataset repository names the
@@ -3886,7 +3898,7 @@ the data from v0.1.0 to HEAD
 step: major
 scope: op106
 release: 0.1.0 to 0.1.1 allows changes up to minor
-major	removed	bpsd/op106/manifest.yaml	#clt_3	Timeline #clt_3 removed
+major	removed	bpsd/op106.tts.yaml	#clt_3	Timeline #clt_3 removed
 fails: a release from 0.1.0 to 0.1.1 allows changes up to minor; the change requires major
 ```
 
@@ -3955,7 +3967,7 @@ flow control, each derived by hand beside the trace it was derived with
 ([fixture guide](fixtures/README.md#flow-fixtures-and-expected-flows)). The statement fixtures under `fixtures/0.2.0/statements/`
 have their expected RDF under `fixtures/rdf/0.2.0/`, canonical N-Quads
 that `scripts/emit_rdf.py` writes. The table fixture lies apart, under
-`fixtures/tables/0.2.0/`: a manifest (`manifest.yaml`), its MatchClaim
+`fixtures/tables/0.2.0/`: a manifest (`tables.tts.yaml`), its MatchClaim
 table (`match_claims.parquet`), its registry (`registry.parquet`), whose
 event rows are Projections, and the Parse table (`parses.parquet`) its
 registry names, and the alignment
