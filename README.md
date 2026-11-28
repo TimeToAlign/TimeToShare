@@ -2299,7 +2299,7 @@ exits 1, else it prints nothing and exits 0. A folder without
 `package.yaml`, or a `package.yaml` listing no registry, two, or one
 whose `url` names a folder, exits 1 with one line on standard error
 starting `timetoshare:`. Python's `write_non_event_rows(package_root)`
-writes as the command does, and `stale_non_event_rows(package_root)`
+writes as the command does and returns the registry file's path, and `stale_non_event_rows(package_root)`
 lists the problems `--check` prints, each `file` the registry file's
 path from the package root.
 
@@ -3400,9 +3400,12 @@ else:
   a manifest or a package root into a list of `Resolution`s, each its
   `kind`, `location`, `manifest` and registry `row`;
   `non_event_rows(package_root)` builds the registry's non-event rows
-  from the package's sources, `write_non_event_rows(package_root)` writes
-  them into the registry file, keeping its event rows, and
-  `stale_non_event_rows(package_root)` lists where the registry's
+  from the package's sources, `write_registry(rows, path)` writes a
+  registry file in the writer's order ([The registry](#the-registry)),
+  writing beside it and then replacing it, and returns its path,
+  `write_non_event_rows(package_root)` rewrites the registry file with
+  those rows, keeping the values of its event rows, and returns its path,
+  and `stale_non_event_rows(package_root)` lists where the registry's
   non-event rows disagree with them ([Packages](#packages));
   `ELEMENT_KINDS` names the non-event kinds of manifest elements, `NON_EVENT_KINDS` those and `MatchClaim` and
   `Extraction`; `is_table_resource(resource)` says whether a
