@@ -3899,8 +3899,21 @@ however it is written: the same repository with the manifest as
 `base.tts.json`, or in YAML with `resources` in flow style and the URL
 double-quoted with an escape (`"take\x5f1.flac"`), materialises the same
 two files and gives the same finding; for every manifest and
-`package.yaml` of `fixtures/`, the files found named are exactly those
-the `url`s of its resources or tables name as `loads` reads it. A table
+`package.yaml` of `fixtures/` (228 documents naming 420 files, both
+counts exact, so a fixture added or dropped is seen), the files found
+named are exactly those the `url`s of its resources or tables name as
+`loads` reads it. Hostile YAML is read so that it names every file
+`loads` would: a top-level key `"[]"` before `resources` (which `loads`
+reads) names `a.flac`, as `loads` does; `resources: {"[]": {url: x}}`
+names nothing, as `loads` does, and raises nothing; a tag, an anchor
+with its alias, and a second document, each refused by `loads` (which
+names nothing then), name the files their resources list (`a.flac`; the
+alias adds none; both documents' `a.flac` and `b.flac`). A document that
+is no YAML (an unclosed flow sequence) or no UTF-8, or names a URL that
+cannot be parsed (`http://[x`), may name any file and is read as naming
+an unknown set; in the repository with the failing filter of the hook
+tests, such a manifest committed beside the base manifest makes staging
+`README.md` alone reach the comparison. A table
 file is read through the filters its path's attributes name, as a
 checkout writes it, and once where both states hold it unchanged: a
 filter storing the MatchClaim table as base64 text (`base64 -w0` to clean, `base64 -d` to
@@ -4018,7 +4031,18 @@ parent: in the repository with the failing filter, amending a commit that
 only added `code/align.py` with another change to it commits silently,
 while amending a commit that changed `take_1.flac` (made with
 `--no-verify`) with a change to `code/align.py` alone still reaches the
-comparison and is refused with that message. `commit-msg`
+comparison and is refused with that message. A commit taking paths
+beyond the index is judged by the paths it takes (git hands the hooks
+a temporary index): in the repository with the failing filter, `git
+commit -a -m "docs: x"` over a change to the committed `code/align.py`
+alone commits silently, and over a change to `take_1.flac` is refused
+with that message; with a change to `take_1.flac` staged, `git commit
+code/align.py -m "docs: x"` over another change to `code/align.py`
+commits silently (and leaves `take_1.flac` staged), and `git commit
+take_1.flac -m "docs: x"` is refused with that message. A message is
+compared with `UNREAD` by its start (`startswith`): what follows is
+git's own report of the failing filter, whose wording differs by git
+version and platform. `commit-msg`
 exits 0 for a message it accepts, 0 with the warning on standard error for
 a patch-level change without a type, and 1 with the error on standard
 error for an understated one, and `git commit` then makes no commit.

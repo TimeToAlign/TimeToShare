@@ -1538,17 +1538,28 @@ _YAML_PARSER = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
 """The parser a document is scanned with for the files it names: libyaml's
 where PyYAML has it."""
 
+_SEQUENCE = object()
+"""A scan's mark of an open sequence, where a mapping's frame holds a key: no
+key a text writes can equal it."""
+
+_UNNAMED = object()
+"""A scan's mark of a key that is no scalar, and so names nothing."""
+
 
 def _scanned(text: str) -> dict[str, Any]:
     """The members of a document that name files, scanned from its text.
 
     A JSON text is read by :func:`json.loads`; a YAML text is walked over
-    its parser's events and never built, keeping whether it holds
+    the events of libyaml's parser (PyYAML's own where PyYAML is built
+    without libyaml) and never built, keeping whether it holds
     ``timetoshare`` and the ``url`` of every entry of ``resources`` and
     ``tables`` (each scalar as written, whatever it would resolve to).
-    Neither reading is the format's, which ``loads`` is: they accept more
-    (an anchor, a repeated key, a number ``loads`` refuses), so a scan names
-    every file ``loads`` would have named, and at most a file more.
+    ``loads`` reads YAML with PyYAML's pure-Python loader, and the format
+    is its reading: both readings here accept more (a tag, an anchor, a
+    repeated key, a second document, a number ``loads`` refuses), so a scan
+    names every file ``loads`` would have named, and at most a file more.
+    A text either reading here refuses goes to ``loads``
+    (:func:`_named_tables`).
 
     Raises:
         ValueError: If neither reading can read the text.
@@ -1561,15 +1572,16 @@ def _scanned(text: str) -> dict[str, Any]:
             raise ValueError("the JSON text nests too deeply") from error
         return value if isinstance(value, dict) else {}
     found: dict[str, Any] = {}
-    # The open collections, the outermost first: [the key of a mapping's
-    # pending value, "" for a key that names nothing, None while a key is
-    # awaited; "[]" for a sequence], each with whether it is itself a key.
+    # The open collections of the current document, the outermost first:
+    # [the key of a mapping's pending value, _UNNAMED for a key that is no
+    # scalar, None while a key is awaited; _SEQUENCE for a sequence], each
+    # with whether it is itself a key.
     frames: list[list[Any]] = []
     try:
         for event in yaml.parse(text, Loader=_YAML_PARSER):
             if isinstance(event, yaml.MappingEndEvent | yaml.SequenceEndEvent):
                 _, was_key = frames.pop()
-                if frames and not was_key and frames[-1][0] != "[]":
+                if frames and not was_key and frames[-1][0] is not _SEQUENCE:
                     frames[-1][0] = None
                 continue
             if not isinstance(event, yaml.NodeEvent):
@@ -1578,58 +1590,57 @@ def _scanned(text: str) -> dict[str, Any]:
             is_key = parent is not None and parent[0] is None
             if is_key:
                 scalar = isinstance(event, yaml.ScalarEvent)
-                parent[0] = event.value if scalar else ""
+                parent[0] = event.value if scalar else _UNNAMED
                 if len(frames) == 1 and parent[0] == "timetoshare":
                     found["timetoshare"] = True
             else:
                 keys = [frame[0] for frame in frames]
                 if isinstance(event, yaml.ScalarEvent):
-                    if (
-                        len(keys) == 3
-                        and keys[0] in _LISTS
-                        and keys[1:]
-                        == [
-                            "[]",
-                            "url",
-                        ]
-                    ):
-                        found[keys[0]].append({"url": event.value})
+                    entries = found.get(keys[0]) if len(keys) == 3 else None
+                    if isinstance(entries, list) and keys[1:] == [_SEQUENCE, "url"]:
+                        entries.append({"url": event.value})
                 elif isinstance(event, yaml.SequenceStartEvent):
                     if len(keys) == 1 and keys[0] in _LISTS:
-                        found[keys[0]] = []
+                        found.setdefault(keys[0], [])
             if isinstance(event, yaml.CollectionStartEvent):
                 sequence = isinstance(event, yaml.SequenceStartEvent)
-                frames.append(["[]" if sequence else None, is_key])
-            elif not is_key and parent is not None and parent[0] != "[]":
+                frames.append([_SEQUENCE if sequence else None, is_key])
+            elif not is_key and parent is not None and parent[0] is not _SEQUENCE:
                 parent[0] = None
-    except yaml.YAMLError as error:
+    except (yaml.YAMLError, RecursionError) as error:
         raise ValueError(str(error)) from None
     return found
 
 
-def _named_tables(path: str, text: bytes) -> Iterator[str]:
+def _named_tables(path: str, text: bytes) -> list[str] | None:
     """The paths, inside the tree, of the files and folders (ending in ``/``)
-    a manifest's resources name, or a ``package.yaml``'s tables.
+    a manifest's resources name, or a ``package.yaml``'s tables; ``None``
+    for a text that cannot be read or a URL that cannot be parsed, since
+    such a document may name any file.
 
-    The text is scanned (:func:`_scanned`), and read by ``loads`` only where
-    the scan cannot read it.
+    The text is scanned (:func:`_scanned`), and read by ``loads`` where the
+    scan refuses it or fails in any other way; no exception escapes.
     """
     try:
-        decoded = text.decode("utf-8")
+        value: Mapping[str, Any] = _scanned(text.decode("utf-8"))
+    except Exception:
         try:
-            value: Mapping[str, Any] = _scanned(decoded)
-        except ValueError:
             value = _manifest_of(text) or {}
-    except ValueError:
-        return
+        except Exception:
+            return None
     if "timetoshare" not in value:
-        return
+        return []
     entries = value.get("tables") if _is_package(path, value) else None
+    named = []
     for entry in _listed(entries if entries is not None else value.get("resources")):
         url = entry.get("url") if isinstance(entry, Mapping) else None
-        named = _tree_path(path, url)
-        if named is not None:
-            yield named
+        try:
+            found = _tree_path(path, url)
+        except ValueError:
+            return None
+        if found is not None:
+            named.append(found)
+    return named
 
 
 def _held_files(files: Mapping[str, str], named: str) -> Iterator[str]:
@@ -1656,7 +1667,7 @@ def _documents(
     named = {
         held
         for path, text in written.items()
-        for table in _named_tables(path, text)
+        for table in _named_tables(path, text) or ()
         for held in _held_files(files, table)
         if held not in written
     }
@@ -1802,9 +1813,17 @@ def touches_data(repo: Path, old_ref: str = "HEAD") -> bool:
     manifest's resources or a ``package.yaml``'s tables name (a folder's
     files directly inside it): every file ``git_step`` reads. Which files
     are named is read from the manifest files and ``package.yaml`` files
-    alone, never from a table. Where no staged path is data, both states
-    hold the same files ``git_step`` reads, which then has nothing to
-    compare.
+    alone, never from a table; a manifest file or ``package.yaml`` that can
+    be read neither by the scan nor by ``loads``, or names a URL that cannot
+    be parsed, may name any file, so where the index holds one, every staged
+    change is data. Where no staged path is data, both states hold the same
+    files ``git_step`` reads, which then has nothing to compare: the commit
+    hooks check such a commit's message as for a change of no data (its
+    header alone: an empty subject is refused, and a warning names a type
+    that is no dataset type, a data type or ``!`` declaring a step,
+    ``remove`` without ``!`` and a ``BREAKING CHANGE`` footer), and no
+    warning about a manifest or registry the commit does not touch, such as
+    one that ``loads`` cannot read, appears.
 
     Args:
         repo: A directory inside the repository.
@@ -1831,12 +1850,11 @@ def touches_data(repo: Path, old_ref: str = "HEAD") -> bool:
     files = _files(root, None) or {}
     documents = _manifest_files(files, packages=True)
     texts = _blobs(root, set(documents.values()))
-    return any(
-        _names(named, path)
-        for document, blob in documents.items()
-        for named in _named_tables(document, texts[blob])
-        for path in paths
-    )
+    for document, blob in documents.items():
+        named = _named_tables(document, texts[blob])
+        if named is None or any(_names(n, path) for n in named for path in paths):
+            return True
+    return False
 
 
 def _held_ids(repo: Path, ref: str) -> dict[str, dict[str, str]]:

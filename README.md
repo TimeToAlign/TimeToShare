@@ -3780,9 +3780,17 @@ the amended commit in `timetoshare-amend-base` in the git directory, and
 the second compares the amended commit's parent (the empty tree for a first
 commit) with the index; `git commit --amend -m` tells the hooks no amend
 and is compared with `HEAD`. The hooks compare only when manifests, a
-`package.yaml` or files they name are staged; any other commit, such as one
-changing only `release-please-config.json`, skips the comparison and has
-only its header checked.
+`package.yaml` or files they name are staged (with `git commit -a` or
+`git commit <path>`, the paths that commit takes). Any other commit, such
+as one changing only `release-please-config.json`, skips the comparison:
+`prepare-commit-msg` writes nothing, and `commit-msg` checks the header
+alone, refusing an empty subject and warning of a type that is no dataset
+type, of a data type or `!` on a commit that changes no data, of `remove`
+without `!` and of a `BREAKING CHANGE` footer; a warning about a manifest
+or registry the commit does not touch, such as one that cannot be read,
+no longer appears then. A manifest or `package.yaml` that is no YAML or
+JSON text at all, or names a URL that cannot be parsed, may name any file,
+so while the repository holds one, every commit is compared.
 
 This repository is a pre-commit hook repository: its
 `.pre-commit-hooks.yaml` offers both hooks and two more,

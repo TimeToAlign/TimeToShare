@@ -993,3 +993,64 @@ def test_an_amend_is_judged_by_the_paths_staged_against_its_parent(
     )
     assert (done.returncode, done.stderr.startswith(UNREAD)) == (1, True)
     assert git(broken, "log", "-1", "--format=%s").stdout == "move(base): retake\n"
+
+
+def committed(repo: Path, *arguments: str) -> subprocess.CompletedProcess:
+    """``git commit --quiet`` with ``arguments`` through the installed hooks."""
+    return subprocess.run(
+        ["git", "commit", "--quiet", *arguments],
+        cwd=repo,
+        env=environment(repo.parent),
+        capture_output=True,
+        text=True,
+    )
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="git hooks run by sh")
+def test_commit_all_is_judged_by_the_paths_it_takes(broken: Path) -> None:
+    install_hooks(broken)
+    staged(broken, "code/align.py")
+    git(broken, "commit", "--quiet", "-m", "chore: add the aligner")
+    (broken / "code" / "align.py").write_text("y\n", encoding="utf-8")
+    done = committed(broken, "-a", "-m", "docs: x")
+    assert (done.returncode, done.stderr) == (0, "")
+    assert git(broken, "log", "-1", "--format=%s").stdout == "docs: x\n"
+    (broken / "take_1.flac").write_bytes(b"two")
+    done = committed(broken, "-a", "-m", "docs: y")
+    assert (done.returncode, done.stderr.startswith(UNREAD)) == (1, True)
+    assert git(broken, "log", "-1", "--format=%s").stdout == "docs: x\n"
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="git hooks run by sh")
+def test_commit_of_paths_is_judged_by_the_paths_it_takes(broken: Path) -> None:
+    install_hooks(broken)
+    staged(broken, "code/align.py")
+    git(broken, "commit", "--quiet", "-m", "chore: add the aligner")
+    (broken / "take_1.flac").write_bytes(b"two")
+    git(broken, "add", "take_1.flac")
+    (broken / "code" / "align.py").write_text("y\n", encoding="utf-8")
+    done = committed(broken, "-m", "docs: x", "code/align.py")
+    assert (done.returncode, done.stderr) == (0, "")
+    assert git(broken, "log", "-1", "--format=%s").stdout == "docs: x\n"
+    assert git(broken, "diff", "--cached", "--name-only").stdout == "take_1.flac\n"
+    done = committed(broken, "-m", "docs: y", "take_1.flac")
+    assert (done.returncode, done.stderr.startswith(UNREAD)) == (1, True)
+    assert git(broken, "log", "-1", "--format=%s").stdout == "docs: x\n"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "timetoshare: 0.2.0\nresources: [\n",
+        "timetoshare: 0.2.0\nresources:\n- {url: 'http://[x'}\n",
+    ],
+    ids=["no_yaml", "unparsed_url"],
+)
+def test_a_document_that_cannot_be_read_makes_every_change_data(
+    broken: Path, capsys: pytest.CaptureFixture, text: str
+) -> None:
+    staged(broken, "other.tts.yaml", text)
+    git(broken, "commit", "--quiet", "--no-verify", "-m", "feat(other): add")
+    staged(broken, "README.md")
+    status, err = checked(broken, "docs: x\n", capsys)
+    assert (status, err.startswith(UNREAD)) == (1, True)

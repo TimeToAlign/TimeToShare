@@ -799,18 +799,72 @@ def test_the_named_files_are_those_loads_reads() -> None:
         path
         for path in fixtures.rglob("*")
         if path.is_file()
-        and (path.name.endswith((".tts.yaml", ".tts.yml", ".tts.json")))
-        or path.name == "package.yaml"
+        and (
+            path.name.endswith((".tts.yaml", ".tts.yml", ".tts.json"))
+            or path.name == "package.yaml"
+        )
     )
-    assert len(documents) > 100
+    assert len(documents) == 228
     named = 0
     for path in documents:
         relative = path.relative_to(fixtures).as_posix()
         text = path.read_bytes()
         expected = named_by_loads(relative, text)
         named += len(expected)
-        assert sorted(_named_tables(relative, text)) == expected, relative
-    assert named > 10
+        found = _named_tables(relative, text)
+        assert (found is not None and sorted(found)) == expected, relative
+    assert named == 420
+
+
+HEADER = "timetoshare: 0.2.0\n"
+HOSTILE = {
+    "key_before_resources": (
+        HEADER + '"[]": 1\nresources:\n- {url: a.flac}\n',
+        ["a.flac"],
+    ),
+    "mapping_of_resources": (HEADER + 'resources: {"[]": {url: x}}\n', []),
+    "tag": (HEADER + "resources:\n- !take {url: !!str a.flac}\n", ["a.flac"]),
+    "anchor_and_alias": (HEADER + "resources:\n- &r {url: a.flac}\n- *r\n", ["a.flac"]),
+    "two_documents": (
+        HEADER
+        + "resources:\n- {url: a.flac}\n---\n"
+        + HEADER
+        + "resources:\n- {url: b.flac}\n",
+        ["a.flac", "b.flac"],
+    ),
+}
+"""Hostile YAML with the files the scan finds named."""
+
+
+@pytest.mark.parametrize("case", sorted(HOSTILE))
+def test_hostile_yaml_names_every_file_loads_names(case: str) -> None:
+    from timetoshare.version_step import _named_tables
+
+    text, scanned = HOSTILE[case]
+    try:
+        by_loads: list[str] | None = named_by_loads("x.tts.yaml", text.encode())
+    except ValueError:
+        by_loads = None
+    assert _named_tables("x.tts.yaml", text.encode()) == scanned
+    if case in ("key_before_resources", "mapping_of_resources"):
+        assert by_loads == scanned
+    else:
+        assert by_loads is None
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        (HEADER + "resources: [\n").encode(),
+        (HEADER + "resources:\n- {url: 'http://[x'}\n").encode(),
+        b"timetoshare: \xff\n",
+    ],
+    ids=["no_yaml", "unparsed_url", "no_utf8"],
+)
+def test_an_unreadable_document_may_name_any_file(text: bytes) -> None:
+    from timetoshare.version_step import _named_tables
+
+    assert _named_tables("x.tts.yaml", text) is None
 
 
 def counted_filter(repo: Path) -> Path:
