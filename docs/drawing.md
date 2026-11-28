@@ -915,7 +915,8 @@ how content is added to it.
 The value of a property on an element is found per property:
 
 1. Of the rules matching the element that set this property, the
-   highest-ranking sets it.
+   highest-ranking sets it (a rule whose selector names `alternate` sets
+   only the properties section 2.3 lists for it).
 2. When none sets it and the property is inherited, the element takes its
    parent's value in the tree of section 2.1.
 3. Otherwise the property's initial value applies: `stroke` `none`,
@@ -1230,15 +1231,15 @@ between them and the manifest's own `graphical` object (section 1).
 So a timeline takes the colour of its domain, dotted when discrete and
 solid when continuous (dotted: dashes and gaps as long as the stroke is
 wide); a conversion map takes the colour and pattern of the domain and
-modality it converts to; wedges and braces are black and solid, and the
+modality it converts to; wedges are black, braces solid, and the
 regions that are atomic sections are hidden (section 2.3 shows the rule
 that shows them); along each row of a regions band the braces alternate
 in tone, the first, third, … black and the second, fourth, … dark grey
 `#595959`, each label in its brace's tone and every leader light grey,
 so that where two braces touch, one ending where the next starts, the
-two ends never read as one brace's tip (the rules naming `alternate`
-outrank the rules of every region and every label by rank 4, section
-2.5); the arcs of jumps are thin, black and dotted, and
+two ends never read as one brace's tip (the two rules naming
+`alternate` outrank `{"element": "region"}` and `{"element": "label"}`
+by rank 4, section 2.5); the arcs of jumps are thin, black and dotted, and
 hidden, so that a jump shows its symbol, its fork and its stack, of
 its name and its label by default (`label-display`, section 2.5),
 alone until a rule shows its arcs (`{"select": {"element": "jump"},
