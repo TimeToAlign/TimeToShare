@@ -2237,13 +2237,13 @@ def _script() -> Any:
 
 def test_the_fixture_files_are_the_scripts() -> None:
     script = _script()
-    directory = fixture_path("manifest.yaml").parent
+    directory = fixture_path("tables.tts.yaml").parent
     assert sorted(path.name for path in directory.iterdir()) == [
         "expected.yaml",
-        "manifest.yaml",
         "match_claims.parquet",
         "parses.parquet",
         "registry.parquet",
+        "tables.tts.yaml",
     ]
     for name, table in (
         ("match_claims.parquet", script.match_claims_table()),
@@ -2251,7 +2251,7 @@ def test_the_fixture_files_are_the_scripts() -> None:
         ("parses.parquet", script.parses_table()),
     ):
         assert pq.read_table(fixture_path(name)).equals(table), name
-    manifest = fixture_path("manifest.yaml").read_text(encoding="utf-8")
+    manifest = fixture_path("tables.tts.yaml").read_text(encoding="utf-8")
     assert manifest == dumps(script.manifest(directory))
     expected = fixture_path("expected.yaml").read_text(encoding="utf-8")
     assert expected == dumps(script.EXPECTED)
@@ -2263,7 +2263,7 @@ def _events() -> list[dict[str, Any]]:
 
 
 def test_the_manifest_names_its_tables_with_their_size_and_digest() -> None:
-    manifest = loads(fixture_path("manifest.yaml").read_text(encoding="utf-8"))
+    manifest = loads(fixture_path("tables.tts.yaml").read_text(encoding="utf-8"))
     claims = pq.read_table(fixture_path("match_claims.parquet")).to_pylist()
     named = {
         "match_claims.parquet": {
@@ -2293,7 +2293,7 @@ def test_the_manifest_names_its_tables_with_their_size_and_digest() -> None:
 
 
 def test_the_fixture_tables_pass_every_check_against_their_manifest() -> None:
-    manifest = loads(fixture_path("manifest.yaml").read_text(encoding="utf-8"))
+    manifest = loads(fixture_path("tables.tts.yaml").read_text(encoding="utf-8"))
     claims = pq.read_table(fixture_path("match_claims.parquet"))
     registry = pq.read_table(fixture_path("registry.parquet"))
     parses = pq.read_table(fixture_path("parses.parquet"))
@@ -2317,11 +2317,11 @@ def test_the_registry_holds_rows_of_the_manifest_the_claims_and_the_parse() -> N
         [
             ("parses.parquet", "parse_1", "Parse"),
             *(
-                ("manifest.yaml", identifier, "Timeline")
+                ("tables.tts.yaml", identifier, "Timeline")
                 for identifier in ("clt_1", "clt_2", "cpt_1", "dpt_1")
             ),
-            ("manifest.yaml", "resource_1", "Resource"),
-            ("manifest.yaml", "resource_2", "Resource"),
+            ("tables.tts.yaml", "resource_1", "Resource"),
+            ("tables.tts.yaml", "resource_2", "Resource"),
             *(
                 ("match_claims.parquet", identifier, "MatchClaim")
                 for identifier in claims.to_pylist()

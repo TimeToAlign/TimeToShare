@@ -43,7 +43,7 @@ def summary(report: StepReport) -> dict[str, Any]:
 
 def base() -> dict[str, Any]:
     """The base manifest of the cases, as read from its file."""
-    return loads((VERSIONS / "region_added" / "old" / "base.yaml").read_text())
+    return loads((VERSIONS / "region_added" / "old" / "base.tts.yaml").read_text())
 
 
 def git_environment(home: Path) -> dict[str, str]:
@@ -144,8 +144,7 @@ def test_the_cases_cover_the_table() -> None:
 CASE_MANIFESTS = sorted(
     path
     for path in VERSIONS.rglob("*")
-    if path.suffix in (".yaml", ".json")
-    and path.name not in ("expected.yaml", "package.yaml")
+    if path.name.endswith((".tts.yaml", ".tts.json"))
 )
 PACKAGES = sorted(path.parent for path in VERSIONS.rglob("package.yaml"))
 
@@ -229,9 +228,9 @@ def test_a_float_and_a_fraction_of_another_value_differ() -> None:
     tempo(new)["offset"] = 0.1
     old = base()
     tempo(old)["offset"] = [1, 10]
-    assert manifest_step(old, new, "base.yaml") == (
+    assert manifest_step(old, new, "base.tts.yaml") == (
         Finding(
-            "edited", "minor", "base.yaml", "tempo", "ConversionMap #tempo: offset"
+            "edited", "minor", "base.tts.yaml", "tempo", "ConversionMap #tempo: offset"
         ),
     )
 
@@ -241,9 +240,9 @@ def test_two_integers_where_no_pair_stands_are_two_numbers() -> None:
     for manifest, passes in ((old, [1, 2]), (new, [2, 4])):
         (score,) = [t for t in manifest["timelines"] if t["id"] == "#score"]
         score["flow_control"][0]["ends"] = {"passes": passes}
-    assert manifest_step(old, new, "base.yaml") == (
+    assert manifest_step(old, new, "base.tts.yaml") == (
         Finding(
-            "edited", "minor", "base.yaml", "fine", "FlowControlElement #fine: ends"
+            "edited", "minor", "base.tts.yaml", "fine", "FlowControlElement #fine: ends"
         ),
     )
 
@@ -253,8 +252,8 @@ def test_meta_and_statement_literals_compare_as_written() -> None:
     new["meta"] = {"source": "first edition", "pages": 1.0}
     old = base()
     old["meta"] = {"source": "first edition", "pages": 1}
-    assert manifest_step(old, new, "base.yaml") == (
-        Finding("meta", "patch", "base.yaml", None, "the meta of the manifest"),
+    assert manifest_step(old, new, "base.tts.yaml") == (
+        Finding("meta", "patch", "base.tts.yaml", None, "the meta of the manifest"),
     )
 
 
@@ -274,16 +273,16 @@ def test_a_fixture_and_its_twin_are_one_state(path: Path) -> None:
 def test_another_format_version_is_undetermined() -> None:
     old = base()
     new = {**base(), "timetoshare": "0.1.0", "timelines": []}
-    assert manifest_step(old, new, "base.yaml") == (
+    assert manifest_step(old, new, "base.tts.yaml") == (
         Finding(
             "unsupported_version",
             "undetermined",
-            "base.yaml",
+            "base.tts.yaml",
             None,
             "a manifest declares the version '0.1.0'; this package reads 0.2.0",
         ),
     )
-    report = StepReport.of(manifest_step(old, new, "base.yaml"))
+    report = StepReport.of(manifest_step(old, new, "base.tts.yaml"))
     assert (report.step, report.undetermined, report.refused) == (
         "none",
         True,
@@ -303,13 +302,13 @@ def renamed(value: dict[str, Any], name: str) -> dict[str, Any]:
 def test_the_scope_is_one_directory(tmp_path: Path) -> None:
     for side in ("old", "new"):
         name = "Sonata" if side == "old" else "Sonata, revised"
-        write(tmp_path / side / "bpsd" / "op106.yaml", renamed(base(), name))
-        write(tmp_path / side / "bpsd" / "op110.yaml", renamed(base(), name))
+        write(tmp_path / side / "bpsd" / "op106.tts.yaml", renamed(base(), name))
+        write(tmp_path / side / "bpsd" / "op110.tts.yaml", renamed(base(), name))
     report = tree_step(tmp_path / "old", tmp_path / "new")
     assert report.scope == "bpsd"
     assert [(f.path, f.kind) for f in report.findings] == [
-        ("bpsd/op106.yaml", "label"),
-        ("bpsd/op110.yaml", "label"),
+        ("bpsd/op106.tts.yaml", "label"),
+        ("bpsd/op110.tts.yaml", "label"),
     ]
 
 
@@ -325,25 +324,41 @@ def renamed_trees(root: Path, *paths: str) -> StepReport:
 @pytest.mark.parametrize(
     ("paths", "scope"),
     [
-        (["bpsd/op106/manifest.yaml"], "op106"),
-        (["bpsd/op106/manifest.json"], "op106"),
-        (["manifest.yaml"], "manifest"),
-        (["bpsd/op106/manifest.minimal.yaml"], "manifest.minimal"),
-        (["bpsd/op106/manifest.yaml", "bpsd/op110/manifest.yaml"], "bpsd"),
-        (["bpsd/op106/manifest.yaml", "mtd/manifest.yaml"], None),
+        (["bpsd/op106.tts.yaml"], "op106"),
+        (["bpsd/op106.tts.json"], "op106"),
+        (["op106.tts.yml"], "op106"),
+        (["bpsd/op106.minimal.tts.yaml"], "op106.minimal"),
+        (["bpsd/op106.tts.yaml", "bpsd/op110.tts.yaml"], "bpsd"),
+        (["bpsd/op106.tts.yaml", "mtd/op1.tts.yaml"], None),
     ],
 )
-def test_a_file_named_manifest_takes_its_folder_s_name(
+def test_one_manifest_gives_its_name_without_tts_ext(
     tmp_path: Path, paths: list[str], scope: str | None
 ) -> None:
     assert renamed_trees(tmp_path, *paths).scope == scope
 
 
+def test_only_files_named_tts_are_manifests(tmp_path: Path) -> None:
+    old, new = tmp_path / "old", tmp_path / "new"
+    for side in (old, new):
+        write(side / "x.tts.yaml", base())
+    for name in ("package.yaml", "notes.yaml"):
+        write(old / name, base())
+    assert tree_step(old, new).findings == ()
+    for name in ("package.yaml", "notes.yaml"):
+        (new / name).write_text("timelines: [\n", encoding="utf-8")
+    assert tree_step(old, new).findings == ()
+    (new / "x.tts.yaml").unlink()
+    assert [(f.kind, f.step, f.path) for f in tree_step(old, new).findings] == [
+        ("removed_manifest", "major", "x.tts.yaml")
+    ]
+
+
 def test_no_scope_over_two_top_level_manifests(tmp_path: Path) -> None:
     for side in ("old", "new"):
         name = "Sonata" if side == "old" else "Sonata, revised"
-        write(tmp_path / side / "op106.yaml", renamed(base(), name))
-        write(tmp_path / side / "op110.yaml", renamed(base(), name))
+        write(tmp_path / side / "op106.tts.yaml", renamed(base(), name))
+        write(tmp_path / side / "op110.tts.yaml", renamed(base(), name))
     assert tree_step(tmp_path / "old", tmp_path / "new").scope is None
 
 
@@ -389,7 +404,7 @@ def table_trees(tmp_path: Path, old_rows: Any, new_rows: Any) -> StepReport:
 
     schema = pq.read_table(fixture_path("match_claims.parquet")).schema
     for side, rows in (("old", old_rows), ("new", new_rows)):
-        write(tmp_path / side / "claims.yaml", table_manifest())
+        write(tmp_path / side / "claims.tts.yaml", table_manifest())
         table = pa.Table.from_pylist(rows, schema=schema)
         pq.write_table(table, tmp_path / side / "match_claims.parquet")
     return tree_step(tmp_path / "old", tmp_path / "new")
@@ -463,7 +478,7 @@ def test_without_pyarrow_a_changed_table_is_undetermined(
         Finding(
             "changed_table",
             "undetermined",
-            "claims.yaml",
+            "claims.tts.yaml",
             "claims",
             "match_claims.parquet changed; comparing its rows needs pyarrow: pip "
             'install "timetoshare[tables]"',
@@ -474,14 +489,14 @@ def test_without_pyarrow_a_changed_table_is_undetermined(
 
 def test_a_table_of_another_type_is_undetermined(tmp_path: Path) -> None:
     for side, data in (("old", b"one"), ("new", b"two")):
-        write(tmp_path / side / "notes.yaml", table_manifest("Note", "notes.csv"))
+        write(tmp_path / side / "notes.tts.yaml", table_manifest("Note", "notes.csv"))
         (tmp_path / side / "notes.csv").write_bytes(data)
     report = tree_step(tmp_path / "old", tmp_path / "new")
     assert report.findings == (
         Finding(
             "changed_table",
             "undetermined",
-            "notes.yaml",
+            "notes.tts.yaml",
             "claims",
             "notes.csv changed; tables of the type Note are not compared",
         ),
@@ -502,7 +517,7 @@ def registry_case(tmp_path: Path, case: str) -> tuple[Path, Path]:
 def listing(root: Path, name: str, timelines: list[str]) -> None:
     """Write a manifest holding the timeline score whose Registry resource
     lists ``timelines``."""
-    manifest = loads((root / "score.yaml").read_text(encoding="utf-8"))
+    manifest = loads((root / "score.tts.yaml").read_text(encoding="utf-8"))
     manifest["resources"][0]["timelines"] = timelines
     write(root / name, manifest)
 
@@ -511,7 +526,7 @@ def test_a_row_listed_by_no_manifest_lies_at_the_package(tmp_path: Path) -> None
     pytest.importorskip("pyarrow")
     old, new = registry_case(tmp_path, "registry_row_removed")
     for root in (old, new):
-        listing(root, "score.yaml", [])
+        listing(root, "score.tts.yaml", [])
     assert tree_step(old, new).findings == (
         Finding(
             "removed_row",
@@ -527,19 +542,19 @@ def test_a_row_two_manifests_list_lies_at_both(tmp_path: Path) -> None:
     pytest.importorskip("pyarrow")
     old, new = registry_case(tmp_path, "registry_row_removed")
     for root in (old, new):
-        listing(root, "other.yaml", ["#score"])
+        listing(root, "other.tts.yaml", ["#score"])
     assert tree_step(old, new).findings == (
         Finding(
             "removed_row",
             "major",
-            "other.yaml",
+            "other.tts.yaml",
             "note_2",
             "row note_2 of registry.parquet",
         ),
         Finding(
             "removed_row",
             "major",
-            "score.yaml",
+            "score.tts.yaml",
             "note_2",
             "row note_2 of registry.parquet",
         ),
@@ -553,7 +568,7 @@ def test_a_vanished_row_names_the_parse(tmp_path: Path) -> None:
         Finding(
             "vanished_row",
             "minor",
-            "score.yaml",
+            "score.tts.yaml",
             "note_2",
             "row note_2 of registry.parquet, vanished in the parse parse_2",
         ),
@@ -612,8 +627,11 @@ def test_a_repository_without_commits_is_empty(
 ) -> None:
     repo = repository(tmp_path)
     monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
-    shutil.copy(VERSIONS / "region_added" / "old" / "base.yaml", repo / "base.yaml")
-    git(repo, "add", "base.yaml")
+    shutil.copy(
+        VERSIONS / "region_added" / "old" / "base.tts.yaml", repo / "base.tts.yaml"
+    )
+    shutil.copy(repo / "base.tts.yaml", repo / "notes.yaml")
+    git(repo, "add", "base.tts.yaml", "notes.yaml")
     assert summary(git_step("HEAD", None, repo)) == {
         "step": "minor",
         "scope": "base",
@@ -629,12 +647,12 @@ def test_two_commits_and_the_index(
     repo = repository(tmp_path)
     monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
     case = VERSIONS / "timeline_removed"
-    shutil.copy(case / "old" / "base.yaml", repo / "base.yaml")
-    git(repo, "add", "base.yaml")
+    shutil.copy(case / "old" / "base.tts.yaml", repo / "base.tts.yaml")
+    git(repo, "add", "base.tts.yaml")
     git(repo, "commit", "--quiet", "-m", "first")
-    shutil.copy(case / "new" / "base.yaml", repo / "base.yaml")
+    shutil.copy(case / "new" / "base.tts.yaml", repo / "base.tts.yaml")
     assert git_step("HEAD", None, repo).findings == ()
-    git(repo, "add", "base.yaml")
+    git(repo, "add", "base.tts.yaml")
     expected = loads((case / "expected.yaml").read_text())
     assert summary(git_step("HEAD", None, repo)) == expected
     git(repo, "commit", "--quiet", "-m", "second")
@@ -645,12 +663,12 @@ def test_two_commits_and_the_index(
 
 
 def test_a_manifest_that_no_longer_reads_is_undetermined(tmp_path: Path) -> None:
-    write(tmp_path / "old" / "base.yaml", base())
+    write(tmp_path / "old" / "base.tts.yaml", base())
     (tmp_path / "new").mkdir()
-    (tmp_path / "new" / "base.yaml").write_text("timelines: [\n", encoding="utf-8")
+    (tmp_path / "new" / "base.tts.yaml").write_text("timelines: [\n", encoding="utf-8")
     report = tree_step(tmp_path / "old", tmp_path / "new")
     assert [(f.kind, f.step, f.path, f.id) for f in report.findings] == [
-        ("unreadable_manifest", "undetermined", "base.yaml", None)
+        ("unreadable_manifest", "undetermined", "base.tts.yaml", None)
     ]
     assert report.findings[0].detail.startswith(
         "the manifest cannot be read in the later tree: "
@@ -658,7 +676,7 @@ def test_a_manifest_that_no_longer_reads_is_undetermined(tmp_path: Path) -> None
     assert (report.step, report.refused, report.undetermined) == ("none", False, True)
     reverse = tree_step(tmp_path / "new", tmp_path / "old")
     assert [(f.kind, f.step, f.path) for f in reverse.findings] == [
-        ("unreadable_manifest", "undetermined", "base.yaml")
+        ("unreadable_manifest", "undetermined", "base.tts.yaml")
     ]
     assert reverse.findings[0].detail.startswith(
         "the manifest cannot be read in the earlier tree: "
@@ -670,7 +688,9 @@ def test_only_manifests_and_their_tables_are_read_from_git(
 ) -> None:
     repo = repository(tmp_path)
     monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
-    shutil.copy(VERSIONS / "region_added" / "old" / "base.yaml", repo / "base.yaml")
+    shutil.copy(
+        VERSIONS / "region_added" / "old" / "base.tts.yaml", repo / "base.tts.yaml"
+    )
     (repo / ".gitattributes").write_text("*.yaml export-ignore\n", encoding="utf-8")
     (repo / "take_1.flac").write_bytes(b"one")
     (repo / "notes.txt").write_text("notes\n", encoding="utf-8")
@@ -690,7 +710,10 @@ def test_only_manifests_and_their_tables_are_read_from_git(
 
     monkeypatch.setattr("timetoshare.version_step.tree_step", recording)
     report = git_step("HEAD", None, repo)
-    assert written == [{"base.yaml", "take_1.flac"}, {"base.yaml", "take_1.flac"}]
+    assert written == [
+        {"base.tts.yaml", "take_1.flac"},
+        {"base.tts.yaml", "take_1.flac"},
+    ]
     assert [(f.kind, f.step, f.id) for f in report.findings] == [
         ("changed_table", "undetermined", "recording")
     ]
@@ -730,7 +753,7 @@ def test_a_table_is_read_through_the_filters_of_its_path(
     git(repo, "config", "filter.b64.clean", "base64 -w0")
     git(repo, "config", "filter.b64.smudge", "base64 -d")
     (repo / ".gitattributes").write_text("*.parquet filter=b64\n", encoding="utf-8")
-    write(repo / "claims.yaml", table_manifest())
+    write(repo / "claims.tts.yaml", table_manifest())
     rows = claim_rows()
     schema = pq.read_table(fixture_path("match_claims.parquet")).schema
     table = repo / "match_claims.parquet"
@@ -747,8 +770,8 @@ def test_a_table_is_read_through_the_filters_of_its_path(
 
 
 def tagged(repo: Path, case: str, side: str, tag: str) -> None:
-    shutil.copy(VERSIONS / case / side / "base.yaml", repo / "base.yaml")
-    git(repo, "add", "base.yaml")
+    shutil.copy(VERSIONS / case / side / "base.tts.yaml", repo / "base.tts.yaml")
+    git(repo, "add", "base.tts.yaml")
     git(repo, "commit", "--quiet", "--allow-empty", "-m", tag)
     git(repo, "tag", tag)
 
@@ -760,8 +783,10 @@ def test_history_refuses_an_id_given_again(
     monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
     tagged(repo, "timeline_removed", "old", "v1.0.0")
     tagged(repo, "timeline_removed", "new", "v2.0.0")
-    shutil.copy(VERSIONS / "timeline_removed" / "old" / "base.yaml", repo / "base.yaml")
-    git(repo, "add", "base.yaml")
+    shutil.copy(
+        VERSIONS / "timeline_removed" / "old" / "base.tts.yaml", repo / "base.tts.yaml"
+    )
+    git(repo, "add", "base.tts.yaml")
     plain = git_step("v2.0.0", None, repo)
     assert [(f.kind, f.step, f.id) for f in plain.findings] == [
         ("added", "minor", "sketch")
@@ -794,7 +819,7 @@ def test_history_refuses_an_id_of_another_type(
     without = base()
     (score,) = [t for t in without["timelines"] if t["id"] == "#score"]
     score["regions"] = [r for r in score["regions"] if r["id"] != "#region_1"]
-    write(repo / "base.yaml", without)
+    write(repo / "base.tts.yaml", without)
     git(repo, "commit", "--quiet", "-am", "v1.1.0")
     git(repo, "tag", "v1.1.0")
     tagged(repo, "id_reused", "new", "v2.0.0")
@@ -836,7 +861,7 @@ def test_the_command_checks_the_history(
     assert main(["step", "--history", "--repo", str(repo), "v2.0.0", "v2.1.0"]) == 2
     out = capsys.readouterr().out.splitlines()
     assert out[-1] == (
-        "refused\treused_id\tbase.yaml\t#sketch\t#sketch was a Timeline in v1.0.0, "
+        "refused\treused_id\tbase.tts.yaml\t#sketch\t#sketch was a Timeline in v1.0.0, "
         "is gone in v2.0.0 and is now a Timeline again"
     )
     old, new = VERSIONS / "region_added" / "old", VERSIONS / "region_added" / "new"
@@ -857,7 +882,7 @@ def test_the_command_compares_with_the_empty_tree(
     expected = [
         "step: minor",
         "scope: base",
-        "minor\tadded_manifest\tbase.yaml\t-\tthe manifest base.yaml",
+        "minor\tadded_manifest\tbase.tts.yaml\t-\tthe manifest base.tts.yaml",
     ]
     for history in ([], ["--history"]):
         assert main(["step", "--repo", str(repo), *history, "-", "HEAD"]) == 0

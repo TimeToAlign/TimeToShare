@@ -1019,7 +1019,7 @@ def stale_problems(
     paths from the root of the manifests and tables that could not be read,
     whose rows are not compared. Rows are matched by ``id`` and by
     ``location`` resolved against the package root, so that
-    ``./bach/manifest.yaml`` and ``bach/manifest.yaml`` are one location;
+    ``./bach.tts.yaml`` and ``bach.tts.yaml`` are one location;
     ``kind`` and ``timeline_id`` are compared. First the held
     rows in their order, an extra one (nothing expected there, or a
     location and ID held again; path ``["id"]``) or a differing one (path

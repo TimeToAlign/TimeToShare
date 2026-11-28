@@ -54,7 +54,7 @@ from .test_tables import (  # noqa: E402
 )
 
 COMPACT_ACTOR = "orcid:0000-0002-1825-0097"
-FIXTURE_MANIFEST = loads(fixture_path("manifest.yaml").read_text(encoding="utf-8"))
+FIXTURE_MANIFEST = loads(fixture_path("tables.tts.yaml").read_text(encoding="utf-8"))
 CONTEXT_MANIFEST = {**MANIFEST, "@context": FIXTURE_MANIFEST["@context"]}
 """The inline tables' manifest with the fixture's context, which declares
 ``orcid``, so a compact and an absolute actor are one actor."""

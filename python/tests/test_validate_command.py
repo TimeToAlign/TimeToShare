@@ -13,7 +13,7 @@ from timetoshare.cli import _parser, main
 from timetoshare.validate import data_root
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-BASE = data_root() / "fixtures" / "versions" / "region_added" / "old" / "base.yaml"
+BASE = data_root() / "fixtures" / "versions" / "region_added" / "old" / "base.tts.yaml"
 
 WITHOUT_CONTEXT = {
     "timetoshare": "0.2.0",
@@ -202,17 +202,21 @@ def test_a_text_naming_the_format_is_refused_when_unreadable(
 def test_without_arguments_every_file_under_the_directory(
     tmp_path: Path, capsys: pytest.CaptureFixture, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    written(tmp_path, "b.yml", {"timetoshare": "0.2.0"})
-    written(tmp_path, "a/base.json", base())
-    written(tmp_path, "a/plain.yaml", WITHOUT_CONTEXT)
-    written(tmp_path, ".git/refused.yaml", {"timetoshare": "0.2.0"})
+    written(tmp_path, "b.tts.yml", {"timetoshare": "0.2.0"})
+    written(tmp_path, "a/base.tts.json", base())
+    written(tmp_path, "a/plain.tts.yaml", WITHOUT_CONTEXT)
+    written(tmp_path, ".git/refused.tts.yaml", {"timetoshare": "0.2.0"})
     written(tmp_path, "notes.txt", {"timetoshare": "0.2.0"})
+    written(tmp_path, "package.yaml", {"timetoshare": "0.2.0"})
+    written(tmp_path, "a/notes.yaml", {"timetoshare": "0.2.0"})
+    written(tmp_path, "a/base.json", {"timetoshare": "0.2.0"})
     monkeypatch.chdir(tmp_path)
     assert validated(capsys) == (
         1,
         [
-            "a/plain.yaml: warning: context_absent at #: the manifest has no @context",
-            "b.yml: schema at #: 'timelines' is a required property",
+            "a/plain.tts.yaml: warning: context_absent at #: the manifest has no "
+            "@context",
+            "b.tts.yml: schema at #: 'timelines' is a required property",
         ],
         "",
     )
@@ -248,7 +252,7 @@ def test_the_hooks_of_the_repository() -> None:
             "entry": "timetoshare validate",
             "stages": ["pre-commit"],
             "always_run": None,
-            "files": r"\.(ya?ml|json)$",
+            "files": r"\.tts\.(ya?ml|json)$",
             "verbose": True,
         },
         {

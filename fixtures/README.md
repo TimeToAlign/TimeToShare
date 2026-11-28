@@ -517,7 +517,7 @@ each provenance entry gives one reified statement.
 `fixtures/tables/<version>/` holds the fixture of the table types,
 outside `fixtures/<version>/` so that no reader of the manifest fixtures
 takes it for one, a manifest alone with the tables beside it:
-`manifest.yaml`, the MatchClaim table `match_claims.parquet`, the registry
+`tables.tts.yaml`, the MatchClaim table `match_claims.parquet`, the registry
 `registry.parquet` (one file), the Parse table `parses.parquet` and
 `expected.yaml`, the AlignmentAnchors and potential MatchStamps expected
 of the MatchClaim table under seven belief filters, each a believer and
@@ -563,9 +563,9 @@ its Projection stands for: every Projection but one names one;
 `inserted_1`, an int instant at the sample 573300, names none
 (`projection_of` null). Every event row's `location` is null: a
 Projection lies in the registry alone and has no pre-parsed table. The
-registry's file holds its non-event rows first, the parse at
-`parses.parquet`, each element of the manifest at `manifest.yaml`
-and each MatchClaim at `match_claims.parquet`, sorted by location and ID,
+registry's file holds its non-event rows first, each MatchClaim at
+`match_claims.parquet`, the parse at `parses.parquet` and each element of
+the manifest at `tables.tts.yaml`, sorted by location and ID,
 then its event rows, sorted by timeline (code point), start (exact value)
 and ID, as a writer writes them. The script
 `scripts/emit_tables.py` (run from `python/` as `uv run python
@@ -582,9 +582,10 @@ version whose tag `v<version>` exists. Python's
 `fixtures/packages/<version>/` holds packages: folders with a
 `package.yaml` at their root, listing their manifests and their tables.
 `shared/` is a package of two manifests sharing their registry and their
-tables: `bach/manifest.yaml` (a score `clt_1` in quarters, a performance
-`dpt_1` in samples) and `handel/manifest.yaml` (a score `clt_2` with a
-child `clt_3` starting at the quarter 4, a performance `dpt_2`). They
+tables, both at the package root beside `package.yaml`: `bach.tts.yaml`
+(a score `clt_1` in quarters, a performance `dpt_1` in samples) and
+`handel.tts.yaml` (a score `clt_2` with a child `clt_3` starting at the
+quarter 4, a performance `dpt_2`). They
 share the registry `registry.parquet` at the package root, one file
 holding every row: first the non-event rows of both manifests' elements,
 of the MatchClaims and of the parses, sorted by location and ID,
@@ -625,7 +626,7 @@ resolutions of some IDs:
 | Case | Change |
 | --- | --- |
 | `external_location` | the content of Bach's `note_1` lies outside the package: its `location` is the absolute URI `https://example.org/events/note_1`, which the package check does not follow, and the pre-parsed tables hold no row of it; it resolves through Bach's manifest with that location |
-| `recording_resource` | Bach's manifest names a recording beside it (`Audio`, `recording.flac`, `audio/flac`), a resource naming no table, which `package.yaml` does not list; the registry holds a non-event row of the resource |
+| `recording_resource` | Bach's manifest names a recording in the folder `bach/` (`Audio`, `bach/recording.flac`, `audio/flac`), a resource naming no table, which `package.yaml` does not list; the registry holds a non-event row of the resource |
 | `timeline_in_two_manifests` | Handel's manifest holds a timeline `dpt_1`, as Bach's does, and keeps its event rows too; `dpt_1` resolves through each manifest to its own element, and through the package root to both, and Bach's `projection_1` resolves through Handel's manifest |
 | `re_parsable_event` | an onset of Bach's parse, `onset_9`, has no pre-parsed content: its `location` is null, its content re-parsable from the parse's source file; it resolves through Bach's manifest with the location `None` |
 | `external_table_entry` | `package.yaml` lists, beside the local table of notes, an external table of notes, `https://example.org/tables/notes.parquet`, which the package check does not follow; the rows read are the shared package's |
@@ -1025,13 +1026,14 @@ packages read the same files and compare their lists with them.
 `fixtures/versions/<case>/` holds the cases of the version
 step a change of a repository of manifests requires ([main
 README](../README.md#versions-of-a-dataset)): an `old/` and a `new/` tree
-of manifests and `expected.yaml`, the `step`, the `scope`, the flags
+of manifests, each file named `<name>.tts.yaml` or `<name>.tts.json` as the
+tools that look for manifests in a tree find them, and `expected.yaml`, the `step`, the `scope`, the flags
 `refused` and `undetermined`, and the `findings` as `{kind, step, id}` in
 the order the report lists them (by path, kind and ID). They are not
 versioned by schema version: a case compares two states of data, not two
 formats. Every manifest is written in canonical YAML with `dumps` (one
 with comment lines added by hand) and validates; every `new/` but four is
-one edit of the one base manifest `old/base.yaml`: a quarters score with a
+one edit of the one base manifest `old/base.tts.yaml`: a quarters score with a
 child, three regions, a LinearMap and a flow-control element, a statement
 and its provenance with a belief, two seconds takes, a sketch, a group, a
 MeasureMap, a FlowMap and the virtual timeline applying it, an audio
@@ -1082,20 +1084,20 @@ default context. There is one case per rule:
 | `id_changed` | `sketch` renamed `sketch_a`: a removal and an addition | major |
 | `id_reused` | `region_1` removed and its ID given to the timeline `sketch` | refused (and major) |
 | `minimal_to_complete` | the minimal form rewritten in the complete form | none |
-| `yaml_to_json` | `base.yaml` rewritten as pretty JSON, `base.json` | none |
+| `yaml_to_json` | `base.tts.yaml` rewritten as pretty JSON, `base.tts.json` | none |
 | `comments_only` | two comment lines added | none |
 | `numbers_respelled` | `tempo`'s `scalar` `2.0` as `2` and `offset` `[1, 2]` as `[2, 4]`, a MeasureMap row's `actual_length` `[3, 1]` as `3` | none |
-| `manifest_removed` | a second manifest file `sketches.yaml` removed | major |
+| `manifest_removed` | a second manifest file `sketches.tts.yaml` removed | major |
 | `manifest_added` | that file added | minor |
 
 The cases of tables compare packages: an `old/` and a `new/` package,
-each a `package.yaml`, the manifest `score.yaml`, a registry file of
+each a `package.yaml`, the manifest `score.tts.yaml`, a registry file of
 non-event rows and the event rows of one parse (the notes `note_1` and
 `note_2`, re-parsable from the parse's source file, and the Projection
 `proj_1`, which lies in the registry alone) and a Parse table, the
 `new/` one edit of the `old/`. Every finding lies at
 the manifest whose registry resource lists the row's timeline
-(`score.yaml`, scope `score`); the manifests validate and the non-event
+(`score.tts.yaml`, scope `score`); the manifests validate and the non-event
 rows are not stale. Their YAML files and `expected.yaml` are written by hand,
 like every other case; their Parquet files are emitted by
 `scripts/emit_versions.py` (run from `python/` as `uv run python

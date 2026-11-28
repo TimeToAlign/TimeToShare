@@ -40,7 +40,7 @@ def _cases() -> list[dict[str, Any]]:
 
 def _context() -> dict[str, Any]:
     """The fixture manifest's ``@context``, under which every case reads actors."""
-    manifest = loads(fixture_path("manifest.yaml").read_text(encoding="utf-8"))
+    manifest = loads(fixture_path("tables.tts.yaml").read_text(encoding="utf-8"))
     return manifest["@context"]
 
 

@@ -84,8 +84,8 @@ CLAIMS = pa.schema(
     ]
 )
 
-BACH = "bach/manifest.yaml"
-HANDEL = "handel/manifest.yaml"
+BACH = "bach.tts.yaml"
+HANDEL = "handel.tts.yaml"
 REGISTRY_FILE = "registry.parquet"
 
 
@@ -161,13 +161,13 @@ def bach() -> dict[str, Any]:
             {
                 "id": "registry",
                 "type": "Registry",
-                "url": "../registry.parquet",
+                "url": "registry.parquet",
                 "timelines": ["score", "movement", "shared"],
             },
             {
                 "id": "claims",
                 "type": "MatchClaim",
-                "url": "../tables/MatchClaim/",
+                "url": "tables/MatchClaim/",
                 "timelines": ["score", "shared"],
             },
         ],
@@ -231,7 +231,7 @@ def handel() -> dict[str, Any]:
             {
                 "id": "handel_registry",
                 "type": "Registry",
-                "url": "../registry.parquet",
+                "url": "registry.parquet",
                 "timelines": ["shared", "aria"],
             }
         ],
@@ -530,7 +530,7 @@ def folder_package(root: Path) -> Path:
     value["tables"][0]["url"] = "registry/"
     (root / "package.yaml").write_text(dumps(value), encoding="utf-8")
     changed = bach()
-    changed["resources"][0]["url"] = "../registry/"
+    changed["resources"][0]["url"] = "registry/"
     manifest(root, BACH, changed)
     return root
 
@@ -551,9 +551,7 @@ def test_a_registry_folder_is_refused(
     assert str(raised.value) == FOLDER
     with pytest.raises(ValueError) as raised:
         resolve(root / BACH, "score")
-    assert str(raised.value) == (
-        "the registry '../registry/' names a folder; a registry is one Parquet file"
-    )
+    assert str(raised.value) == FOLDER
     assert run(capsys, str(root)) == (1, [], f"timetoshare: {FOLDER}\n")
     assert run(capsys, "--check", str(root)) == (1, [], f"timetoshare: {FOLDER}\n")
 
@@ -661,14 +659,14 @@ def test_each_stale_row_is_one_problem(tmp_path: Path) -> None:
             8,
             ("id",),
             "the registry holds the non-event row of the ID 'pair' at "
-            "'bach/manifest.yaml', which no manifest or table holds there",
+            "'bach.tts.yaml', which no manifest or table holds there",
         ),
         PackageProblem(
             "stale_non_event_row",
             PART,
             17,
             ("timeline_id",),
-            "the non-event row of the ID 'ts_1' at 'bach/manifest.yaml' has the "
+            "the non-event row of the ID 'ts_1' at 'bach.tts.yaml' has the "
             "timeline_id 'score', not 'shared'",
         ),
         PackageProblem(
@@ -677,7 +675,7 @@ def test_each_stale_row_is_one_problem(tmp_path: Path) -> None:
             None,
             ("id",),
             "the registry lacks the non-event row of the ID 'region_9' at "
-            "'bach/manifest.yaml'",
+            "'bach.tts.yaml'",
         ),
         PackageProblem(
             "stale_non_event_row",
@@ -747,7 +745,7 @@ def _shared_copy(tmp_path: Path) -> Path:
 
 def test_an_invalid_manifests_rows_are_not_compared(tmp_path: Path) -> None:
     root = _shared_copy(tmp_path)
-    handel = root / "handel" / "manifest.yaml"
+    handel = root / HANDEL
     handel.write_text(
         handel.read_text(encoding="utf-8").replace("unit: quarters", "unit: quarter"),
         encoding="utf-8",
@@ -970,12 +968,12 @@ def test_the_check_writes_nothing(
         1,
         [
             f"{PART}: row 8: stale_non_event_row: the registry holds the non-event "
-            "row of the ID 'pair' at 'bach/manifest.yaml', which no manifest or "
+            "row of the ID 'pair' at 'bach.tts.yaml', which no manifest or "
             "table holds there",
             f"{PART}: row 17: stale_non_event_row: the non-event row of the ID "
-            "'ts_1' at 'bach/manifest.yaml' has the timeline_id 'score', not 'shared'",
+            "'ts_1' at 'bach.tts.yaml' has the timeline_id 'score', not 'shared'",
             f"{PART}: stale_non_event_row: the registry lacks the non-event row of "
-            "the ID 'region_9' at 'bach/manifest.yaml'",
+            "the ID 'region_9' at 'bach.tts.yaml'",
             f"{PART}: stale_non_event_row: the registry lacks the non-event row of "
             "the ID 'claim_3' at 'tables/MatchClaim/'",
         ],

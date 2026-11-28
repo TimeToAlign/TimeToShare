@@ -3061,7 +3061,7 @@ extraction's are without fontTools. What proves them:
 - **The fixture files are the script's.** The three Parquet files
   (`match_claims.parquet`, `parses.parquet`, `registry.parquet`) read back
   equal to the tables the script builds, and the fixture's folder holds
-  them, `expected.yaml` and `manifest.yaml` alone (no table of
+  them, `expected.yaml` and `tables.tts.yaml` alone (no table of
   Projections);
   the manifest equal to the script's manifest of the files written, and
   every table passes its check against that manifest. The manifest names
@@ -3071,9 +3071,9 @@ extraction's are without fontTools. What proves them:
   the file in bytes, its SHA-256 digest (both computed by the test from the
   file) and, in the manifest's order, exactly the timelines its rows name;
   the registry's rows name the Parse table. The registry holds 36 rows: its
-  non-event rows (the four timelines and two resources at
-  `manifest.yaml`, the eighteen MatchClaims at `match_claims.parquet`, the
-  parse at `parses.parquet`) sorted by location and ID, then the eleven
+  non-event rows (the eighteen MatchClaims at `match_claims.parquet`, the
+  parse at `parses.parquet`, the four timelines and two resources at
+  `tables.tts.yaml`) sorted by location and ID, then the eleven
   event rows, each a `Projection` of `parse_1` whose `location` is null
   and whose `projection_of` names the event it stands for, sorted by
   timeline, exact start and ID. Each Projection a MatchClaim names stands on that
@@ -3215,8 +3215,8 @@ What proves them (`test_packages.py`, needs pyarrow):
 - **`package_problems`.** The shared package has none, and neither has
   each package under `fixtures/packages/0.2.0/acceptances/`, whose
   `expected.yaml` lists no problem: `recording_resource`, the shared
-  package whose Bach manifest names a recording beside it (`Audio`,
-  `recording.flac`, `audio/flac`, for `dpt_1`), a resource naming no
+  package whose Bach manifest names a recording in the folder `bach/`
+  (`Audio`, `bach/recording.flac`, `audio/flac`, for `dpt_1`), a resource naming no
   table, which `package.yaml` does not list and the check passes over
   (the registry holds its non-event row); `timeline_in_two_manifests`, Handel's
   manifest holding `dpt_1` too and listing it in its Registry resource:
@@ -3254,7 +3254,7 @@ What proves them (`test_packages.py`, needs pyarrow):
 | `claim_across_manifests` | `claim_across_manifests` | `tables/MatchClaim/part_a.parquet`, 2, `[timeline_b_id]` |
 | `column_in_two_types` | `column_type_mismatch` | `tables/Note/`, null, `[velocity]` |
 | `version_mismatch` | `version_mismatch` | `tables/Note/part_b.parquet`, null, `[]` |
-| `resource_naming_no_table` | `unknown_table` | `bach/manifest.yaml`, null, `[resources, 2, url]` |
+| `resource_naming_no_table` | `unknown_table` | `bach.tts.yaml`, null, `[resources, 2, url]` |
 | `folder_with_size` | `folder_descriptor` | `package.yaml`, null, `[tables, 3, size]` |
 | `timeline_unlisted` | `unlisted_timeline` | `registry.parquet`, 24 and 25, `[timeline_id]` |
 | `axis_mismatch` | `axis_mismatch` | `registry.parquet`, 29, `[unit]` |
@@ -3272,7 +3272,7 @@ What proves them (`test_packages.py`, needs pyarrow):
 | `unregistered_id` | `unregistered_id` | `tables/Note/part_b.parquet`, 3, `[id]` |
 | `locator_twice` | `duplicate_locator` | `registry.parquet`, 29, `[locator]` |
 | `registry_id_twice` | `duplicate_id` | `registry.parquet`, 33, `[id]` (an onset holds `claim_1`, a MatchClaim's ID at row 9) |
-| `registry_folder` | `registry_not_a_file` | `package.yaml`, null, `[tables, 0, url]`; `bach/manifest.yaml` and `handel/manifest.yaml`, null, `[resources, 1, url]` |
+| `registry_folder` | `registry_not_a_file` | `package.yaml`, null, `[tables, 0, url]`; `bach.tts.yaml` and `handel.tts.yaml`, null, `[resources, 1, url]` |
 | `non_event_row_with_a_position` | `schema_violation` | `registry.parquet`, 0, `[unit]`, `[number_type]`, `[start]` |
 | `stale_non_event_row` | `stale_non_event_row` | `registry.parquet`, 0, `[kind]` (differing); 4, `[id]` (extra); null, `[id]` (missing) |
 | `foreign_table` | `foreign_table` | `tables/features.parquet`, null, `[]` |
@@ -3314,15 +3314,14 @@ What proves them (`test_packages.py`, needs pyarrow):
   `no manifest of the package has the timeline 'clt_9'`, `'projection_of'
   is set on a row of the kind 'Note'`, `the ID 'claim_1' is given twice,
   first in 'registry.parquet' at row 9`, the three of `registry_not_a_file`: `the
-  registry 'registry/' names a folder; a registry is one Parquet file` and
-  twice `the registry '../registry/' names a folder; a registry is one
-  Parquet file`, and the three of
+  registry 'registry/' names a folder; a registry is one Parquet file`
+  three times (`package.yaml` and both manifests write the URL alike), and the three of
   `stale_non_event_row`: `the non-event row of the ID 'clt_1' at
-  'bach/manifest.yaml' has the kind 'VirtualTimeline', not 'Timeline'`,
+  'bach.tts.yaml' has the kind 'VirtualTimeline', not 'Timeline'`,
   `the registry holds the non-event row of the ID 'region_9' at
-  'bach/manifest.yaml', which no manifest or table holds there`, `the
+  'bach.tts.yaml', which no manifest or table holds there`, `the
   registry lacks the non-event row of the ID 'group_1' at
-  'handel/manifest.yaml'`; and `foreign_table`'s, `the table
+  'handel.tts.yaml'`; and `foreign_table`'s, `the table
   'tables/features.parquet' of type 'Features' has no 'id' column: a
   package's tables hold the registry, the Parse table, MatchClaim
   tables and pre-parsed tables of events keyed by 'id'`. The case
@@ -3829,7 +3828,7 @@ an elision added, edited and removed, a named timestamp's `display`,
 and an addition), a manifest file removed and added, and an ID given to an
 element of another type (refused). Four cases prove that nothing is a
 change of the data: the minimal and the complete form of one manifest, its
-YAML rewritten as JSON (`base.yaml` to `base.json`), the same text with
+YAML rewritten as JSON (`base.tts.yaml` to `base.tts.json`), the same text with
 comment lines, and the numbers of the LinearMap and a MeasureMap row
 respelled (`2.0` as `2`, `[1, 2]` as `[2, 4]`, `[3, 1]` as `3`). Every
 manifest of the cases validates, which a test asserts file by file. Beyond
@@ -3842,12 +3841,19 @@ element type the format has.
 another format version gives the one finding `unsupported_version`,
 undetermined, and no other; the scope is the first directory when the
 findings lie in two manifests of one directory and none when they lie in
-two top-level manifests; a manifest file named `manifest.<ext>` gives its
-folder's name (`bpsd/op106/manifest.yaml` and `.json` `op106`), except at
-the top, where there is none (`manifest`), while `manifest.minimal.yaml`
-is no such name (`manifest.minimal`); two such files under one top folder
-give the top folder (`bpsd`), under two none; and the findings are sorted by path, kind and ID
-whatever order the changes were made in. Numbers by value: the LinearMap's
+two top-level manifests; one manifest file gives its name without
+`.tts.<ext>` (`bpsd/op106.tts.yaml`, `bpsd/op106.tts.json` and the
+top-level `op106.tts.yml` all `op106`, `op106.minimal.tts.yaml`
+`op106.minimal`); two manifests under one top folder give the top folder
+(`bpsd`), under two none; and the findings are sorted by path, kind and ID
+whatever order the changes were made in. **Which files are manifests.**
+`tree_step` takes as a manifest only a file named `<name>.tts.yaml`,
+`.tts.yml` or `.tts.json`: beside `x.tts.yaml`, a `package.yaml` listing no
+tables and a plain `notes.yaml`, both holding `timetoshare`, are neither
+compared nor read, so removing both from the later tree, or making them
+unreadable there, gives no finding, while the same removal of `x.tts.yaml`
+gives `removed_manifest` (that a `.tts.json` rewrite of a `.tts.yaml` is
+the same manifest is the case `yaml_to_json`). Numbers by value: the LinearMap's
 `scalar` and `offset` written `2`/`[1, 2]`, `[2, 1]`/`[2, 4]` and
 `[4, 2]`/`0.5` give no finding against `2.0`/`[1, 2]`; an offset `0.1`
 against `[1, 10]` is `edited` (a float's exact binary value); a break's
@@ -3873,7 +3879,8 @@ does not rise.
 commits equals the step between their trees, the staged change is read
 from the index (a change left unstaged is not seen), and `HEAD` in a
 repository without commits is the empty tree, so a staged manifest is
-`added_manifest`. Only manifests and the files their resources name are
+`added_manifest`; a staged `notes.yaml` holding `timetoshare` gives no
+finding. Only manifests and the files their resources name are
 read: a repository holding a manifest marked `export-ignore`, the audio
 file its resource names and an unrelated text file materialises exactly
 the manifest and the audio file on both sides, and the changed audio is
@@ -4055,25 +4062,29 @@ skipped without a line: an object without `timetoshare`, a JSON array, a
 YAML file with an anchor, a YAML file of two documents, an `mkdocs.yml`
 with a `!!python/name:` tag, a broken YAML file holding `timetoshare:` only
 nested, a broken JSON text with the key `timetoshare_version`, and bytes
-that are not UTF-8 without the key. Without arguments the command
-reads every `.yaml`, `.yml` and `.json` file under the current directory,
-sorted, subdirectories included, skipping `.git` (a refused manifest there
-prints nothing) and files of other extensions, and prints each path
-relative to that directory.
+that are not UTF-8 without the key. A file named explicitly is read
+whatever its name: every case above names files without `.tts.`
+(`plain.yaml` gives its warning). Without arguments the command reads
+every file named `<name>.tts.yaml`, `.tts.yml` or `.tts.json` under the
+current directory, sorted, subdirectories included, skipping `.git` (a
+refused manifest there prints nothing) and every other file: a refused
+manifest written to `package.yaml`, `notes.yaml` or `base.json` there
+prints nothing. It prints each path relative to that directory.
 
 **The hooks of the repository.** `.pre-commit-hooks.yaml` at the
 repository root is read and compared, hook by hook, with the hooks the
 README's configuration names (the fourth, `timetoshare-registry`, is held
 in "The registry" below): `timetoshare-commit-type`
 (`prepare-commit-msg`), `timetoshare-commit-check` (`commit-msg`) and
-`timetoshare-validate` (`pre-commit`, files `\.(ya?ml|json)$`,
+`timetoshare-validate` (`pre-commit`, files `\.tts\.(ya?ml|json)$`, so
+that `package.yaml` is not passed to it,
 `verbose: true` so that warnings show; the two others not verbose), each
 `language: python` with the one additional dependency `./python[tables]`;
 every entry, with a file name appended, parses as a subcommand of the
 command. pre-commit itself installing them from a clone needs the package
 index, so no test here does it: CI's job "Pre-commit hooks" runs
 `pre-commit try-repo . timetoshare-validate --files
-fixtures/0.2.0/bare.yaml`, which installs the root distribution and
+fixtures/tables/0.2.0/tables.tts.yaml`, which installs the root distribution and
 `./python` as a dataset repository's clone does and accepts that fixture;
 the two commit hooks are checked by hand, `pre-commit try-repo <checkout>
 <hook id> --hook-stage <stage>` in a git repository holding a manifest.
@@ -4096,8 +4107,8 @@ format declares for the registry and the Parse table (literal rows in the
 test, never through the module under
 test), so a test cannot pass by agreeing with itself.
 
-**The non-event rows.** The test package holds two manifests, `bach/manifest.yaml`
-and `handel/manifest.yaml`, both holding a timeline `shared` (the IDs of
+**The non-event rows.** The test package holds two manifests at its root,
+`bach.tts.yaml` and `handel.tts.yaml`, both holding a timeline `shared` (the IDs of
 elements repeat across manifests) and between them every kind of element:
 the manifest's own ID, a root and a child timeline, a region and a
 flow-control element on a timeline, a conversion map with a nested map, a
@@ -4135,7 +4146,7 @@ Registry`; one whose Registry entry names a folder (`registry/`) with `the
 registry 'registry/' names a folder; a registry is one Parquet file`, by
 `write_non_event_rows`, `stale_non_event_rows` and `resolve` through the
 package alike, and `resolve` through a manifest whose Registry resource
-names a folder with the same message for its URL (`../registry/`); the
+names a folder with the same message; the
 command prints it after `timetoshare: ` and exits 1.
 
 **The order of a registry file.** `write_registry` writes every row it is
@@ -4160,11 +4171,11 @@ package is empty. Then each difference gives one problem, code
 to the exact message: a region added
 to a manifest after the write (missing: row null, path `["id"]`, "the
 registry lacks the non-event row of the ID 'region_9' at
-'bach/manifest.yaml'"), a group removed (extra: its row in the part, "the
-registry holds the non-event row of the ID 'pair' at 'bach/manifest.yaml',
+'bach.tts.yaml'"), a group removed (extra: its row in the part, "the
+registry holds the non-event row of the ID 'pair' at 'bach.tts.yaml',
 which no manifest or table holds there"), a named timestamp moved to
 another timeline (differing: row 17 of the file, path `["timeline_id"]`, "the
-non-event row of the ID 'ts_1' at 'bach/manifest.yaml' has the timeline_id
+non-event row of the ID 'ts_1' at 'bach.tts.yaml' has the timeline_id
 'score', not 'shared'"), the score timeline renamed in the same change (no
 problem: the registry holds no names, so a rename leaves the rows fresh),
 and a MatchClaim added to the MatchClaim folder (missing, at the MatchClaim
@@ -4183,9 +4194,9 @@ copy whose `package.yaml` writes every URL with a leading `./`,
 `stale_non_event_rows(root)` equals the `stale_non_event_row` problems of
 `package_problems(root / "package.yaml")`, in order. The two copies give
 none: locations are compared resolved against the package root, so
-`./bach/manifest.yaml` and `bach/manifest.yaml` are one location, and an
+`./bach.tts.yaml` and `bach.tts.yaml` are one location, and an
 invalid manifest's non-event rows are not compared. `write_non_event_rows` of the copy
-with the invalid manifest keeps its non-event rows at `handel/manifest.yaml`
+with the invalid manifest keeps its non-event rows at `handel.tts.yaml`
 cell for cell, since they cannot be rebuilt, and the copy is still not
 stale.
 
@@ -4237,7 +4248,7 @@ and dependency of the other hooks; its entry parses as the command.
 
 **Version steps over the registry.** Hand-authored cases under
 `fixtures/versions/`, each an `old/` and a `new/` package (`package.yaml`,
-the manifest `score.yaml` with the quarters timeline `score` and the
+the manifest `score.tts.yaml` with the quarters timeline `score` and the
 seconds timeline `take`, the registry `registry.parquet`, a Parse table;
 the registry's event rows on `score` are the MIDI notes `note_1` and
 `note_2` and the Projection `proj_1` of the onset `onset_1` of `take`,
@@ -4255,7 +4266,7 @@ which lies in the registry alone), the
 | `projection_row_removed` | `proj_1` removed from the registry | `removed_row`, major |
 
 Every finding lies at the manifest whose Registry resource lists the
-row's timeline (`score.yaml`, scope `score`). The cases' manifests
+row's timeline (`score.tts.yaml`, scope `score`). The cases' manifests
 validate and their registries' non-event rows are not stale (`stale_non_event_rows`
 empty). Their
 other Parquet files are `scripts/emit_versions.py`'s: for each case the

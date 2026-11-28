@@ -323,7 +323,7 @@ def test_a_resource_reads_its_rows_from_a_shared_folder(
 
 def test_the_expected_reads_are_stated() -> None:
     assert _read(SHARED / "expected.yaml")["read"] == {
-        "bach/manifest.yaml": {
+        "bach.tts.yaml": {
             "resource_1": ["claim_1", "claim_2", "claim_5"],
             "resource_2": [
                 "note_1",
@@ -336,7 +336,7 @@ def test_the_expected_reads_are_stated() -> None:
                 "projection_9",
             ],
         },
-        "handel/manifest.yaml": {
+        "handel.tts.yaml": {
             "resource_1": ["claim_3", "claim_4"],
             "resource_2": [
                 "note_5",
@@ -396,8 +396,8 @@ def test_ids_keep_the_rows_of_those_ids() -> None:
     ) == [
         ("note_5", "tables/Note/"),
         ("projection_5", None),
-        ("resource_1", "bach/manifest.yaml"),
-        ("resource_1", "handel/manifest.yaml"),
+        ("resource_1", "bach.tts.yaml"),
+        ("resource_1", "handel.tts.yaml"),
     ]
     assert table.schema.metadata == {TYPE_METADATA_KEY.encode(): b"Registry"}
     both = read_table(
@@ -724,16 +724,14 @@ def test_an_external_table_entry_changes_no_read() -> None:
 
 def test_the_recording_is_the_one_change() -> None:
     directory = package_fixture_path("acceptances", "recording_resource")
-    bach = _read(directory / "bach" / "manifest.yaml")
-    assert (
-        bach["resources"][:2] == _read(SHARED / "bach" / "manifest.yaml")["resources"]
-    )
+    bach = _read(directory / "bach.tts.yaml")
+    assert bach["resources"][:2] == _read(SHARED / "bach.tts.yaml")["resources"]
     assert bach["resources"][2:] == [
         {
             "id": "#resource_3",
             "type": "Audio",
             "timelines": ["#dpt_1"],
-            "url": "recording.flac",
+            "url": "bach/recording.flac",
             "media_type": "audio/flac",
         }
     ]
@@ -743,7 +741,7 @@ def test_the_recording_is_the_one_change() -> None:
 def test_a_shared_timeline_keeps_its_event_rows_in_both_manifests() -> None:
     directory = package_fixture_path("acceptances", "timeline_in_two_manifests")
     package = ["clt_1", "dpt_1", "clt_2", "dpt_2"]
-    for name in ("bach/manifest.yaml", "handel/manifest.yaml"):
+    for name in ("bach.tts.yaml", "handel.tts.yaml"):
         manifest = with_bare_ids(_read(directory / name))
         resource = manifest["resources"][1]
         assert "dpt_1" in resource["timelines"]
@@ -758,9 +756,9 @@ def test_a_shared_timeline_keeps_its_event_rows_in_both_manifests() -> None:
     # The Projections on dpt_1 stand for Bach's notes on clt_1: read for
     # Handel without the package's timelines, they name a timeline Handel's
     # manifest lacks.
-    check_registry(table, _read(directory / "bach/manifest.yaml"))
+    check_registry(table, _read(directory / "bach.tts.yaml"))
     with pytest.raises(TableError) as error:
-        check_registry(table, _read(directory / "handel/manifest.yaml"))
+        check_registry(table, _read(directory / "handel.tts.yaml"))
     assert str(error.value) == "the manifest has no timeline 'clt_1'"
 
 
@@ -821,7 +819,7 @@ EXPECTED = {
     ],
     "version_mismatch": [("version_mismatch", "tables/Note/part_b.parquet", None, [])],
     "resource_naming_no_table": [
-        ("unknown_table", "bach/manifest.yaml", None, ["resources", 2, "url"])
+        ("unknown_table", "bach.tts.yaml", None, ["resources", 2, "url"])
     ],
     "folder_with_size": [
         ("folder_descriptor", "package.yaml", None, ["tables", 3, "size"])
@@ -860,8 +858,8 @@ EXPECTED = {
     "registry_id_twice": [("duplicate_id", "registry.parquet", 33, ["id"])],
     "registry_folder": [
         ("registry_not_a_file", "package.yaml", None, ["tables", 0, "url"]),
-        ("registry_not_a_file", "bach/manifest.yaml", None, ["resources", 1, "url"]),
-        ("registry_not_a_file", "handel/manifest.yaml", None, ["resources", 1, "url"]),
+        ("registry_not_a_file", "bach.tts.yaml", None, ["resources", 1, "url"]),
+        ("registry_not_a_file", "handel.tts.yaml", None, ["resources", 1, "url"]),
     ],
     "foreign_table": [("foreign_table", "tables/features.parquet", None, [])],
     "non_event_row_with_a_position": [
@@ -961,8 +959,8 @@ def test_the_package_check_words_its_new_rules() -> None:
         for problem in _problems(package_fixture_path("rejections", "registry_folder"))
     ] == [
         "the registry 'registry/' names a folder; a registry is one Parquet file",
-        "the registry '../registry/' names a folder; a registry is one Parquet file",
-        "the registry '../registry/' names a folder; a registry is one Parquet file",
+        "the registry 'registry/' names a folder; a registry is one Parquet file",
+        "the registry 'registry/' names a folder; a registry is one Parquet file",
     ]
     assert first("registry_id_twice") == (
         "the ID 'claim_1' is given twice, first in 'registry.parquet' at row 9"
@@ -973,12 +971,11 @@ def test_the_package_check_words_its_new_rules() -> None:
             package_fixture_path("rejections", "stale_non_event_row")
         )
     ] == [
-        "the non-event row of the ID 'clt_1' at 'bach/manifest.yaml' has the kind "
+        "the non-event row of the ID 'clt_1' at 'bach.tts.yaml' has the kind "
         "'VirtualTimeline', not 'Timeline'",
         "the registry holds the non-event row of the ID 'region_9' at "
-        "'bach/manifest.yaml', which no manifest or table holds there",
-        "the registry lacks the non-event row of the ID 'group_1' at "
-        "'handel/manifest.yaml'",
+        "'bach.tts.yaml', which no manifest or table holds there",
+        "the registry lacks the non-event row of the ID 'group_1' at 'handel.tts.yaml'",
     ]
     assert first("foreign_table") == (
         "the table 'tables/features.parquet' of type 'Features' has no 'id' column: "
@@ -1031,16 +1028,16 @@ def test_a_url_leaving_the_package_names_no_table(tmp_path: Path) -> None:
         directory,
         lambda value: value["tables"].append({"type": "Box", "url": "../outside/"}),
     )
-    bach = _read(directory / "bach" / "manifest.yaml")
+    bach = _read(directory / "bach.tts.yaml")
     bach["resources"].append(
         {
             "id": "#resource_3",
             "type": "Box",
             "timelines": ["#clt_1"],
-            "url": "../../outside/",
+            "url": "../outside/",
         }
     )
-    _write_yaml(directory / "bach" / "manifest.yaml", bach)
+    _write_yaml(directory / "bach.tts.yaml", bach)
     assert _problems(directory) == [
         {
             "code": "missing_file",
@@ -1051,17 +1048,17 @@ def test_a_url_leaving_the_package_names_no_table(tmp_path: Path) -> None:
         },
         {
             "code": "unknown_table",
-            "file": "bach/manifest.yaml",
+            "file": "bach.tts.yaml",
             "row": None,
             "path": ["resources", 2, "url"],
-            "message": "the resource 'resource_3' names '../../outside/', which is "
+            "message": "the resource 'resource_3' names '../outside/', which is "
             "no table of the type Box in the package",
         },
         _lacks("resource_3"),
     ]
 
 
-def _lacks(identifier: str, location: str = "bach/manifest.yaml") -> dict:
+def _lacks(identifier: str, location: str = "bach.tts.yaml") -> dict:
     """The missing non-event row of a manifest element added in a test."""
     return {
         "code": "stale_non_event_row",
@@ -1103,7 +1100,7 @@ def test_external_entries_and_one_leaving_the_package_are_no_local_table(
 
 def test_only_a_table_resource_names_a_table(tmp_path: Path) -> None:
     directory = _copied(tmp_path)
-    bach = _read(directory / "bach" / "manifest.yaml")
+    bach = _read(directory / "bach.tts.yaml")
     added = [
         ("Image", "#clt_1", "score.png", None),
         ("Text", "#dpt_1", "notes.txt", "text/plain"),
@@ -1122,11 +1119,11 @@ def test_only_a_table_resource_names_a_table(tmp_path: Path) -> None:
         if media_type is not None:
             resource["media_type"] = media_type
         bach["resources"].append(resource)
-    _write_yaml(directory / "bach" / "manifest.yaml", bach)
+    _write_yaml(directory / "bach.tts.yaml", bach)
     assert _problems(directory) == [
         {
             "code": "unknown_table",
-            "file": "bach/manifest.yaml",
+            "file": "bach.tts.yaml",
             "row": None,
             "path": ["resources", index, "url"],
             "message": f"the resource 'resource_{index + 1}' names '{url}', which "
@@ -1226,7 +1223,7 @@ EXTRA = {
 def test_a_manifest_of_another_version_and_an_invalid_manifest(tmp_path: Path) -> None:
     directory = _copied(tmp_path)
     _write_yaml(
-        directory / "old" / "manifest.yaml",
+        directory / "old.tts.yaml",
         with_file_ids({**EXTRA, "timetoshare": "0.1.0"}),
     )
     invalid = {
@@ -1240,24 +1237,24 @@ def test_a_manifest_of_another_version_and_an_invalid_manifest(tmp_path: Path) -
             }
         ],
     }
-    _write_yaml(directory / "invalid" / "manifest.yaml", with_file_ids(invalid))
+    _write_yaml(directory / "invalid.tts.yaml", with_file_ids(invalid))
     _listing(
         directory,
         lambda value: value["manifests"].extend(
-            [{"url": "old/manifest.yaml"}, {"url": "invalid/manifest.yaml"}]
+            [{"url": "old.tts.yaml"}, {"url": "invalid.tts.yaml"}]
         ),
     )
     assert _problems(directory) == [
         {
             "code": "version_mismatch",
-            "file": "old/manifest.yaml",
+            "file": "old.tts.yaml",
             "row": None,
             "path": ["timetoshare"],
             "message": "the manifest declares the version '0.1.0', the package '0.2.0'",
         },
         {
             "code": "resource_timeline",
-            "file": "invalid/manifest.yaml",
+            "file": "invalid.tts.yaml",
             "row": None,
             "path": ["resources", 0, "timelines", 0],
             "message": "'dlt_9' names no timeline or virtual timeline of this manifest",

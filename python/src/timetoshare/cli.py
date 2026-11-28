@@ -1,8 +1,9 @@
 """The ``timetoshare`` command: validation, the version step of a change, two hooks.
 
 ``timetoshare validate [PATH ...]`` validates manifest files: the files
-named, or every ``.yaml``, ``.yml`` and ``.json`` file under the current
-directory outside ``.git``. A file that is no manifest is skipped.
+named, whatever their names, or every file under the current directory
+outside ``.git`` whose name ends ``.tts.yaml``, ``.tts.yml`` or
+``.tts.json``. A file that is no manifest is skipped.
 
 ``timetoshare step OLD [NEW]`` prints the step a change of a repository of
 manifests requires: OLD and NEW are two directories, or two git references
@@ -69,6 +70,7 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+from ._urls import is_manifest_name
 from .commit_types import (
     _SKIPPED,
     check_message,
@@ -113,9 +115,6 @@ RELEASE_MANIFEST = ".release-please-manifest.json"
 
 NO_RELEASE = "0.0.0"
 """The version of a dataset repository before its first release."""
-
-_SERIALIZED = (".yaml", ".yml", ".json")
-"""The file extensions ``timetoshare validate`` reads without arguments."""
 
 
 def _empty_tree(repo: Path) -> str:
@@ -353,12 +352,12 @@ def file_problems(path: Path) -> tuple[list[str], list[str]] | None:
 
 
 def _found_files(root: Path) -> list[Path]:
-    """The ``.yaml``, ``.yml`` and ``.json`` files under ``root`` outside
-    ``.git``, sorted."""
+    """The files under ``root`` outside ``.git`` named like manifest files
+    (``<name>.tts.yaml``, ``.tts.yml`` or ``.tts.json``), sorted."""
     return sorted(
         file
         for file in root.rglob("*")
-        if file.suffix in _SERIALIZED
+        if is_manifest_name(file.name)
         and ".git" not in file.relative_to(root).parts
         and file.is_file()
     )
@@ -549,8 +548,8 @@ def _parser() -> argparse.ArgumentParser:
         "paths",
         metavar="PATH",
         nargs="*",
-        help="a file; none: every .yaml, .yml and .json file under the current "
-        "directory outside .git",
+        help="a file; none: every file named <name>.tts.yaml, .tts.yml or "
+        ".tts.json under the current directory outside .git",
     )
     validate.set_defaults(run=_validate)
     step = commands.add_parser("step", help="print the version step a change requires")

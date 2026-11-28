@@ -22,7 +22,7 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 def commit(repo: Path, case: str, side: str, version: str, tag: str = "") -> None:
     """Commit the base manifest of a version case and the version ``version``."""
-    shutil.copy(VERSIONS / case / side / "base.yaml", repo / "base.yaml")
+    shutil.copy(VERSIONS / case / side / "base.tts.yaml", repo / "base.tts.yaml")
     (repo / ".release-please-manifest.json").write_text(
         f'{{".": "{version}"}}\n', encoding="utf-8"
     )
@@ -43,9 +43,9 @@ def checked(
     return status, captured.out.splitlines(), captured.err
 
 
-ADDED = "minor\tadded_manifest\tbase.yaml\t-\tthe manifest base.yaml"
-REMOVED = "major\tremoved\tbase.yaml\t#sketch\tTimeline #sketch removed"
-REGION = "minor\tadded\tbase.yaml\t#region_2\tRegion #region_2 added"
+ADDED = "minor\tadded_manifest\tbase.tts.yaml\t-\tthe manifest base.tts.yaml"
+REMOVED = "major\tremoved\tbase.tts.yaml\t#sketch\tTimeline #sketch removed"
+REGION = "minor\tadded\tbase.tts.yaml\t#region_2\tRegion #region_2 added"
 
 
 def test_no_tag_and_no_version_only_reports(
@@ -160,7 +160,7 @@ def test_a_reused_id_fails_a_release(repo: Path, capsys: pytest.CaptureFixture) 
     assert (status, lines[-2:]) == (
         2,
         [
-            "refused\treused_id\tbase.yaml\t#sketch\t#sketch was a Timeline in "
+            "refused\treused_id\tbase.tts.yaml\t#sketch\t#sketch was a Timeline in "
             "v0.1.0, is gone in v0.2.0 and is now a Timeline again",
             "fails: a change is refused",
         ],
@@ -173,7 +173,7 @@ def undetermined(repo: Path, version: str) -> None:
     (repo / ".release-please-manifest.json").write_text(
         '{".": "0.1.0"}\n', encoding="utf-8"
     )
-    write(repo / "notes.yaml", table_manifest("Note", "notes.csv"))
+    write(repo / "notes.tts.yaml", table_manifest("Note", "notes.csv"))
     (repo / "notes.csv").write_bytes(b"one")
     git(repo, "add", ".")
     git(repo, "commit", "--quiet", "-m", "notes")
@@ -186,7 +186,7 @@ def undetermined(repo: Path, version: str) -> None:
 
 
 UNDETERMINED = (
-    "undetermined\tchanged_table\tnotes.yaml\t#claims\tnotes.csv changed; tables "
+    "undetermined\tchanged_table\tnotes.tts.yaml\t#claims\tnotes.csv changed; tables "
     "of the type Note are not compared"
 )
 

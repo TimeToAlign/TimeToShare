@@ -29,12 +29,12 @@
   minimum_pre_commit_version: "3.2.0"
 - id: timetoshare-validate
   name: validate the manifests
-  description: Validates every staged YAML or JSON file that is a TimeToShare manifest.
+  description: Validates every staged manifest, a file named `<name>.tts.yaml`, `.tts.yml` or `.tts.json`.
   entry: timetoshare validate
   language: python
   additional_dependencies: ["./python[tables]"]
   stages: [pre-commit]
-  files: \.(ya?ml|json)$
+  files: \.tts\.(ya?ml|json)$
   pass_filenames: true
   # Shows the warnings of an accepted manifest, which pre-commit hides otherwise.
   verbose: true

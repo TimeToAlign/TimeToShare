@@ -77,7 +77,7 @@ def test_the_trailer() -> None:
         "BREAKING CHANGE: removes #sketch"
     )
     assert suggest_trailer(report_of("manifest_removed")) == (
-        "BREAKING CHANGE: removes sketches.yaml"
+        "BREAKING CHANGE: removes sketches.tts.yaml"
     )
     assert suggest_trailer(report_of("region_added")) == ""
 
@@ -210,7 +210,7 @@ BARE_REMOVE = "remove names a removal; this commit removes nothing"
             "id_reused",
             "remove(base)!: drop the sketch\n\nBREAKING CHANGE: removes #sketch",
             [
-                "base.yaml: #region_1 was a Region and is now a Timeline; "
+                "base.tts.yaml: #region_1 was a Region and is now a Timeline; "
                 "an ID is never reused"
             ],
             [],
@@ -445,8 +445,10 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     path = tmp_path / "repo"
     path.mkdir()
     git(path, "init", "--quiet")
-    shutil.copy(VERSIONS / "region_added" / "old" / "base.yaml", path / "base.yaml")
-    git(path, "add", "base.yaml")
+    shutil.copy(
+        VERSIONS / "region_added" / "old" / "base.tts.yaml", path / "base.tts.yaml"
+    )
+    git(path, "add", "base.tts.yaml")
     git(path, "commit", "--quiet", "-m", "feat(base): add the score")
     for name, value in environment(tmp_path).items():
         monkeypatch.setenv(name, value)
@@ -456,8 +458,8 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 
 def stage(repo: Path, case: str) -> None:
-    shutil.copy(VERSIONS / case / "new" / "base.yaml", repo / "base.yaml")
-    git(repo, "add", "base.yaml")
+    shutil.copy(VERSIONS / case / "new" / "base.tts.yaml", repo / "base.tts.yaml")
+    git(repo, "add", "base.tts.yaml")
 
 
 def prepared(repo: Path, text: str, *arguments: str) -> tuple[int, str]:
@@ -820,7 +822,7 @@ def test_amending_a_root_commit_compares_with_the_empty_tree(repo: Path) -> None
         text=True,
     )
     assert done.returncode == 1
-    assert "adds or edits data (the manifest base.yaml)" in done.stderr
+    assert "adds or edits data (the manifest base.tts.yaml)" in done.stderr
     git(repo, "commit", "--amend", "--quiet", "--no-edit")
     assert git(repo, "log", "-1", "--format=%s").stdout == (
         "feat(base): add the score\n"

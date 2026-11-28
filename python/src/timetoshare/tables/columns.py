@@ -336,7 +336,7 @@ def coordinate_value(
 def fixture_path(name: str) -> Path:
     """The path of one file of the table fixture, by its name.
 
-    The fixture is a manifest (``manifest.yaml``), its MatchClaim table
+    The fixture is a manifest (``tables.tts.yaml``), its MatchClaim table
     (``match_claims.parquet``), its registry (``registry.parquet``), its
     Parse table (``parses.parquet``) and the anchors and potential
     MatchStamps expected of the MatchClaim table (``expected.yaml``).

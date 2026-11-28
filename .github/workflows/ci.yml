@@ -37,7 +37,7 @@ jobs:
       # installs it from a clone (the root setup.py, then ./python) and runs it
       # on one valid fixture.
       - name: The validate hook installs and accepts a manifest
-        run: uvx pre-commit try-repo . timetoshare-validate --files fixtures/0.2.0/bare.yaml
+        run: uvx pre-commit try-repo . timetoshare-validate --files fixtures/tables/0.2.0/tables.tts.yaml
 
   js:
     name: npm package

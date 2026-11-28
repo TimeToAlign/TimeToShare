@@ -46,7 +46,7 @@ from functools import cache
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from ._urls import PACKAGE_FILE, package_path
+from ._urls import PACKAGE_FILE, is_manifest_name, manifest_key, package_path
 from .defaults import DEFAULTS, complete
 from .ids import CONTAINERS, ID_POSITIONS, definitions_of, with_bare_ids
 from .manifest import canonical_order, fraction_pair
@@ -94,9 +94,6 @@ for _definition, _member, _holding, _child in CONTAINERS:
 _DISPLAYED = ("Timestamp", "AlignmentAnchor")
 """The elements of ``graphical`` whose ``display`` is styling."""
 
-_SERIALIZED = (".yaml", ".yml", ".json")
-"""The file extensions of manifest files."""
-
 
 @dataclass(frozen=True)
 class Finding:
@@ -131,11 +128,11 @@ class StepReport:
         findings: Every finding, sorted by path, kind and ID.
         refused: Whether a finding is refused.
         undetermined: Whether a finding could not be judged.
-        scope: Where every finding lies: the manifest file's stem when all
-            lie in one manifest file (its folder's name for a file named
-            ``manifest.<ext>``: ``op106`` for ``bpsd/op106/manifest.yaml``),
-            else the first path component when all lie under one top
-            folder (``bpsd``), else ``None``.
+        scope: Where every finding lies: the file's name without
+            ``.tts.<ext>`` when all lie in one manifest file (``op106`` for
+            ``bpsd/op106.tts.yaml``; the stem of any other file), else the
+            first path component when all lie under one top folder
+            (``bpsd``), else ``None``.
     """
 
     step: str
@@ -187,8 +184,8 @@ def _scope(findings: tuple[Finding, ...]) -> str | None:
         return None
     if len(paths) == 1:
         (path,) = paths
-        if path.stem == "manifest" and len(path.parts) > 1:
-            return path.parent.name
+        if is_manifest_name(path.name):
+            return manifest_key(path.name) or None
         return path.stem or None
     tops = {path.parts[0] for path in paths if len(path.parts) > 1}
     if len(tops) == 1 and all(len(path.parts) > 1 for path in paths):
@@ -743,19 +740,21 @@ def _manifest_of(text: bytes) -> dict[str, Any] | None:
 def _manifests(
     root: Path,
 ) -> tuple[dict[str, tuple[str, dict[str, Any]]], dict[str, tuple[str, str]]]:
-    """The manifests under a directory by their path without extension, and the
-    files there that cannot be read, with the reason."""
+    """The manifests under a directory, the files outside ``.git`` named
+    ``<name>.tts.yaml``, ``.tts.yml`` or ``.tts.json`` that hold one, by their
+    path without ``.tts.<ext>``, and the files so named that cannot be read,
+    with the reason."""
     found: dict[str, tuple[str, dict[str, Any]]] = {}
     unreadable: dict[str, tuple[str, str]] = {}
     if not root.is_dir():
         return found, unreadable
     for file in sorted(root.rglob("*")):
         relative = file.relative_to(root)
-        if ".git" in relative.parts or file.suffix not in _SERIALIZED:
+        if ".git" in relative.parts or not is_manifest_name(file.name):
             continue
         if not file.is_file():
             continue
-        key = relative.with_suffix("").as_posix()
+        key = manifest_key(relative.as_posix())
         try:
             value = _manifest_of(file.read_bytes())
         except ValueError as error:
@@ -979,14 +978,34 @@ def _package_root(path: str, packages: set[str]) -> str:
     return "" if str(folder) == "." else folder.as_posix()
 
 
+def _packages(root: Path) -> dict[str, dict[str, Any]]:
+    """The ``package.yaml`` files under a directory outside ``.git`` that list
+    tables, by their path in the tree; a file that cannot be read lists none."""
+    found: dict[str, dict[str, Any]] = {}
+    if not root.is_dir():
+        return found
+    for file in sorted(root.rglob(PACKAGE_FILE)):
+        relative = file.relative_to(root)
+        if ".git" in relative.parts or not file.is_file():
+            continue
+        try:
+            value = _manifest_of(file.read_bytes())
+        except ValueError:
+            continue
+        if value is not None and _is_package(relative.as_posix(), value):
+            found[relative.as_posix()] = value
+    return found
+
+
 def _registries(
-    documents: Mapping[str, tuple[str, dict[str, Any]]],
+    manifests: Mapping[str, tuple[str, dict[str, Any]]],
+    package_files: Mapping[str, dict[str, Any]],
 ) -> dict[str, _Registry]:
-    """The registries a tree's documents name, by their path in the tree."""
+    """The registries a tree's manifests and ``package.yaml`` files name, by
+    their path in the tree."""
     packages = {
         _package_root(path, set()): (path, value)
-        for path, value in documents.values()
-        if _is_package(path, value)
+        for path, value in package_files.items()
     }
     found: dict[str, _Registry] = {}
 
@@ -1002,9 +1021,7 @@ def _registries(
             if named is None or entry.get("type") != "Registry":
                 continue
             add(named, root, _Namer(path, None, entry["url"], None))
-    for path, value in sorted(documents.values()):
-        if _is_package(path, value):
-            continue
+    for path, value in sorted(manifests.values()):
         root = _package_root(path, set(packages))
         for resource in _listed(value.get("resources")):
             if not isinstance(resource, Mapping) or resource.get("type") != "Registry":
@@ -1200,7 +1217,8 @@ def _package_findings(
     after: Mapping[str, tuple[str, dict[str, Any]]],
 ) -> tuple[list[Finding], frozenset[str]]:
     """The findings of the registries both trees name, and their paths."""
-    old_registries, new_registries = _registries(before), _registries(after)
+    old_registries = _registries(before, _packages(old_root))
+    new_registries = _registries(after, _packages(new_root))
     findings: list[Finding] = []
     handled: set[str] = set()
     for path in sorted(old_registries.keys() & new_registries.keys()):
@@ -1276,10 +1294,12 @@ def _placed(registry: _Registry, change: _RowChange) -> list[Finding]:
 def tree_step(old_root: Path, new_root: Path) -> StepReport:
     """Compare two trees of manifests and the tables they name.
 
-    A manifest is every ``.yaml``, ``.yml`` or ``.json`` file outside ``.git``
-    that ``loads`` reads as an object holding ``timetoshare``. Manifests are
-    matched by their path without the extension, so a manifest rewritten in
-    another serialization is the same manifest. A file that is a manifest in
+    A manifest is every file outside ``.git`` named ``<name>.tts.yaml``,
+    ``<name>.tts.yml`` or ``<name>.tts.json`` that ``loads`` reads as an
+    object holding ``timetoshare``; any other file, ``package.yaml``
+    included, is none. Manifests are matched by their path without
+    ``.tts.<ext>``, so a manifest rewritten in another serialization is the
+    same manifest. A file that is a manifest in
     one tree and cannot be read in the other gives ``unreadable_manifest``,
     undetermined, never a removal or an addition. For a resource of the type
     ``MatchClaim`` in both states whose file's bytes
@@ -1446,11 +1466,16 @@ def _filtered(repo: Path, path: str, blob: str) -> bytes:
     return done.stdout
 
 
-def _manifest_files(files: Mapping[str, str]) -> dict[str, str]:
+def _manifest_files(
+    files: Mapping[str, str], *, packages: bool = False
+) -> dict[str, str]:
+    """The files of a tree named like manifest files, and with ``packages``
+    its ``package.yaml`` files too, each with its blob."""
     return {
         path: blob
         for path, blob in files.items()
-        if PurePosixPath(path).suffix in _SERIALIZED
+        if is_manifest_name(path)
+        or (packages and PurePosixPath(path).name == PACKAGE_FILE)
     }
 
 
@@ -1486,16 +1511,17 @@ def _materialise(repo: Path, ref: str | None, target: Path) -> None:
     """Write the manifests of a reference's tree, or of the index for ``None``,
     and the table files their resources name, into ``target``.
 
-    Only files ending ``.yaml``, ``.yml`` or ``.json``, the files the
-    resources of those that are manifests name (a folder's files directly
-    inside it) and the tables a ``package.yaml`` lists are read from git,
-    whatever the repository's ``export-ignore`` attributes say.
+    Only the files named ``<name>.tts.yaml``, ``.tts.yml`` or ``.tts.json``
+    and the ``package.yaml`` files, the files the resources of the manifests
+    among them name (a folder's files directly inside it) and the tables a
+    ``package.yaml`` lists are read from git, whatever the repository's
+    ``export-ignore`` attributes say.
     """
     target.mkdir(parents=True, exist_ok=True)
     files = _files(repo, ref)
     if files is None:
         return
-    manifests = _manifest_files(files)
+    manifests = _manifest_files(files, packages=True)
     texts = _blobs(repo, set(manifests.values()))
     written = {path: texts[blob] for path, blob in manifests.items()}
     named = {
@@ -1527,7 +1553,8 @@ def _write_files(
 
 def _held_ids(repo: Path, ref: str) -> dict[str, dict[str, str]]:
     """The element type of every ID each manifest of a reference's tree holds,
-    by the manifest's path without extension; unreadable manifests held none."""
+    by the manifest's path without ``.tts.<ext>``; unreadable manifests held
+    none."""
     files = _files(repo, ref) or {}
     manifests = _manifest_files(files)
     texts = _blobs(repo, set(manifests.values()))
@@ -1540,7 +1567,7 @@ def _held_ids(repo: Path, ref: str) -> dict[str, dict[str, str]]:
             found = _Elements(_prepared(manifest)).found
         except ValueError:
             continue
-        key = PurePosixPath(path).with_suffix("").as_posix()
+        key = manifest_key(path)
         held.setdefault(key, {id: e.definition for id, e in found.items()})
     return held
 
