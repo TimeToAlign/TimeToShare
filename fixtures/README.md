@@ -564,7 +564,7 @@ source file (`source` null), and the location `projections.parquet`. The
 pre-parsed Projection table holds each Projection's `projection_of`:
 every Projection but one names the event it stands for; `inserted_1`, an
 int instant at the sample 573300, names none (`projection_of` null). The
-registry's file holds its index rows first, the extraction at
+registry's file holds its non-event rows first, the extraction at
 `extractions.parquet`, each element of the manifest at `manifest.yaml`
 and each MatchClaim at `match_claims.parquet`, sorted by location and ID,
 then its event rows, sorted by timeline (code point), start (exact value)
@@ -587,8 +587,8 @@ version whose tag `v<version>` exists. Python's
 tables: `bach/manifest.yaml` (a score `clt_1` in quarters, a performance
 `dpt_1` in samples) and `handel/manifest.yaml` (a score `clt_2` with a
 child `clt_3` starting at the quarter 4, a performance `dpt_2`). They
-share the registry `registry/`, a folder of parts: `index.parquet`, the
-index rows of both manifests' elements, of the MatchClaims and of the
+share the registry `registry/`, a folder of parts: `non_events.parquet`,
+the non-event rows of both manifests' elements, of the MatchClaims and of the
 extractions, sorted by location and ID, and one part per extraction
 holding its event rows, sorted by timeline, start and ID:
 `extraction_1.parquet`, Bach's Projections, made from the source file
@@ -625,9 +625,9 @@ resolutions of some IDs:
 | Case | Change |
 | --- | --- |
 | `external_location` | the content of Bach's `projection_1` lies outside the package: its `location` is the absolute URI `https://example.org/events/projection_1`, which the package check does not follow, and the pre-parsed tables hold no row of it; it resolves through Bach's manifest with that location |
-| `recording_resource` | Bach's manifest names a recording beside it (`Audio`, `recording.flac`, `audio/flac`), a resource naming no table, which `package.yaml` does not list; the index holds the resource |
+| `recording_resource` | Bach's manifest names a recording beside it (`Audio`, `recording.flac`, `audio/flac`), a resource naming no table, which `package.yaml` does not list; the registry holds a non-event row of the resource |
 | `timeline_in_two_manifests` | Handel's manifest holds a timeline `dpt_1`, as Bach's does, and keeps its event rows too; `dpt_1` resolves through each manifest to its own element, and through the package root to both, and Bach's `projection_1` resolves through Handel's manifest |
-| `single_file_registry` | the registry is one file, `registry.parquet`, holding the index rows and the event rows of both extractions |
+| `single_file_registry` | the registry is one file, `registry.parquet`, holding the non-event rows and the event rows of both extractions |
 | `re_parsable_event` | an onset of Bach's extraction, `onset_9`, has no pre-parsed content: its `location` is null, its content re-parsable from the extraction's source file; it resolves through Bach's manifest with the location `None` |
 
 `rejections/<case>/` are the shared package with one change each, beside
@@ -659,10 +659,11 @@ order (`code`, `file` from the package's root, `row` in that file or null,
 | `unregistered_id` | a pre-parsed Projection has an ID no event row of the registry has | `unregistered_id` |
 | `locator_twice` | two event rows of Bach's extraction give the locator `row 1` | `duplicate_locator` |
 | `registry_id_twice` | an onset of Handel's has the ID `claim_1`, a MatchClaim's | `duplicate_id` |
-| `index_row_with_a_position` | an index row states a position | `schema_violation` |
-| `stale_index` | the index gives Bach's score a name it does not have and a region it does not hold, and lacks the group Handel's manifest gained | `stale_index` (three rows) |
+| `non_event_row_with_a_position` | a non-event row states a position | `schema_violation` |
+| `stale_non_event_row` | the non-event rows misstate a column of a row of Bach's manifest, hold a region it does not hold, and lack the group Handel's manifest gained | `stale_non_event_row` (three rows) |
 | `projection_of_its_own_timeline` | a pre-parsed Projection of Bach's on `dpt_1` stands for an event of `dpt_1` | `invalid_projection_of` |
 | `projection_of_no_timeline` | a pre-parsed Projection stands for an event of `clt_9`, which no manifest holds | `unknown_timeline` |
+| `foreign_table` | `package.yaml` lists a table of the type `Features` whose file holds a column `x` and no `id` | `foreign_table` |
 
 The script `scripts/emit_packages.py` (run from `python/` as `uv run
 python ../scripts/emit_packages.py`; it needs pyarrow) is their only
@@ -1086,16 +1087,17 @@ default context. There is one case per rule:
 | `manifest_added` | that file added | minor |
 
 The cases of tables compare packages: an `old/` and a `new/` package,
-each a `package.yaml`, the manifest `score.yaml`, a registry folder of an
-index part and one extraction part, an Extraction table and a pre-parsed
+each a `package.yaml`, the manifest `score.yaml`, a registry folder of a
+non-event part and one extraction part, an Extraction table and a pre-parsed
 Projection table, the `new/` one edit of the `old/`. Every finding lies at
 the manifest whose registry resource lists the row's timeline
-(`score.yaml`, scope `score`); the manifests validate and the index parts
-are not stale. Their YAML files and `expected.yaml` are written by hand,
+(`score.yaml`, scope `score`); the manifests validate and the non-event
+parts are not stale. Their YAML files and `expected.yaml` are written by hand,
 like every other case; their Parquet files are emitted by
 `scripts/emit_versions.py` (run from `python/` as `uv run python
 ../scripts/emit_versions.py`; it needs pyarrow), whose rows are literal
-data in the script, the index part of each tree written by `write_index`
+data in the script, the non-event part of each tree written by
+`write_non_event_rows`
 from the tree's manifest and tables. It rewrites a Parquet file only when
 its table changes and refuses to replace the files while the tag
 `v<version>` of the current version exists:
@@ -1106,7 +1108,7 @@ its table changes and refuses to replace the files while the tag
 | `registry_row_added` | an event `note_3` added | `added_row`, minor |
 | `registry_projection_moved` | the start of the Projection `proj_1` moved | `edited_row`, minor |
 | `registry_row_vanished` | the `vanished_in` of `note_2` set | `vanished_row`, minor |
-| `registry_index_only` | the timeline `score` renamed, its index row rewritten | `label`, patch (the manifest's finding alone) |
+| `registry_non_event_only` | the timeline `score` renamed in the manifest; its non-event row stays as it was, the registry holding no name | `label`, patch (the manifest's finding alone) |
 | `projection_row_edited` | the `projection_of` of `proj_1` edited in the pre-parsed table | `edited_row`, minor |
 | `projection_row_removed` | `proj_1` removed from the registry and the pre-parsed table | `removed_row` twice, major |
 

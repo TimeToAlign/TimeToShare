@@ -97,7 +97,7 @@ These rules apply to every contributor, human or automated.
 - `.pre-commit-hooks.yaml`: the pre-commit hooks a dataset repository
   installs from this repository (the commit type, its check,
   `timetoshare validate` and `timetoshare registry --check`, which checks
-  the registry's index against the manifests), and `setup.py`, an empty distribution at the
+  the registry's non-event rows against the manifests), and `setup.py`, an empty distribution at the
   root that exists only so that pre-commit's `pip install .` succeeds; each
   hook installs the package from `./python`.
 - `.github/workflows/`: continuous integration and the release automation,
@@ -130,8 +130,8 @@ These rules apply to every contributor, human or automated.
   written in the script, the Parquet files of the version cases of tables
   under `fixtures/versions/` only through `scripts/emit_versions.py`,
   whose rows are literal data written in the script (their YAML files and
-  `expected.yaml` are written by hand, their index parts by
-  `write_index`), and the vectors under
+  `expected.yaml` are written by hand, their non-event parts by
+  `write_non_event_rows`), and the vectors under
   `fixtures/ids/` only through `scripts/emit_id_vectors.py`; never
   hand-edit any of them.
   The manifests of flow control under `fixtures/<version>/flow/` are

@@ -1452,8 +1452,8 @@ them.
 
 A package keeps four kinds of table. The **registry** holds one row per
 ID the package can resolve: what every event has, its ID, its type, its
-timeline and its position, and an index of every other ID, so that a
-manifest URL and an ID reference anything the package holds ([The
+timeline and its position, and a non-event row for every other ID,
+saying where it lies, so that a manifest URL and an ID reference anything the package holds ([The
 registry](#the-registry)). The **Extraction table** records how events
 were taken from their source files ([The Extraction
 table](#the-extraction-table)). The **MatchClaim table** holds the
@@ -1528,9 +1528,13 @@ of an event type, are `experimental` and may change in any version.
 The **registry** of a package holds one row per ID the package can
 resolve ([Identity](#identity)). An **event row** stands for an event and
 holds what every event has, whatever its type: its ID, its type, its
-timeline, its position, its name and the extraction it came from. An
-**index row** stands for any other ID: a manifest element, a MatchClaim
-or an extraction, and says where it lies. A package has one registry,
+timeline, its position and the extraction it came from; an event's
+name, where its source gives one, is a column of its pre-parsed table
+([Pre-parsed, re-parsed and source
+files](#pre-parsed-re-parsed-and-source-files)). A **non-event row**
+stands for any other ID: a manifest element, a MatchClaim or an
+extraction, and says where it lies. A non-event row of a manifest
+element holds no name: the manifest holds it. A package has one registry,
 named in `package.yaml` by its table entry of type `Registry` and in each
 manifest by a resource of that type ([Resources](#resources)). It holds
 one row per ID and one column per property, each of the Arrow type given;
@@ -1540,16 +1544,15 @@ Null is "event row" holds a value in every event row:
 | Column | Arrow type | Null | Holds |
 | --- | --- | --- | --- |
 | `id` | string | never | the ID of the event, the element, the MatchClaim or the extraction |
-| `kind` | string | never | an event row's event type, such as `Projection` or `MidiNote`; an index row's `MatchClaim`, `Extraction` or the name of the manifest element's definition in the schema: `Manifest`, `Timeline`, `VirtualTimeline`, `Group`, `MeasureMap`, `ConversionMap`, `Region`, `FlowControlElement`, `Resource`, `FlowMap`, `Timestamp`, `MatchStamp`, `AlignmentAnchor` or `Elision`, the kinds `tables.json` lists as the registry's `index_kinds` |
-| `location` | string | allowed | where the row's content lies, a URI reference resolved against the package root (below): an element's manifest; the MatchClaim table entry holding a MatchClaim; the Extraction table entry holding an extraction; the pre-parsed table entry holding an event's content, or null where that content is only re-parsable from its extraction's source file. Never null on an index row |
-| `timeline_id` | string | event row | an event's timeline, a timeline of a manifest of the package; for the index row of a region, a flow-control element, an elision or a named timestamp the one timeline it lies on; null for every other index row |
-| `unit`, `number_type` | string | event row | the unit and the number type of the axis `start` and `duration` lie on, the axis of the root of the event's timeline; null on an index row |
-| `start` | number | event row | the event's position on the axis of the root of its timeline; null on an index row |
-| `duration` | number | allowed | the event's duration on the same axis, never negative; null for an instant and on an index row |
-| `name` | string | allowed | an event's name, the label its source gives it, which may repeat; an element's `name`; null where none is known |
-| `extraction_id` | string | event row | the ID of the extraction that made the event, a row of the Extraction table ([The Extraction table](#the-extraction-table)); null on an index row |
-| `locator` | string | allowed | where the parser found the event in its source file (below); null where it gives none and on an index row |
-| `vanished_in` | string | allowed | the ID of the extraction, an update, that no longer found the event in its source (below); null while the event is found, and on an index row |
+| `kind` | string | never | an event row's event type, such as `Projection` or `MidiNote`; a non-event row's `MatchClaim`, `Extraction` or the name of the manifest element's definition in the schema: `Manifest`, `Timeline`, `VirtualTimeline`, `Group`, `MeasureMap`, `ConversionMap`, `Region`, `FlowControlElement`, `Resource`, `FlowMap`, `Timestamp`, `MatchStamp`, `AlignmentAnchor` or `Elision`, the kinds `tables.json` lists as the registry's `non_event_kinds` |
+| `location` | string | allowed | where the row's content lies, a URI reference resolved against the package root (below): an element's manifest; the MatchClaim table entry holding a MatchClaim; the Extraction table entry holding an extraction; the pre-parsed table entry holding an event's content, or null where that content is only re-parsable from its extraction's source file. Never null on a non-event row |
+| `timeline_id` | string | event row | an event's timeline, a timeline of a manifest of the package; for the non-event row of a region, a flow-control element, an elision or a named timestamp the one timeline it lies on; null for every other non-event row |
+| `unit`, `number_type` | string | event row | the unit and the number type of the axis `start` and `duration` lie on, the axis of the root of the event's timeline; null on a non-event row |
+| `start` | number | event row | the event's position on the axis of the root of its timeline; null on a non-event row |
+| `duration` | number | allowed | the event's duration on the same axis, never negative; null for an instant and on a non-event row |
+| `extraction_id` | string | event row | the ID of the extraction that made the event, a row of the Extraction table ([The Extraction table](#the-extraction-table)); null on a non-event row |
+| `locator` | string | allowed | the parser's pointer to the event in its source file and, where the source states a key of its own for the event (an ID, a key column, a measure key), that key as part of it (below); null where the parser gives none and on a non-event row |
+| `vanished_in` | string | allowed | the ID of the extraction, an update, that no longer found the event in its source (below); null while the event is found, and on a non-event row |
 
 A **number** is `struct<numerator: int64, denominator: int64, value:
 double>`, filled as the row's `number_type` selects and never mirrored:
@@ -1589,9 +1592,13 @@ pre-parsed table of the row's `kind` lies at it. An absolute URI, one
 with a scheme such as `https://example.org/events/projection_1`, names a
 resource outside the package, which the package check does not follow.
 
-**Locators and updates.** A `locator` is opaque: the parser that made the
-row writes it, such as a MIDI track and the index of the message, an
-`xml:id` or a row of a CSV file, and only that parser reads it. Within one
+**Locators and updates.** A `locator` is the parser's pointer to the
+event in its source file, such as a MIDI track and the index of the
+message, an `xml:id` or a row of a CSV file. Where the source states a key
+of its own for the event, an ID, a key column or a measure key, the
+locator holds that key as part of it, so that an original key survives
+where it is not the event's ID. A locator is otherwise opaque text,
+written by the parser that made the row; no reader parses it. Within one
 extraction a locator is given once. An **update** runs an extraction
 again over a changed source file and records itself as a new extraction.
 It matches the events it finds to the rows of the earlier extraction by
@@ -1603,20 +1610,20 @@ dataset](#versions-of-a-dataset)), so that every ID the registry once
 held stays resolvable until then.
 
 **IDs.** An event, a MatchClaim and an extraction ID is held by one row
-among all the event rows and the index rows of MatchClaims and
-extractions (`duplicate_id`). An element ID is held once among the index
-rows of one `location`: the same element ID may stand in two manifests
+among all the event rows and the non-event rows of MatchClaims and
+extractions (`duplicate_id`). An element ID is held once among the
+non-event rows of one `location`: the same element ID may stand in two manifests
 of the package, as their identity rules allow ([Identity](#identity)), and
 resolving it through the package root gives both.
 
 **A folder of parts.** A registry is one Parquet file or a folder of
 files read as one table ([Resources](#resources)). A writer of a folder
-writes the index rows into one part, `index.parquet`, and the event rows
+writes the non-event rows into one part, `non_events.parquet`, and the event rows
 of each extraction into a part of their own, `<extraction_id>.parquet`
 (where an ID cannot name a file, a writer names the part otherwise); an
 extraction or an update then writes one file and leaves the others
 untouched. A writer sorts each event part by `timeline_id` (by code
-point), then `start` (by exact value), then `id`, and the index part by
+point), then `start` (by exact value), then `id`, and the non-event part by
 `location`, then `id`, so that a filter on a timeline or a location skips
 the row groups that hold none of it. Readers never rely on the order or
 on the names of the parts.
@@ -1701,8 +1708,8 @@ table**, a file or a folder of files that a manifest names by its
 resources of type `MatchClaim`, and it is the one place they live. Every
 MatchClaim belongs to a manifest holding both its timelines, to each of
 them where manifests share those timelines, and a MatchClaim is addressed
-by its ID alone, which the package holds once; the registry indexes it
-([The registry](#the-registry)). It holds one row per MatchClaim and one
+by its ID alone, which the package holds once; the registry holds a
+non-event row of it ([The registry](#the-registry)). It holds one row per MatchClaim and one
 column per property of a MatchClaim, each of the Arrow type given; a
 column whose Null is "never" holds a value in every row:
 
@@ -1963,18 +1970,18 @@ order, its provenance last. Every check reports a cell's first problem
 only. `check_registry`, `check_extractions`, `check_match_claims` and
 `check_projections`, with the same arguments, raise the first problem as
 a `TableError`, a `ValueError` whose `problem` is that `TableProblem`.
-Python's `INDEX_KINDS` holds the kinds of the index rows, as `tables.json`
-lists them.
+Python's `NON_EVENT_KINDS` holds the kinds of the non-event rows, as
+`tables.json` lists them.
 
-The registry, where an index row is one whose `kind` is one of the
-registry's `index_kinds` ([The registry](#the-registry)) and every other
-row an event row:
+The registry, where a non-event row is one whose `kind` is one of the
+registry's `non_event_kinds` ([The registry](#the-registry)) and every
+other row an event row:
 
 | Rule | Code | Column | Message |
 | --- | --- | --- | --- |
 | A column of the type is missing or of another type | `schema_violation` | the column, row `None` | as in the MatchClaim table |
-| `id` or `kind` is null; in an event row `timeline_id`, `unit`, `number_type`, `start` or `extraction_id`; in an index row `location` | `schema_violation` | the column | `'<name>' is null` |
-| An index row states `unit`, `number_type`, `start`, `duration`, `extraction_id`, `locator` or `vanished_in` | `schema_violation` | the column | `an index row has no '<name>'` |
+| `id` or `kind` is null; in an event row `timeline_id`, `unit`, `number_type`, `start` or `extraction_id`; in a non-event row `location` | `schema_violation` | the column | `'<name>' is null` |
+| A non-event row states `unit`, `number_type`, `start`, `duration`, `extraction_id`, `locator` or `vanished_in` | `schema_violation` | the column | `a non-event row has no '<name>'` |
 | An ID is empty, holds a control character or is a reserved string | `invalid_id` | `id` | as in the MatchClaim table |
 | An event, MatchClaim or extraction ID repeats such an ID of an earlier row | `duplicate_id` | `id` | `the ID '<id>' is given twice` |
 | A manifest element's ID repeats the ID of an earlier element row of the same `location` | `duplicate_id` | `id` | `the ID '<id>' is given twice at '<location>'` |
@@ -2264,44 +2271,45 @@ lists, a MatchClaim of a table its MatchClaim resources name, an
 extraction one of its event rows names. Through the package root every
 registry row with the ID is returned. A manifest without a resource of
 type `Registry` resolves its own elements alone, with `row` `None`, and so
-does an element the index lacks. Each registry is read with the filter of
+does an element the registry holds no non-event row of. Each registry is read with the filter of
 the ID pushed into the reader (`read_table` with `ids`), so that a lookup
 reads only the row groups that may hold the ID; an Extraction row found
 through a manifest is kept where an event row of the timelines its
 registry resource lists names it, a read of the `extraction_id` column
 alone with those `timelines` pushed into the reader.
 
-**Building the index.** The index rows of the registry follow from the
+**Building the non-event rows.** The non-event rows of the registry follow from the
 manifests, the MatchClaim tables and the Extraction table of the package:
 one row per ID of a manifest element (the manifest's own where it has
 one, and every element of [Identity](#identity)'s list, each `kind` the
 name of its definition in the schema), per MatchClaim and per extraction,
-each with the `location` and, for an element, the `timeline_id` and
-`name` [The registry](#the-registry) gives them. `timetoshare registry
+each with the `location` and, for an element, the `timeline_id`
+[The registry](#the-registry) gives them. `timetoshare registry
 [--check] [PACKAGE]`, `PACKAGE` a folder holding `package.yaml` (by
-default the current folder), rebuilds them and writes the index part of
-the registry, `index.parquet` in its folder, or, where the registry is
-one file, that file with its event rows kept; the index rows at a
+default the current folder), rebuilds them and writes the non-event part
+of the registry, `non_events.parquet` in its folder, or, where the
+registry is one file, that file with its event rows kept; the non-event rows at a
 manifest or table that could not be read cannot be rebuilt and are kept
 as they were; it writes a new file
 beside the old one and renames it into place, leaves every event part
 untouched, prints `wrote <file>` and exits 0. With `--check` it changes
-nothing; where the index differs from what it would write, it prints one
-line per `stale_index` problem (below), `<file>: row <row>: stale_index:
-<message>` (`<file>: stale_index: <message>` for a missing row), and
+nothing; where the non-event rows differ from what it would write, it
+prints one line per `stale_non_event_row` problem (below), `<file>: row
+<row>: stale_non_event_row: <message>` (`<file>: stale_non_event_row:
+<message>` for a missing row), and
 exits 1, else it prints nothing and exits 0. A folder without
 `package.yaml`, or a `package.yaml` listing no registry or two, exits 1
 with one line on standard error starting `timetoshare:`.
 
 ```console
 $ timetoshare registry --check
-registry/index.parquet: stale_index: the index lacks the ID 'region_9' at 'bach/manifest.yaml'
+registry/non_events.parquet: stale_non_event_row: the non-event rows lack the ID 'region_9' at 'bach/manifest.yaml'
 ```
  This repository's
 `.pre-commit-hooks.yaml` offers the hook `timetoshare-registry`, which
 runs `timetoshare registry --check` before every commit of a dataset
 repository ([Versions of a dataset](#versions-of-a-dataset)), so that a
-change to a manifest is committed with the index that matches it.
+change to a manifest is committed with the non-event rows that match it.
 
 **The package check.** Python's
 `timetoshare.tables.package_problems(path)`, `path` a package's
@@ -2326,24 +2334,28 @@ order:
 3. Table by table and file by file: a missing file or folder, a file an
    earlier entry of the same type reaches already, such as a file entry
    inside a listed folder (the later entry reads its other files only, so
-   that no row is read twice), a file of another type or version, and a
-   column of two Arrow types (whose rows are then not read).
+   that no row is read twice), a file of another type or version, a
+   column of two Arrow types (whose rows are then not read), and a table
+   of another type than the registry, the Extraction table and the
+   MatchClaim table that holds no `id` column of strings without a null,
+   such as a table of audio features: it is reported, never read as a
+   pre-parsed table.
 4. The rules the manifests and the tables keep together, rule by rule as
    the table below lists them, each over every row in the order of the
    entries, their files and their rows. They read the identifying
    columns of each table: `id`, `kind`, `location`, `timeline_id`,
-   `unit`, `number_type`, `name`, `extraction_id`, `locator` and
+   `unit`, `number_type`, `extraction_id`, `locator` and
    `vanished_in` of the registry (read whole once, for these columns and
    its table check), `id` of the Extraction table and of the
    pre-parsed tables, `projection_of` of the Projection table, and `id`,
-   `timeline_a_id` and `timeline_b_id` of the MatchClaim tables. The index
-   rows are compared as `timetoshare registry --check` compares them, by
+   `timeline_a_id` and `timeline_b_id` of the MatchClaim tables. The
+   non-event rows are compared as `timetoshare registry --check` compares them, by
    one function, by `location`, resolved against the package root (so
    that `./bach/manifest.yaml` and `bach/manifest.yaml` are one
-   location), and `id`: the index's extra or differing rows in its order,
+   location), and `id`: the part's extra or differing rows in its order,
    one problem per row at its first differing column, then the missing
    rows by `location` and `id`. A manifest or table that could not be read
-   gives no index row and has none compared.
+   gives no non-event row and has none compared.
 5. The table checks, each problem placed in its file and row ([Checking
    the tables](#checking-the-tables)): of the registry (its
    `axis_mismatch`, a matter of the manifests, being the package rule's),
@@ -2367,6 +2379,7 @@ order:
 | A file states another type than its entry | `table_type` | the file, `[]` | `the file holds the type <type>, its table the type <type>` |
 | A file declares another version than the package | `version_mismatch` | the file, `[]` | `the file declares the version '<version>', the package '<version>'` |
 | One column has two Arrow types in two files | `column_type_mismatch` | the folder, the column | `the column '<name>' is <type> in '<file>' and <type> in '<file>'` |
+| A table of another type than `Registry`, `Extraction` and `MatchClaim` holds no `id` column of strings without a null | `foreign_table` | the table's file or folder, `id` | `the table '<path>' of type '<type>' has no 'id' column: a package's tables hold the registry, the Extraction table, MatchClaim tables and pre-parsed tables of events keyed by 'id'` |
 | A table resource's URL names no table entry of its type, or leads outside the package | `unknown_table` | the manifest, the resource's `url` | `the resource '<id>' names '<url>', which is no table of the type <type> in the package` |
 | In the registry, an event, MatchClaim or extraction ID held by an earlier row of these, in any part, or a manifest element's ID held by an earlier row of the same `location`; an event ID held twice among the rows of the pre-parsed tables, of every type and file; a MatchClaim ID held twice among the MatchClaims | `duplicate_id` | the later row's file and row, `id` | `the ID '<id>' is given twice, first in '<file>' at row <row>` (`the ID '<id>' is given twice at '<location>', first in …` for an element, `the event ID …` in the pre-parsed tables, `the MatchClaim ID …`) |
 | An event row's timeline, or a MatchClaim's either, column by column, is null, where the file holds the column as strings | `schema_violation` | the row, the column | `'<column>' is null` |
@@ -2379,15 +2392,15 @@ order:
 | A row of a pre-parsed table has an `id` no event row of the table's type has | `unregistered_id` | that table's file and row, `id` | `no event row of the type <type> in the registry has the ID '<id>'` |
 | A pre-parsed Projection stands for an event of its own registry row's timeline | `invalid_projection_of` | the Projection table's file and row, `projection_of.timeline_id` | `a Projection stands for an event of another timeline than '<id>'` |
 | A pre-parsed Projection stands for an event of a timeline no manifest holds | `unknown_timeline` | the Projection table's file and row, `projection_of.timeline_id` | `no manifest of the package has the timeline '<id>'` |
-| An index row stands for nothing a manifest element, a MatchClaim or an extraction gives at its `location`, or repeats an earlier index row there; its `kind`, `timeline_id` or `name` differs from what they give; or a row they give is missing, one problem per row | `stale_index` | the index part, the row (`None` for a missing row), `id` for an extra or a missing row, else the differing column | `the index holds the ID '<id>' at '<location>', which no manifest or table holds there`, `the index row of the ID '<id>' at '<location>' has the <column> <value>, not <value>`, `the index lacks the ID '<id>' at '<location>'` |
+| A non-event row stands for nothing a manifest element, a MatchClaim or an extraction gives at its `location`, or repeats an earlier non-event row there; its `kind` or `timeline_id` differs from what they give; or a row they give is missing, one problem per row | `stale_non_event_row` | the non-event part, the row (`None` for a missing row), `id` for an extra or a missing row, else the differing column | `the non-event rows hold the ID '<id>' at '<location>', which no manifest or table holds there`, `the non-event row of the ID '<id>' at '<location>' has the <column> <value>, not <value>`, `the non-event rows lack the ID '<id>' at '<location>'` |
 | No manifest holds both timelines of a MatchClaim | `claim_across_manifests` | the row, `timeline_b_id` | `no manifest of the package holds both the timeline '<id>' and the timeline '<id>'` |
 
-In the message of a differing index row, each `<value>` is written as
+In the message of a differing non-event row, each `<value>` is written as
 Python's `repr` writes it: a string in single quotes, a missing value
 `None`.
 
 `fixtures/packages/0.2.0/` holds the package fixtures: `shared/`, two
-manifests sharing a registry of an index part and two extraction parts,
+manifests sharing a registry of a non-event part and two extraction parts,
 an Extraction table, a pre-parsed Projection table and a folder of
 MatchClaims, beside an `expected.yaml` naming the rows each resource
 reads and what IDs resolve to, `acceptances/<case>/`, the shared package
@@ -3350,7 +3363,7 @@ else:
   declare their columns, `REGISTRY_REQUIRED`, `EXTRACTION_REQUIRED`,
   `MATCH_CLAIM_REQUIRED` and `PROJECTION_REQUIRED` name the columns that
   hold no null, `REGISTRY_EVENT_REQUIRED` those every event row of the
-  registry fills, `INDEX_KINDS` the kinds of its index rows ([The
+  registry fills, `NON_EVENT_KINDS` the kinds of its non-event rows ([The
   registry](#the-registry)),
   `NOMATCH_SENTINEL` and `CHUNK_SENTINEL` hold the reserved strings of
   the two sentinels ([The MatchClaim table](#the-matchclaim-table)), and
@@ -3381,13 +3394,14 @@ else:
   (`table_files(path)`), keeping the rows of the timelines and the IDs
   given and the columns named, `resolve(path, id)` resolves an ID through
   a manifest or a package root into a list of `Resolution`s, each its
-  `kind`, `location`, `manifest` and registry `row`; `index_rows(package_root)`
-  builds the registry's index rows from the package's sources,
-  `write_index(package_root)` writes them into the registry's index part
-  (`INDEX_PART`, `"index.parquet"` in a registry folder) and
-  `stale_index(package_root)` lists where the part disagrees with them
-  ([Packages](#packages)); `ELEMENT_KINDS` names the index kinds of
-  manifest elements, `INDEX_KINDS` those and `MatchClaim` and
+  `kind`, `location`, `manifest` and registry `row`;
+  `non_event_rows(package_root)` builds the registry's non-event rows
+  from the package's sources, `write_non_event_rows(package_root)` writes
+  them into the registry's non-event part (`NON_EVENT_PART`,
+  `"non_events.parquet"` in a registry folder) and
+  `stale_non_event_rows(package_root)` lists where the part disagrees
+  with them ([Packages](#packages)); `ELEMENT_KINDS` names the non-event
+  kinds of manifest elements, `NON_EVENT_KINDS` those and `MatchClaim` and
   `Extraction`; `is_table_resource(resource)` says whether a
   manifest's resource names a table, and `package_problems(path)` checks a package
   whole, each problem a `PackageProblem` (`code`, `file`, `row`, `path`,
@@ -3654,7 +3668,7 @@ whose provenance differs in beliefs alone a patch. An event row whose
 `vanished_in` is newly set, an update no longer finding its event, is a
 minor step, since the row is kept ([The registry](#the-registry)); a
 Projection moved to another position is a changed cell of its registry
-row. The index rows of the registry are not compared: the manifests, the
+row. The non-event rows of the registry are not compared: the manifests, the
 MatchClaim tables and the Extraction table they follow are. Comparing
 rows needs the `tables` extra; without it, and for tables of any other
 type, a changed table is reported as undetermined.
@@ -3756,7 +3770,7 @@ This repository is a pre-commit hook repository: its
 `timetoshare-validate`, which runs `timetoshare validate` on every staged
 `.yaml`, `.yml` and `.json` file, and `timetoshare-registry`, which runs
 `timetoshare registry --check` on the package at the repository's root
-before every commit, so that the registry's index agrees with the
+before every commit, so that the registry's non-event rows agree with the
 manifests ([Packages](#packages)). pre-commit installs them by running `pip
 install .` in its clone of this repository; the root `setup.py` is an empty
 distribution, and each hook installs the package from `./python` of the
