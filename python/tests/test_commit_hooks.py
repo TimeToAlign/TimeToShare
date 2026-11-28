@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from timetoshare import Finding, StepReport, tree_step
+from timetoshare import Finding, StepReport, dumps, tree_step
 from timetoshare.cli import AMEND_BASE, main
 from timetoshare.commit_types import (
     check_message,
@@ -847,3 +847,149 @@ def test_pre_commits_source_and_commit_record_an_amend(
         "timetoshare: warning: label declares a patch step; the staged change "
         "requires none\n",
     )
+
+
+UNREAD = "timetoshare: the staged change cannot be read: "
+
+
+@pytest.fixture
+def broken(repo: Path) -> Path:
+    """The repository of the base manifest whose committed ``take_1.flac``, the
+    file the manifest's resource names, sits behind a required smudge filter
+    that fails: no comparison of the two states can read it."""
+    git(repo, "config", "filter.broken.clean", "cat")
+    git(repo, "config", "filter.broken.smudge", "false")
+    git(repo, "config", "filter.broken.required", "true")
+    (repo / ".gitattributes").write_text(
+        "take_1.flac filter=broken\n", encoding="utf-8"
+    )
+    (repo / "take_1.flac").write_bytes(b"one")
+    git(repo, "add", ".gitattributes", "take_1.flac")
+    git(repo, "commit", "--quiet", "-m", "move(base): add the recording")
+    return repo
+
+
+def staged(repo: Path, path: str, text: str = "x\n") -> None:
+    (repo / path).parent.mkdir(parents=True, exist_ok=True)
+    (repo / path).write_text(text, encoding="utf-8")
+    git(repo, "add", path)
+
+
+@pytest.mark.parametrize(
+    "path", ["README.md", "release-please-config.json", "code/align.py"]
+)
+def test_a_change_without_data_is_not_compared(
+    broken: Path, capsys: pytest.CaptureFixture, path: str
+) -> None:
+    staged(broken, path, '{"packages": {".": {}}}\n')
+    assert prepared(broken, "describe the dataset\n", "message") == (
+        0,
+        "describe the dataset\n",
+    )
+    assert prepared(broken, TEMPLATE) == (0, TEMPLATE)
+    assert capsys.readouterr().err == ""
+    assert checked(broken, "docs: describe the dataset\n", capsys) == (0, "")
+    assert checked(broken, "remove: x\n", capsys) == (
+        0,
+        f"timetoshare: warning: {BARE_REMOVE}\n",
+    )
+    assert checked(broken, "docs:\n", capsys) == (
+        1,
+        'timetoshare: error: write what the commit does after "docs: "\n',
+    )
+
+
+def test_a_change_of_data_is_compared(
+    broken: Path, capsys: pytest.CaptureFixture
+) -> None:
+    (broken / "take_1.flac").write_bytes(b"two")
+    git(broken, "add", "take_1.flac")
+    status, err = checked(broken, "docs: x\n", capsys)
+    assert (status, err.startswith(UNREAD)) == (1, True)
+    git(broken, "reset", "--quiet", "HEAD", "take_1.flac")
+    git(broken, "mv", "base.tts.yaml", "score.tts.yaml")
+    status, err = checked(broken, "docs: x\n", capsys)
+    assert (status, err.startswith(UNREAD)) == (1, True)
+
+
+def test_a_renamed_manifest_is_compared(
+    repo: Path, capsys: pytest.CaptureFixture
+) -> None:
+    git(repo, "mv", "base.tts.yaml", "score.tts.yaml")
+    assert checked(repo, "docs: rename\n", capsys) == (
+        1,
+        "timetoshare: error: this commit removes base.tts.yaml; write "
+        "remove(...)!: and a BREAKING CHANGE footer\n",
+    )
+
+
+def test_a_staged_table_a_manifest_names_is_compared(
+    repo: Path, capsys: pytest.CaptureFixture
+) -> None:
+    pq = pytest.importorskip("pyarrow.parquet")
+    from timetoshare.tables import fixture_path
+
+    table = pq.read_table(fixture_path("match_claims.parquet"))
+    (repo / "claims.tts.yaml").write_text(
+        dumps(
+            {
+                "timetoshare": "0.2.0",
+                "timelines": [{"id": "#clt_1", "unit": "quarters", "length": [8, 1]}],
+                "resources": [
+                    {
+                        "id": "#claims",
+                        "type": "MatchClaim",
+                        "timelines": ["#clt_1"],
+                        "url": "match_claims.parquet",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    pq.write_table(table, repo / "match_claims.parquet")
+    git(repo, "add", ".")
+    git(repo, "commit", "--quiet", "-m", "feat(claims): add the claims")
+    ids = table.column("id").to_pylist()
+    pq.write_table(
+        table.take([i for i, id in enumerate(ids) if id != "claim_18"]),
+        repo / "match_claims.parquet",
+    )
+    git(repo, "add", "match_claims.parquet")
+    assert checked(repo, "docs: x\n", capsys) == (
+        1,
+        "timetoshare: error: this commit removes row claim_18 of "
+        "match_claims.parquet; write remove(...)!: and a BREAKING CHANGE footer\n",
+    )
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="git hooks run by sh")
+def test_an_amend_is_judged_by_the_paths_staged_against_its_parent(
+    broken: Path,
+) -> None:
+    install_hooks(broken)
+    staged(broken, "code/align.py")
+    git(broken, "commit", "--quiet", "-m", "chore: add the aligner")
+    staged(broken, "code/align.py", "y\n")
+    done = subprocess.run(
+        ["git", "commit", "--amend", "--quiet"],
+        cwd=broken,
+        env={**environment(broken.parent), "GIT_EDITOR": editor(broken, "docs: x")},
+        capture_output=True,
+        text=True,
+    )
+    assert (done.returncode, done.stderr) == (0, "")
+    assert git(broken, "log", "-1", "--format=%s").stdout == "docs: x\n"
+    (broken / "take_1.flac").write_bytes(b"two")
+    git(broken, "add", "take_1.flac")
+    git(broken, "commit", "--quiet", "--no-verify", "-m", "move(base): retake")
+    staged(broken, "code/align.py", "z\n")
+    done = subprocess.run(
+        ["git", "commit", "--amend", "--quiet"],
+        cwd=broken,
+        env={**environment(broken.parent), "GIT_EDITOR": editor(broken, "docs: y")},
+        capture_output=True,
+        text=True,
+    )
+    assert (done.returncode, done.stderr.startswith(UNREAD)) == (1, True)
+    assert git(broken, "log", "-1", "--format=%s").stdout == "move(base): retake\n"

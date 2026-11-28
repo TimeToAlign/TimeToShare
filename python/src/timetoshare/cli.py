@@ -46,7 +46,12 @@ source ``message``, so they are printed before the editor opens) and where
 line. A ``--cleanup=`` option of ``git commit`` is invisible to the hook,
 which reads only the configuration.
 ``timetoshare hook commit-msg MSGFILE`` checks the final message against
-the staged change. Both run as git hooks directly or through pre-commit,
+the staged change. Both compare only a change that touches data: a staged
+manifest file, ``package.yaml`` or a file a manifest's resources or a
+``package.yaml``'s tables name; on any other change the first writes
+nothing and the second checks the message as for a change of no data
+(its header, and a removal or a step declared where nothing is removed or
+changed). Both run as git hooks directly or through pre-commit,
 which hands over the message file as the one file name, the source of the
 message in ``PRE_COMMIT_COMMIT_MSG_SOURCE`` and its commit in
 ``PRE_COMMIT_COMMIT_OBJECT_NAME``. When the source is ``commit`` and the
@@ -89,7 +94,7 @@ from .validate import (
     json_pointer,
     manifest_warnings,
 )
-from .version_step import StepReport, git_step, tree_step
+from .version_step import StepReport, git_step, touches_data, tree_step
 
 __all__ = ["main"]
 
@@ -484,6 +489,8 @@ def _prepare(arguments: argparse.Namespace) -> int:
         return 0
     typed = parse_header(first) is not None
     try:
+        if not touches_data(Path.cwd()):
+            return 0
         report = git_step("HEAD", None, Path.cwd())
     except ValueError as error:
         if not typed:
@@ -522,8 +529,12 @@ def _amended_parent() -> str:
 
 def _check(arguments: argparse.Namespace) -> int:
     text = Path(arguments.msgfile).read_text(encoding="utf-8")
+    base = _amended_parent()
     try:
-        report = git_step(_amended_parent(), None, Path.cwd())
+        if touches_data(Path.cwd(), base):
+            report = git_step(base, None, Path.cwd())
+        else:
+            report = StepReport.of([])
     except ValueError as error:
         message = f"timetoshare: the staged change cannot be read: {error}"
         print(message, file=sys.stderr)

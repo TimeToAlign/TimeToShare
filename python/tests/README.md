@@ -3894,12 +3894,21 @@ finding. Only manifests and the files their resources name are
 read: a repository holding a manifest marked `export-ignore`, the audio
 file its resource names and an unrelated text file materialises exactly
 the manifest and the audio file on both sides, and the changed audio is
-`changed_table`, undetermined. A table file is read through the filters
-its path's attributes name, as a checkout writes it: a filter storing the
-MatchClaim table as base64 text (`base64 -w0` to clean, `base64 -d` to
+`changed_table`, undetermined. The files a manifest names are found
+however it is written: the same repository with the manifest as
+`base.tts.json`, or in YAML with `resources` in flow style and the URL
+double-quoted with an escape (`"take\x5f1.flac"`), materialises the same
+two files and gives the same finding; for every manifest and
+`package.yaml` of `fixtures/`, the files found named are exactly those
+the `url`s of its resources or tables name as `loads` reads it. A table
+file is read through the filters its path's attributes name, as a
+checkout writes it, and once where both states hold it unchanged: a
+filter storing the MatchClaim table as base64 text (`base64 -w0` to clean, `base64 -d` to
 smudge, standing in for Git LFS's pointer) leaves a blob starting `UEFS`
 (no Parquet file), and dropping `claim_18` from the staged table still
-gives `removed_row`, major (read unfiltered, `changed_table`). **History**: with tags `v1.0.0` (the sketch
+gives `removed_row`, major (read unfiltered, `changed_table`); a smudge
+filter that counts its runs runs once for the table when only the manifest
+naming it is staged, and twice when the table itself is. **History**: with tags `v1.0.0` (the sketch
 held) and `v2.0.0` (removed), staging the sketch again gives `added`
 without `history` and `added` plus `reused_id`, refused, with it, the
 detail naming both tags; so does the commit of it. With `v1.0.0` (region
@@ -3980,7 +3989,36 @@ editor received starts with the suggestion's comment line, and the commit
 holds the subject alone. The hooks leave the message untouched and print
 nothing for an amend (source `commit`, given as an argument or by
 pre-commit's `PRE_COMMIT_COMMIT_MSG_SOURCE`), a merge and a commit with
-no change of the data. `commit-msg`
+no change of the data.
+**Only data is compared.** The hooks compare the two states only where a
+staged path, before or after, is a manifest file, a `package.yaml` or a
+file a manifest's resources or a `package.yaml`'s tables name. Proved by
+behaviour, never by watching a function: a repository whose committed
+`take_1.flac`, the file the base manifest's resource names, sits behind a
+required smudge filter that fails (`filter.broken.smudge = false`) cannot
+be compared at all, and every comparison there ends in `commit-msg`
+exiting 1 with `timetoshare: the staged change cannot be read: `. Staging
+`README.md`, `release-please-config.json` (a `.json` that is no
+manifest) or `code/align.py` there leaves `-m "describe the dataset"`
+untouched with nothing on standard error, and `commit-msg` passes `docs:
+describe the dataset` with nothing on standard error; `remove: x` passes
+with the one warning `remove names a removal; this commit removes
+nothing`, and `docs:` alone fails with the empty-subject error, as on any
+change of no data. Staging `take_1.flac` itself, or renaming
+`base.tts.yaml` to `score.tts.yaml` (`git mv`, a rename `git diff -M`
+pairs), reaches the comparison: exit 1 and that message. In a repository
+of the base manifest the same rename is compared exactly: `docs: rename`
+is refused as removing `base.tts.yaml` (`removed_manifest` with
+`added_manifest`). A staged table that a manifest names is compared:
+beside `claims.tts.yaml`, whose MatchClaim resource names
+`match_claims.parquet` (the table fixture's rows), staging the table
+without the row `claim_18` refuses `docs: x` as removing that row.
+Amends are judged by the paths staged against the amended commit's
+parent: in the repository with the failing filter, amending a commit that
+only added `code/align.py` with another change to it commits silently,
+while amending a commit that changed `take_1.flac` (made with
+`--no-verify`) with a change to `code/align.py` alone still reaches the
+comparison and is refused with that message. `commit-msg`
 exits 0 for a message it accepts, 0 with the warning on standard error for
 a patch-level change without a type, and 1 with the error on standard
 error for an understated one, and `git commit` then makes no commit.

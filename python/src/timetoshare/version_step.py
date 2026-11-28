@@ -29,7 +29,10 @@ A file that is a manifest in one state and cannot be read in the other is
 ``manifest_step`` compares two manifests, ``tree_step`` two directories and
 ``git_step`` two git references (or a reference and the staged changes). Each
 change is a :class:`Finding`; a :class:`StepReport` holds them with the step
-they require together.
+they require together. ``touches_data`` tells from the staged paths alone,
+before any comparison, whether the staged change touches a file
+``git_step`` reads: a manifest file, a ``package.yaml``, or a file one of
+them names.
 """
 
 from __future__ import annotations
@@ -46,6 +49,8 @@ from functools import cache
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+import yaml
+
 from ._urls import PACKAGE_FILE, is_manifest_name, manifest_key, package_path
 from .defaults import DEFAULTS, complete
 from .ids import CONTAINERS, ID_POSITIONS, definitions_of, with_bare_ids
@@ -59,6 +64,7 @@ __all__ = [
     "StepReport",
     "git_step",
     "manifest_step",
+    "touches_data",
     "tree_step",
 ]
 
@@ -719,6 +725,21 @@ def manifest_step(
     return tuple(sorted(comparison.findings, key=_finding_key))
 
 
+def _unchanged(manifest: Mapping[str, Any], path: str) -> tuple[Finding, ...]:
+    """``manifest_step(manifest, manifest, path)`` without the comparison,
+    which finds nothing in a manifest compared with itself: the finding of
+    another format version, or the error preparing the manifest raises.
+
+    Raises:
+        FileIdError: If an ID of the manifest is not written as one.
+        ValueError: If the manifest cannot be put in canonical order.
+    """
+    if manifest.get("timetoshare") != SCHEMA_VERSION:
+        return manifest_step(manifest, manifest, path)
+    _Elements(_prepared(manifest))
+    return ()
+
+
 # Trees ----------------------------------------------------------------------
 
 
@@ -737,8 +758,30 @@ def _manifest_of(text: bytes) -> dict[str, Any] | None:
     return value
 
 
+_Read = dict[bytes, dict[str, Any] | None | str]
+"""The documents of a comparison by their bytes: the value read, or the
+reason they cannot be read; one text is read once, whichever tree holds it."""
+
+
+def _read_once(text: bytes, read: _Read) -> dict[str, Any] | None:
+    """:func:`_manifest_of`, each text read once.
+
+    Raises:
+        ValueError: If the bytes cannot be read as JSON or YAML text.
+    """
+    if text not in read:
+        try:
+            read[text] = _manifest_of(text)
+        except ValueError as error:
+            read[text] = str(error)
+    value = read[text]
+    if isinstance(value, str):
+        raise ValueError(value)
+    return value
+
+
 def _manifests(
-    root: Path,
+    root: Path, read: _Read
 ) -> tuple[dict[str, tuple[str, dict[str, Any]]], dict[str, tuple[str, str]]]:
     """The manifests under a directory, the files outside ``.git`` named
     ``<name>.tts.yaml``, ``.tts.yml`` or ``.tts.json`` that hold one, by their
@@ -756,7 +799,7 @@ def _manifests(
             continue
         key = manifest_key(relative.as_posix())
         try:
-            value = _manifest_of(file.read_bytes())
+            value = _read_once(file.read_bytes(), read)
         except ValueError as error:
             unreadable.setdefault(key, (relative.as_posix(), str(error)))
             continue
@@ -978,7 +1021,7 @@ def _package_root(path: str, packages: set[str]) -> str:
     return "" if str(folder) == "." else folder.as_posix()
 
 
-def _packages(root: Path) -> dict[str, dict[str, Any]]:
+def _packages(root: Path, read: _Read) -> dict[str, dict[str, Any]]:
     """The ``package.yaml`` files under a directory outside ``.git`` that list
     tables, by their path in the tree; a file that cannot be read lists none."""
     found: dict[str, dict[str, Any]] = {}
@@ -989,7 +1032,7 @@ def _packages(root: Path) -> dict[str, dict[str, Any]]:
         if ".git" in relative.parts or not file.is_file():
             continue
         try:
-            value = _manifest_of(file.read_bytes())
+            value = _read_once(file.read_bytes(), read)
         except ValueError:
             continue
         if value is not None and _is_package(relative.as_posix(), value):
@@ -1215,10 +1258,12 @@ def _package_findings(
     new_root: Path,
     before: Mapping[str, tuple[str, dict[str, Any]]],
     after: Mapping[str, tuple[str, dict[str, Any]]],
+    read: _Read,
 ) -> tuple[list[Finding], frozenset[str]]:
-    """The findings of the registries both trees name, and their paths."""
-    old_registries = _registries(before, _packages(old_root))
-    new_registries = _registries(after, _packages(new_root))
+    """The findings of the registries both trees name, and their paths; a
+    registry of the same bytes in both is read once."""
+    old_registries = _registries(before, _packages(old_root, read))
+    new_registries = _registries(after, _packages(new_root, read))
     findings: list[Finding] = []
     handled: set[str] = set()
     for path in sorted(old_registries.keys() & new_registries.keys()):
@@ -1248,7 +1293,8 @@ def _package_findings(
 
         try:
             old_rows = _registry_table(old_root, path)
-            new_rows = _registry_table(new_root, path)
+            if registry_changed:
+                new_rows = _registry_table(new_root, path)
         except (OSError, ValueError, KeyError, pa.ArrowException) as error:
             findings.append(
                 _undetermined(
@@ -1326,11 +1372,12 @@ def tree_step(old_root: Path, new_root: Path) -> StepReport:
         new_root: The directory of the later state.
     """
     old_root, new_root = Path(old_root), Path(new_root)
+    read: _Read = {}
     (before, old_unreadable), (after, new_unreadable) = (
-        _manifests(old_root),
-        _manifests(new_root),
+        _manifests(old_root, read),
+        _manifests(new_root, read),
     )
-    findings, handled = _package_findings(old_root, new_root, before, after)
+    findings, handled = _package_findings(old_root, new_root, before, after, read)
     for key in sorted(before.keys() | after.keys()):
         for side, held, unreadable in (
             ("later", after, new_unreadable),
@@ -1365,7 +1412,12 @@ def tree_step(old_root: Path, new_root: Path) -> StepReport:
             continue
         (old_path, old), (new_path, new) = before[key], after[key]
         try:
-            found = manifest_step(old, new, new_path)
+            # One text in both trees is one value read once: compared with
+            # itself it differs nowhere, and only what can refuse it is run.
+            if old is new:
+                found = _unchanged(old, new_path)
+            else:
+                found = manifest_step(old, new, new_path)
         except ValueError as error:
             found = (
                 Finding(
@@ -1479,14 +1531,99 @@ def _manifest_files(
     }
 
 
+_LISTS = ("resources", "tables")
+"""The members of a document whose entries name files by their ``url``."""
+
+_YAML_PARSER = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+"""The parser a document is scanned with for the files it names: libyaml's
+where PyYAML has it."""
+
+
+def _scanned(text: str) -> dict[str, Any]:
+    """The members of a document that name files, scanned from its text.
+
+    A JSON text is read by :func:`json.loads`; a YAML text is walked over
+    its parser's events and never built, keeping whether it holds
+    ``timetoshare`` and the ``url`` of every entry of ``resources`` and
+    ``tables`` (each scalar as written, whatever it would resolve to).
+    Neither reading is the format's, which ``loads`` is: they accept more
+    (an anchor, a repeated key, a number ``loads`` refuses), so a scan names
+    every file ``loads`` would have named, and at most a file more.
+
+    Raises:
+        ValueError: If neither reading can read the text.
+    """
+    text = text.removeprefix("\ufeff")
+    if text.lstrip(" \t\n\r")[:1] in ("{", "["):
+        try:
+            value = json.loads(text)
+        except RecursionError as error:
+            raise ValueError("the JSON text nests too deeply") from error
+        return value if isinstance(value, dict) else {}
+    found: dict[str, Any] = {}
+    # The open collections, the outermost first: [the key of a mapping's
+    # pending value, "" for a key that names nothing, None while a key is
+    # awaited; "[]" for a sequence], each with whether it is itself a key.
+    frames: list[list[Any]] = []
+    try:
+        for event in yaml.parse(text, Loader=_YAML_PARSER):
+            if isinstance(event, yaml.MappingEndEvent | yaml.SequenceEndEvent):
+                _, was_key = frames.pop()
+                if frames and not was_key and frames[-1][0] != "[]":
+                    frames[-1][0] = None
+                continue
+            if not isinstance(event, yaml.NodeEvent):
+                continue
+            parent = frames[-1] if frames else None
+            is_key = parent is not None and parent[0] is None
+            if is_key:
+                scalar = isinstance(event, yaml.ScalarEvent)
+                parent[0] = event.value if scalar else ""
+                if len(frames) == 1 and parent[0] == "timetoshare":
+                    found["timetoshare"] = True
+            else:
+                keys = [frame[0] for frame in frames]
+                if isinstance(event, yaml.ScalarEvent):
+                    if (
+                        len(keys) == 3
+                        and keys[0] in _LISTS
+                        and keys[1:]
+                        == [
+                            "[]",
+                            "url",
+                        ]
+                    ):
+                        found[keys[0]].append({"url": event.value})
+                elif isinstance(event, yaml.SequenceStartEvent):
+                    if len(keys) == 1 and keys[0] in _LISTS:
+                        found[keys[0]] = []
+            if isinstance(event, yaml.CollectionStartEvent):
+                sequence = isinstance(event, yaml.SequenceStartEvent)
+                frames.append(["[]" if sequence else None, is_key])
+            elif not is_key and parent is not None and parent[0] != "[]":
+                parent[0] = None
+    except yaml.YAMLError as error:
+        raise ValueError(str(error)) from None
+    return found
+
+
 def _named_tables(path: str, text: bytes) -> Iterator[str]:
     """The paths, inside the tree, of the files and folders (ending in ``/``)
-    a manifest's resources name, or a ``package.yaml``'s tables."""
+    a manifest's resources name, or a ``package.yaml``'s tables.
+
+    The text is scanned (:func:`_scanned`), and read by ``loads`` only where
+    the scan cannot read it.
+    """
     try:
-        manifest = _manifest_of(text)
+        decoded = text.decode("utf-8")
+        try:
+            value: Mapping[str, Any] = _scanned(decoded)
+        except ValueError:
+            value = _manifest_of(text) or {}
     except ValueError:
         return
-    value = manifest or {}
+    if "timetoshare" not in value:
+        return
     entries = value.get("tables") if _is_package(path, value) else None
     for entry in _listed(entries if entries is not None else value.get("resources")):
         url = entry.get("url") if isinstance(entry, Mapping) else None
@@ -1507,23 +1644,15 @@ def _held_files(files: Mapping[str, str], named: str) -> Iterator[str]:
             yield path
 
 
-def _materialise(repo: Path, ref: str | None, target: Path) -> None:
-    """Write the manifests of a reference's tree, or of the index for ``None``,
-    and the table files their resources name, into ``target``.
-
-    Only the files named ``<name>.tts.yaml``, ``.tts.yml`` or ``.tts.json``
-    and the ``package.yaml`` files, the files the resources of the manifests
-    among them name (a folder's files directly inside it) and the tables a
-    ``package.yaml`` lists are read from git, whatever the repository's
-    ``export-ignore`` attributes say.
-    """
-    target.mkdir(parents=True, exist_ok=True)
-    files = _files(repo, ref)
-    if files is None:
-        return
-    manifests = _manifest_files(files, packages=True)
-    texts = _blobs(repo, set(manifests.values()))
-    written = {path: texts[blob] for path, blob in manifests.items()}
+def _documents(
+    repo: Path, files: Mapping[str, str]
+) -> tuple[dict[str, bytes], set[str]]:
+    """A tree's manifest files and ``package.yaml`` files with their bytes, and
+    the files the resources of the manifests among them name (a folder's
+    files directly inside it) and the tables a ``package.yaml`` lists."""
+    documents = _manifest_files(files, packages=True)
+    texts = _blobs(repo, set(documents.values()))
+    written = {path: texts[blob] for path, blob in documents.items()}
     named = {
         held
         for path, text in written.items()
@@ -1531,24 +1660,183 @@ def _materialise(repo: Path, ref: str | None, target: Path) -> None:
         for held in _held_files(files, table)
         if held not in written
     }
-    _write_files(repo, files, target, written, named)
+    return written, named
 
 
-def _write_files(
+_CONVERTING = ("filter", "ident", "working-tree-encoding")
+"""The attributes by which a checkout writes a file other than its blob."""
+
+
+def _unconverted(repo: Path, paths: list[str]) -> set[str]:
+    """The paths a checkout writes as their blobs' bytes: no filter, no
+    ``ident``, no working-tree encoding, and no conversion of line endings
+    (``-text``, or ``text`` and ``eol`` unspecified while ``core.autocrlf``
+    is not true)."""
+    if not paths:
+        return set()
+    done = _git(
+        repo,
+        "check-attr",
+        "-z",
+        "--stdin",
+        *_CONVERTING,
+        "text",
+        "eol",
+        input="".join(f"{path}\0" for path in paths).encode(
+            "utf-8", errors="surrogateescape"
+        ),
+    )
+    if done.returncode:
+        raise _failed(done)
+    fields = done.stdout.decode("utf-8", errors="surrogateescape").split("\0")
+    attributes: dict[str, dict[str, str]] = {}
+    for at in range(0, len(fields) - 2, 3):
+        path, name, value = fields[at : at + 3]
+        attributes.setdefault(path, {})[name] = value
+    autocrlf = _git(repo, "config", "--type=bool", "core.autocrlf")
+    converts = autocrlf.stdout.decode().strip() == "true"
+    plain = []
+    for path in paths:
+        found = attributes.get(path, {})
+        if any(found.get(name) not in ("unspecified", "unset") for name in _CONVERTING):
+            continue
+        text, eol = found.get("text"), found.get("eol")
+        if text == "unset" or (text == "unspecified" and eol == "unspecified"):
+            if text == "unset" or not converts:
+                plain.append(path)
+    return set(plain)
+
+
+def _checked_out(
     repo: Path,
     files: Mapping[str, str],
+    paths: set[str],
+    read: dict[tuple[str, str], bytes],
+) -> dict[str, bytes]:
+    """The contents of table files as a checkout writes them, through the
+    filters the repository's attributes name for their paths, so that a
+    table kept by Git LFS is read as the table, not as the pointer git
+    holds. A file read before (``read``, by path and blob) is not read
+    again; files written as their blobs are read by one ``git cat-file
+    --batch``, every other file by its own ``git cat-file --filters``."""
+    unread = sorted(path for path in paths if (path, files[path]) not in read)
+    plain = _unconverted(repo, unread)
+    blobs = _blobs(repo, {files[path] for path in plain})
+    for path in unread:
+        blob = files[path]
+        read[path, blob] = blobs[blob] if path in plain else _filtered(repo, path, blob)
+    return {path: read[path, files[path]] for path in paths}
+
+
+def _materialise(
+    repo: Path,
+    ref: str | None,
     target: Path,
-    written: Mapping[str, bytes],
-    tables: set[str],
+    read: dict[tuple[str, str], bytes] | None = None,
 ) -> None:
-    """Write files into ``target``: ``written`` as given, each of ``tables``
-    through the filters of its path."""
-    data = dict(written)
-    data.update({path: _filtered(repo, path, files[path]) for path in sorted(tables)})
+    """Write the manifests of a reference's tree, or of the index for ``None``,
+    and the table files their resources name, into ``target``.
+
+    Only the files named ``<name>.tts.yaml``, ``.tts.yml`` or ``.tts.json``
+    and the ``package.yaml`` files, the files the resources of the manifests
+    among them name (a folder's files directly inside it) and the tables a
+    ``package.yaml`` lists are read from git, whatever the repository's
+    ``export-ignore`` attributes say; a table file of the same path and blob
+    as one in ``read`` is taken from there.
+    """
+    target.mkdir(parents=True, exist_ok=True)
+    files = _files(repo, ref)
+    if files is None:
+        return
+    written, named = _documents(repo, files)
+    data = {**written, **_checked_out(repo, files, named, {} if read is None else read)}
     for path, content in data.items():
         file = target / PurePosixPath(path)
         file.parent.mkdir(parents=True, exist_ok=True)
         file.write_bytes(content)
+
+
+def _changed_paths(repo: Path, old_ref: str) -> set[str]:
+    """The paths the staged change touches against ``old_ref``, both of a
+    renamed or copied file; ``HEAD`` in a repository without commits is the
+    empty tree.
+
+    Raises:
+        ValueError: If ``old_ref`` names no commit or tree, or git fails.
+    """
+    tree = _git(repo, "rev-parse", "--verify", "--quiet", f"{old_ref}^{{tree}}")
+    if tree.returncode and old_ref != "HEAD":
+        raise ValueError(f"'{old_ref}' names no commit of {repo}")
+    against = [] if tree.returncode else [tree.stdout.decode().strip()]
+    done = _git(
+        repo, "diff", "--cached", "--name-status", "-M", "-z", "--no-ext-diff", *against
+    )
+    if done.returncode:
+        raise _failed(done)
+    fields = done.stdout.decode("utf-8", errors="surrogateescape").split("\0")
+    paths: set[str] = set()
+    at = 0
+    while at < len(fields) and fields[at]:
+        count = 2 if fields[at][:1] in ("R", "C") else 1
+        paths.update(fields[at + 1 : at + 1 + count])
+        at += 1 + count
+    return paths
+
+
+def _names(named: str, path: str) -> bool:
+    """Whether a path a document names (a folder's ending in ``/``) holds a
+    file, as :func:`_held_files` reads it."""
+    if not named.endswith("/"):
+        return named == path
+    return path.startswith(named) and "/" not in path[len(named) :]
+
+
+def touches_data(repo: Path, old_ref: str = "HEAD") -> bool:
+    """Whether the change staged against ``old_ref`` touches the data that
+    :func:`git_step` compares.
+
+    The staged paths are read first (``git diff --cached --name-status
+    -M``, which honours ``GIT_INDEX_FILE``). A path is data where it is, in
+    ``old_ref``'s tree or in the index, a file named ``<name>.tts.yaml``,
+    ``.tts.yml`` or ``.tts.json``, a ``package.yaml``, or a file that a
+    manifest's resources or a ``package.yaml``'s tables name (a folder's
+    files directly inside it): every file ``git_step`` reads. Which files
+    are named is read from the manifest files and ``package.yaml`` files
+    alone, never from a table. Where no staged path is data, both states
+    hold the same files ``git_step`` reads, which then has nothing to
+    compare.
+
+    Args:
+        repo: A directory inside the repository.
+        old_ref: The earlier state, ``HEAD`` by default; ``HEAD`` in a
+            repository without commits is the empty tree.
+
+    Raises:
+        ValueError: If ``old_ref`` names no commit or tree, or git fails.
+    """
+    top = _git(Path(repo), "rev-parse", "--show-toplevel")
+    if top.returncode:
+        raise _failed(top)
+    root = Path(top.stdout.decode().strip())
+    paths = _changed_paths(root, old_ref)
+    if any(
+        is_manifest_name(path) or PurePosixPath(path).name == PACKAGE_FILE
+        for path in paths
+    ):
+        return True
+    if not paths:
+        return False
+    # No manifest file and no package.yaml is staged, so both states hold
+    # the same ones: the index's name what either state names.
+    files = _files(root, None) or {}
+    documents = _manifest_files(files, packages=True)
+    texts = _blobs(root, set(documents.values()))
+    return any(
+        _names(named, path)
+        for document, blob in documents.items()
+        for named in _named_tables(document, texts[blob])
+        for path in paths
+    )
 
 
 def _held_ids(repo: Path, ref: str) -> dict[str, dict[str, str]]:
@@ -1614,7 +1902,7 @@ def _history(
     held = {label: _held_ids(repo, ref) for label, ref in states}
     seen = {(f.path, f.id) for f in found if f.kind == "reused_id"}
     findings: list[Finding] = []
-    now, _ = _manifests(new_root)
+    now, _ = _manifests(new_root, {})
     for key, (path, manifest) in sorted(now.items()):
         try:
             elements = _Elements(_prepared(manifest)).found
@@ -1667,7 +1955,10 @@ def git_step(
     --batch``), so the rest of the tree, audio included, is never written
     out. A table file is read through the filters the work tree's attributes
     name for its path (``git cat-file --filters``), so a table kept by Git
-    LFS is read as the table where git-lfs is installed.
+    LFS is read as the table where git-lfs is installed; a file those
+    attributes leave as it is (``-text``, no filter) is read with the
+    others in one ``git cat-file --batch``, and a file of the same path and
+    blob in both states is read once.
 
     Args:
         old_ref: The earlier reference, such as a release tag. ``HEAD`` in a
@@ -1691,8 +1982,9 @@ def git_step(
     root = Path(top.stdout.decode().strip())
     with tempfile.TemporaryDirectory() as scratch:
         old_dir, new_dir = Path(scratch, "old"), Path(scratch, "new")
-        _materialise(root, old_ref, old_dir)
-        _materialise(root, new_ref, new_dir)
+        read: dict[tuple[str, str], bytes] = {}
+        _materialise(root, old_ref, old_dir, read)
+        _materialise(root, new_ref, new_dir, read)
         report = tree_step(old_dir, new_dir)
         if not history:
             return report

@@ -22,6 +22,7 @@ from timetoshare import (
     manifest_step,
     tree_step,
 )
+from timetoshare._urls import package_path
 from timetoshare.validate import data_root, validate
 
 VERSIONS = data_root() / "fixtures" / "versions"
@@ -717,6 +718,144 @@ def test_only_manifests_and_their_tables_are_read_from_git(
     assert [(f.kind, f.step, f.id) for f in report.findings] == [
         ("changed_table", "undetermined", "recording")
     ]
+
+
+def audio_repository(tmp_path: Path, manifest: str, text: str) -> Path:
+    """A repository whose one commit holds a manifest naming ``take_1.flac``
+    and that file, the file changed and staged."""
+    repo = repository(tmp_path)
+    (repo / manifest).write_text(text, encoding="utf-8")
+    (repo / "take_1.flac").write_bytes(b"one")
+    git(repo, "add", ".")
+    git(repo, "commit", "--quiet", "-m", "first")
+    (repo / "take_1.flac").write_bytes(b"two")
+    git(repo, "add", "take_1.flac")
+    return repo
+
+
+def flow_style(text: str) -> str:
+    """The base manifest's YAML with its resources in flow style, the URL
+    double-quoted with an escape."""
+    resources = dumps({"resources": base()["resources"]}, serialization="json")
+    flow = resources.strip()[1:-1].replace('"take_1.flac"', '"take\\x5f1.flac"')
+    lines = text.split("\n")
+    start = lines.index("resources:")
+    end = next(i for i in range(start + 1, len(lines)) if not lines[i].startswith(" "))
+    return "\n".join([*lines[:start], flow.strip(), *lines[end:]])
+
+
+@pytest.mark.parametrize("form", ["json", "flow"])
+def test_the_named_files_are_found_in_any_form(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, form: str
+) -> None:
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
+    text = (VERSIONS / "region_added" / "old" / "base.tts.yaml").read_text()
+    if form == "json":
+        manifest, text = "base.tts.json", dumps(base(), serialization="json")
+    else:
+        manifest, text = "base.tts.yaml", flow_style(text)
+        assert loads(text) == base()
+    repo = audio_repository(tmp_path, manifest, text)
+    written: list[set[str]] = []
+    real = tree_step
+
+    def recording(old_root: Path, new_root: Path) -> StepReport:
+        written.extend(
+            {p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_file()}
+            for root in (old_root, new_root)
+        )
+        return real(old_root, new_root)
+
+    monkeypatch.setattr("timetoshare.version_step.tree_step", recording)
+    report = git_step("HEAD", None, repo)
+    assert written == [{manifest, "take_1.flac"}, {manifest, "take_1.flac"}]
+    assert [(f.kind, f.step, f.id) for f in report.findings] == [
+        ("changed_table", "undetermined", "recording")
+    ]
+
+
+def named_by_loads(path: str, text: bytes) -> list[str]:
+    """The files a manifest's resources or a package's tables name, its text
+    read by ``loads``."""
+    value = loads(text.decode("utf-8"))
+    if not isinstance(value, dict) or "timetoshare" not in value:
+        return []
+    package = path.endswith("package.yaml") and isinstance(value.get("tables"), list)
+    entries = value["tables"] if package else value.get("resources")
+    named = []
+    for entry in entries if isinstance(entries, list) else []:
+        url = entry.get("url") if isinstance(entry, dict) else None
+        found = package_path(url, path) if isinstance(url, str) and url else None
+        if found is not None:
+            named.append(found)
+    return sorted(named)
+
+
+def test_the_named_files_are_those_loads_reads() -> None:
+    from timetoshare.version_step import _named_tables
+
+    fixtures = data_root() / "fixtures"
+    documents = sorted(
+        path
+        for path in fixtures.rglob("*")
+        if path.is_file()
+        and (path.name.endswith((".tts.yaml", ".tts.yml", ".tts.json")))
+        or path.name == "package.yaml"
+    )
+    assert len(documents) > 100
+    named = 0
+    for path in documents:
+        relative = path.relative_to(fixtures).as_posix()
+        text = path.read_bytes()
+        expected = named_by_loads(relative, text)
+        named += len(expected)
+        assert sorted(_named_tables(relative, text)) == expected, relative
+    assert named > 10
+
+
+def counted_filter(repo: Path) -> Path:
+    """A smudge filter on the Parquet files that counts its runs."""
+    count = repo.parent / "runs"
+    git(repo, "config", "filter.count.clean", "cat")
+    git(repo, "config", "filter.count.smudge", f"sh -c 'echo run >> {count}; cat'")
+    (repo / ".gitattributes").write_text("*.parquet filter=count\n", encoding="utf-8")
+    return count
+
+
+def test_a_table_both_states_hold_unchanged_is_read_once(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pq = pytest.importorskip("pyarrow.parquet")
+    pa = pytest.importorskip("pyarrow")
+    from timetoshare.tables import fixture_path
+
+    repo = repository(tmp_path)
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
+    count = counted_filter(repo)
+    write(repo / "claims.tts.yaml", table_manifest())
+    rows = claim_rows()
+    schema = pq.read_table(fixture_path("match_claims.parquet")).schema
+    table = repo / "match_claims.parquet"
+    pq.write_table(pa.Table.from_pylist(rows, schema=schema), table)
+    git(repo, "add", ".")
+    git(repo, "commit", "--quiet", "-m", "first")
+    count.unlink(missing_ok=True)
+    write(repo / "claims.tts.yaml", renamed(table_manifest(), "claims"))
+    git(repo, "add", "claims.tts.yaml")
+    assert [(f.kind, f.step) for f in git_step("HEAD", None, repo).findings] == [
+        ("label", "patch")
+    ]
+    assert count.read_text(encoding="utf-8") == "run\n"
+    count.unlink()
+    fewer = [row for row in rows if row["id"] != "claim_18"]
+    pq.write_table(pa.Table.from_pylist(fewer, schema=schema), table)
+    git(repo, "add", "match_claims.parquet")
+    count.unlink(missing_ok=True)
+    assert [(f.kind, f.id) for f in git_step("HEAD", None, repo).findings] == [
+        ("label", None),
+        ("removed_row", "claim_18"),
+    ]
+    assert count.read_text(encoding="utf-8") == "run\nrun\n"
 
 
 def test_a_registry_and_its_tables_are_read_from_git(

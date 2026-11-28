@@ -3779,7 +3779,10 @@ comment lines by git's `core.commentChar` (`#` where it is `auto`). For
 the amended commit in `timetoshare-amend-base` in the git directory, and
 the second compares the amended commit's parent (the empty tree for a first
 commit) with the index; `git commit --amend -m` tells the hooks no amend
-and is compared with `HEAD`.
+and is compared with `HEAD`. The hooks compare only when manifests, a
+`package.yaml` or files they name are staged; any other commit, such as one
+changing only `release-please-config.json`, skips the comparison and has
+only its header checked.
 
 This repository is a pre-commit hook repository: its
 `.pre-commit-hooks.yaml` offers both hooks and two more,
