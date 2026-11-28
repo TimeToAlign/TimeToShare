@@ -1,8 +1,14 @@
 problems:
   -
+    code: duplicate_table
+    file: package.yaml
+    message: "the package lists a second local table of the type Note, first at #/tables/3/type"
+    path: [tables, 4, type]
+    row: null
+  -
     code: duplicate_url
     file: package.yaml
     message: "the file 'tables/Note/part_b.parquet' is read by the table 'tables/Note/' already"
     path: [tables, 4, url]
     row: null
-reason: "package.yaml lists part_b, a file of the listed folder of notes, as a table of its own; its rows would be read twice."
+reason: "package.yaml lists part_b, a file of the listed folder of notes, as a table of its own: a second local table of notes, whose rows would be read twice."

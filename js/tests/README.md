@@ -1021,9 +1021,11 @@ the same table:
 The Python README's section "Packages" is proved here for what the npm
 package reads, `package.yaml`; it reads no tables (`package.test.ts`).
 `validatePackage` accepts the `package.yaml` of the shared package, of
-every accepted package (exactly `external_location`, `re_parsable_event`,
-`recording_resource` and `timeline_in_two_manifests`, the directory
-names in code-point order) and of every rejected package (the 28
+every accepted package (exactly `external_location`,
+`external_table_entry`, `re_parsable_event`, `recording_resource` and
+`timeline_in_two_manifests`, the directory names in code-point order;
+an external table entry is no fault of `package.yaml`) and of every
+rejected package (the 29
 directory names, in code-point
 order, are stated literally) under
 `fixtures/packages/0.2.0/` but

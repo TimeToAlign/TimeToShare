@@ -41,7 +41,8 @@ timelines whose MatchClaims it reads.
 
 Each acceptance under ``acceptances/<case>/`` is ``shared/`` with one
 change the package check accepts, beside an ``expected.yaml`` listing no
-problem and, where the case concerns them, the resolutions of some IDs.
+problem and, where the case concerns them, the resolutions of some IDs or
+the rows each manifest's resources read.
 Each rejection under ``rejections/<case>/`` is ``shared/`` with one change,
 beside an ``expected.yaml`` listing exactly the problems the package check
 reports, in order. A change that adds or alters an element of a manifest
@@ -735,8 +736,24 @@ def _re_parsable_event(package: Package) -> None:
     )
 
 
+EXTERNAL_TABLE = "https://example.org/tables/notes.parquet"
+"""An absolute URI naming a table of notes outside the package."""
+
+
+def _external_table_entry(package: Package) -> None:
+    package.package["tables"].append(
+        {"type": "Note", "url": EXTERNAL_TABLE, "media_type": PARQUET}
+    )
+
+
 ACCEPTANCES: dict[
-    str, tuple[Callable[[Package], None], str, list[dict[str, Any]] | None]
+    str,
+    tuple[
+        Callable[[Package], None],
+        str,
+        list[dict[str, Any]] | None,
+        dict[str, dict[str, list[str]]] | None,
+    ],
 ] = {
     "external_location": (
         _external_location,
@@ -757,12 +774,23 @@ ACCEPTANCES: dict[
                 ],
             }
         ],
+        None,
+    ),
+    "external_table_entry": (
+        _external_table_entry,
+        "package.yaml lists, beside the local table of notes, an external "
+        "one: its URL is an absolute URI, which the package check does not "
+        "follow, and a type has one local table and any number of external "
+        "ones; each resource reads the rows it reads in the shared package.",
+        None,
+        READ,
     ),
     "recording_resource": (
         _recording_resource,
         "Bach's manifest names a recording beside it, a resource naming no "
         "table, which package.yaml does not list and the package check "
         "passes over; the registry holds its non-event row.",
+        None,
         None,
     ),
     "timeline_in_two_manifests": (
@@ -819,6 +847,7 @@ ACCEPTANCES: dict[
                 ],
             },
         ],
+        None,
     ),
     "re_parsable_event": (
         _re_parsable_event,
@@ -847,10 +876,12 @@ ACCEPTANCES: dict[
                 ],
             }
         ],
+        None,
     ),
 }
-"""Each acceptance: the change, its reason, and the resolutions it lists (or
-none); the package check finds no problem."""
+"""Each acceptance: the change, its reason, the resolutions it lists (or
+none) and the rows each manifest's resources read (or none stated); the
+package check finds no problem."""
 
 
 # The rejections: each a change to the shared package, with its reason and
@@ -961,6 +992,14 @@ def _registry_listed_twice(package: Package) -> None:
     )
     package.tables["old/registry.parquet"] = ([], REGISTRY_SCHEMA)
     package.metadata["old/registry.parquet"] = _metadata("Registry")
+
+
+def _event_table_listed_twice(package: Package) -> None:
+    package.package["tables"].append(
+        {"type": "Note", "url": "old/notes.parquet", "media_type": PARQUET}
+    )
+    package.tables["old/notes.parquet"] = ([], NOTE_SCHEMA)
+    package.metadata["old/notes.parquet"] = _metadata("Note")
 
 
 def _parse_table_listed_twice(package: Package) -> None:
@@ -1220,8 +1259,17 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
     "file_in_a_listed_folder": (
         _file_in_a_listed_folder,
         "package.yaml lists part_b, a file of the listed folder of notes, "
-        "as a table of its own; its rows would be read twice.",
+        "as a table of its own: a second local table of notes, whose rows "
+        "would be read twice.",
         [
+            problem(
+                "duplicate_table",
+                "package.yaml",
+                None,
+                ["tables", 4, "type"],
+                "the package lists a second local table of the type Note, first at "
+                "#/tables/3/type",
+            ),
             problem(
                 "duplicate_url",
                 "package.yaml",
@@ -1262,15 +1310,30 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
     ),
     "parse_table_listed_twice": (
         _parse_table_listed_twice,
-        "package.yaml lists a second Parse table; a package has at most one.",
+        "package.yaml lists a second local Parse table; a type has one local table.",
         [
             problem(
-                "duplicate_parse",
+                "duplicate_table",
                 "package.yaml",
                 None,
                 ["tables", 4, "type"],
-                "the package lists a second table of the type Parse, first at "
+                "the package lists a second local table of the type Parse, first at "
                 "#/tables/1/type",
+            ),
+        ],
+    ),
+    "event_table_listed_twice": (
+        _event_table_listed_twice,
+        "package.yaml lists a second local table of notes, a file beside the "
+        "listed folder; a type has one local table, which may be a folder.",
+        [
+            problem(
+                "duplicate_table",
+                "package.yaml",
+                None,
+                ["tables", 4, "type"],
+                "the package lists a second local table of the type Note, first at "
+                "#/tables/3/type",
             ),
         ],
     ),
@@ -1587,13 +1650,15 @@ def main() -> int:
     for stale in accepted.iterdir() if accepted.is_dir() else ():
         if stale.name not in ACCEPTANCES:
             shutil.rmtree(stale)
-    for name, (change, reason, resolutions) in ACCEPTANCES.items():
+    for name, (change, reason, resolutions, read) in ACCEPTANCES.items():
         package = Package()
         change(package)
         directory = accepted / name
         package.write(directory)
         _prune(directory, package)
         expected = {"problems": [], "reason": reason}
+        if read is not None:
+            expected["read"] = read
         if resolutions is not None:
             expected["resolutions"] = resolutions
         _write_text(directory / "expected.yaml", dumps(expected))

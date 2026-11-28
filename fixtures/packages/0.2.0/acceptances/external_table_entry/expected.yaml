@@ -1,0 +1,9 @@
+problems: []
+read:
+  bach/manifest.yaml:
+    resource_1: [claim_1, claim_2, claim_5]
+    resource_2: [note_1, note_2, note_3, note_4, projection_1, projection_2, projection_7, projection_9]
+  handel/manifest.yaml:
+    resource_1: [claim_3, claim_4]
+    resource_2: [note_5, note_6, note_7, projection_3, projection_4, projection_5, projection_6, projection_8]
+reason: "package.yaml lists, beside the local table of notes, an external one: its URL is an absolute URI, which the package check does not follow, and a type has one local table and any number of external ones; each resource reads the rows it reads in the shared package."

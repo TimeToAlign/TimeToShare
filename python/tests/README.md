@@ -3232,7 +3232,16 @@ What proves them (`test_packages.py`, needs pyarrow):
   pre-parsed row removed: a location with a scheme names a resource
   outside the package, which the check does not follow (no
   `unknown_location`, no `missing_content`), while a relative location
-  naming no table entry stays `unknown_location` (the rejection below).
+  naming no table entry stays `unknown_location` (the rejection below);
+  `external_table_entry`, the shared package whose `package.yaml` lists,
+  after its four entries, an external `Note` entry
+  `https://example.org/tables/notes.parquet`: an entry whose URL is an
+  absolute URI names a table outside the package, which the check does
+  not follow (no `missing_file`) and which is no second local table of
+  its type (no `duplicate_table`); its `expected.yaml` states the rows
+  each resource reads, the shared package's `read` unchanged, and
+  `read_table` over each resource of the acceptance returns exactly those
+  IDs, so the external entry adds no row and takes none away.
   Each package under
   `fixtures/packages/0.2.0/rejections/` breaks one rule, and
   `package_problems` of its `package.yaml` returns exactly the problems its
@@ -3251,10 +3260,11 @@ What proves them (`test_packages.py`, needs pyarrow):
 | `axis_mismatch` | `axis_mismatch` | `registry.parquet`, 29, `[unit]` |
 | `file_of_another_type` | `table_type` | `tables/Note/part_b.parquet`, null, `[]` |
 | `table_listed_twice` | `duplicate_url` | `package.yaml`, null, `[tables, 4, url]` |
-| `file_in_a_listed_folder` | `duplicate_url` | `package.yaml`, null, `[tables, 4, url]` |
+| `file_in_a_listed_folder` | `duplicate_table`, then `duplicate_url` | `package.yaml`, null, `[tables, 4, type]`, then `[tables, 4, url]` |
 | `registry_missing` | `missing_registry` | `package.yaml`, null, `[tables]` |
 | `registry_listed_twice` | `duplicate_registry` | `package.yaml`, null, `[tables, 4, type]` |
-| `parse_table_listed_twice` | `duplicate_parse` | `package.yaml`, null, `[tables, 4, type]` |
+| `parse_table_listed_twice` | `duplicate_table` | `package.yaml`, null, `[tables, 4, type]` |
+| `event_table_listed_twice` | `duplicate_table` | `package.yaml`, null, `[tables, 4, type]` |
 | `unknown_parse` | `unknown_parse` | `registry.parquet`, 30, `[parse_id]` |
 | `vanished_in_an_unknown_parse` | `unknown_parse` | `registry.parquet`, 30, `[vanished_in]` |
 | `unknown_location` | `unknown_location` | `registry.parquet`, 18, `[location]` |
@@ -3287,7 +3297,14 @@ What proves them (`test_packages.py`, needs pyarrow):
   MatchClaim across two manifests would be) fails, as does one missed.
   The messages of the new rules are pinned in `test_packages.py`: `the
   package lists no table of the type Registry`, `the package lists a second
-  table of the type Registry, first at #/tables/0/type`, `no manifest of
+  table of the type Registry, first at #/tables/0/type`, the two of
+  `duplicate_table`, `the package lists a second local table of the type
+  Parse, first at #/tables/1/type` (`parse_table_listed_twice`, a second
+  Parse table `old/parses.parquet`) and `the package lists a second local
+  table of the type Note, first at #/tables/3/type`
+  (`event_table_listed_twice`, a second local Note entry, the file
+  `old/notes.parquet` of no row: a type has one local table, a file or a
+  folder, whatever its files hold), `no manifest of
   the package holds both the timeline 'clt_1' and the timeline 'dpt_2'`,
   `no parse of the package has the ID 'parse_9'`, `the location
   'tables/Box/' names no table of the type Note in the package`,
@@ -3324,9 +3341,12 @@ What proves them (`test_packages.py`, needs pyarrow):
   type Note is listed twice, first at #/tables/3/url`), which the
   JavaScript suite throws alike; `file_in_a_listed_folder` lists `part_b`
   of the folder of notes as a table of its own, a URL no validator
-  can compare, and is the package check's (`the file
+  can compare, and is the package check's: a second local Note table
+  (`duplicate_table`, at its `type`, `the package lists a second local
+  table of the type Note, first at #/tables/3/type`) whose one file the
+  first reads already (`duplicate_url`, at its `url`, `the file
   'tables/Note/part_b.parquet' is read by the table
-  'tables/Note/' already`), its one problem proving the file's rows
+  'tables/Note/' already`), these two problems alone proving the file's rows
   are read once (read twice, each would be a `duplicate_id` of itself).
   Beside the fixtures, inline packages
   built in `tmp_path` prove what the fixtures leave out: a missing
@@ -3338,7 +3358,14 @@ What proves them (`test_packages.py`, needs pyarrow):
   resource, `the resource 'resource_3' names '../../outside/', which is no
   table of the type Box in the package`, then the missing non-event row of
   `resource_3`; a resource leaving the package names no table even where
-  an entry leaves it too), a null timeline (`schema_violation` at the row
+  an entry leaves it too), the shared package with three external entries
+  beside its local ones (two of the type `Note`, a file and a folder, one
+  of the type `Parse`, all `https://example.org/...`) and a fourth `Note`
+  entry `../elsewhere/notes.parquet` (exactly one problem: `missing_file`
+  at `[tables, 7, url]`, `no file lies at '../elsewhere/notes.parquet' in
+  the package`; no external entry is followed, none is a second local
+  table, and an entry leaving the package is neither local nor external,
+  so it is no `duplicate_table` either), a null timeline (`schema_violation` at the row
   and column, `'timeline_id' is null` for an event row of
   `parse_1.parquet`, `'timeline_a_id' is null` and `'timeline_b_id'
   is null` for a MatchClaim whose two timelines are null, each reported

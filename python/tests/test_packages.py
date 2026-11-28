@@ -688,6 +688,7 @@ def test_the_shared_package_has_no_problem() -> None:
 def test_every_acceptance_is_stated() -> None:
     assert ACCEPTED == [
         "external_location",
+        "external_table_entry",
         "re_parsable_event",
         "recording_resource",
         "timeline_in_two_manifests",
@@ -699,6 +700,26 @@ def test_each_accepted_package(case: str) -> None:
     directory = package_fixture_path("acceptances", case)
     assert _read(directory / "expected.yaml")["problems"] == []
     assert _problems(directory) == []
+
+
+def test_an_external_table_entry_changes_no_read() -> None:
+    directory = package_fixture_path("acceptances", "external_table_entry")
+    tables = _read(directory / "package.yaml")["tables"]
+    assert tables == [
+        *_read(SHARED / "package.yaml")["tables"],
+        {
+            "media_type": "application/vnd.apache.parquet",
+            "type": "Note",
+            "url": "https://example.org/tables/notes.parquet",
+        },
+    ]
+    expected = _read(directory / "expected.yaml")["read"]
+    assert expected == _read(SHARED / "expected.yaml")["read"]
+    for manifest, by_resource in expected.items():
+        for resource in with_bare_ids(_read(directory / manifest))["resources"]:
+            folder = (directory / manifest).parent / resource["url"]
+            table = read_table(folder, timelines=resource["timelines"])
+            assert sorted(table.column("id").to_pylist()) == by_resource[resource["id"]]
 
 
 def test_the_recording_is_the_one_change() -> None:
@@ -748,6 +769,7 @@ def test_every_rejection_is_stated() -> None:
         "axis_mismatch",
         "claim_across_manifests",
         "column_in_two_types",
+        "event_table_listed_twice",
         "file_in_a_listed_folder",
         "file_of_another_type",
         "folder_with_size",
@@ -814,14 +836,18 @@ EXPECTED = {
         ("duplicate_url", "package.yaml", None, ["tables", 4, "url"])
     ],
     "file_in_a_listed_folder": [
-        ("duplicate_url", "package.yaml", None, ["tables", 4, "url"])
+        ("duplicate_table", "package.yaml", None, ["tables", 4, "type"]),
+        ("duplicate_url", "package.yaml", None, ["tables", 4, "url"]),
     ],
     "registry_missing": [("missing_registry", "package.yaml", None, ["tables"])],
     "registry_listed_twice": [
         ("duplicate_registry", "package.yaml", None, ["tables", 4, "type"])
     ],
     "parse_table_listed_twice": [
-        ("duplicate_parse", "package.yaml", None, ["tables", 4, "type"])
+        ("duplicate_table", "package.yaml", None, ["tables", 4, "type"])
+    ],
+    "event_table_listed_twice": [
+        ("duplicate_table", "package.yaml", None, ["tables", 4, "type"])
     ],
     "unknown_parse": [("unknown_parse", "registry.parquet", 30, ["parse_id"])],
     "vanished_in_an_unknown_parse": [
@@ -888,6 +914,25 @@ def test_the_package_check_words_its_new_rules() -> None:
         "the package lists a second table of the type Registry, first at "
         "#/tables/0/type"
     )
+    assert first("parse_table_listed_twice") == (
+        "the package lists a second local table of the type Parse, first at "
+        "#/tables/1/type"
+    )
+    assert first("event_table_listed_twice") == (
+        "the package lists a second local table of the type Note, first at "
+        "#/tables/3/type"
+    )
+    assert [
+        problem["message"]
+        for problem in _problems(
+            package_fixture_path("rejections", "file_in_a_listed_folder")
+        )
+    ] == [
+        "the package lists a second local table of the type Note, first at "
+        "#/tables/3/type",
+        "the file 'tables/Note/part_b.parquet' is read by the table "
+        "'tables/Note/' already",
+    ]
     assert first("claim_across_manifests") == (
         "no manifest of the package holds both the timeline 'clt_1' and the "
         "timeline 'dpt_2'"
@@ -1028,6 +1073,32 @@ def _lacks(identifier: str, location: str = "bach/manifest.yaml") -> dict:
             f"'{location}'"
         ),
     }
+
+
+def test_external_entries_and_one_leaving_the_package_are_no_local_table(
+    tmp_path: Path,
+) -> None:
+    directory = _copied(tmp_path)
+    _listing(
+        directory,
+        lambda value: value["tables"].extend(
+            [
+                {"type": "Note", "url": "https://example.org/tables/notes.parquet"},
+                {"type": "Note", "url": "https://example.org/tables/Note/"},
+                {"type": "Parse", "url": "https://example.org/parses.parquet"},
+                {"type": "Note", "url": "../elsewhere/notes.parquet"},
+            ]
+        ),
+    )
+    assert _problems(directory) == [
+        {
+            "code": "missing_file",
+            "file": "package.yaml",
+            "row": None,
+            "path": ["tables", 7, "url"],
+            "message": "no file lies at '../elsewhere/notes.parquet' in the package",
+        }
+    ]
 
 
 def test_only_a_table_resource_names_a_table(tmp_path: Path) -> None:

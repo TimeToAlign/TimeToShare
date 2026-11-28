@@ -1,0 +1,8 @@
+problems:
+  -
+    code: duplicate_table
+    file: package.yaml
+    message: "the package lists a second local table of the type Note, first at #/tables/3/type"
+    path: [tables, 4, type]
+    row: null
+reason: "package.yaml lists a second local table of notes, a file beside the listed folder; a type has one local table, which may be a folder."

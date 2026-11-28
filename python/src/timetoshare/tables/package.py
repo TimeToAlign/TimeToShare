@@ -104,7 +104,7 @@ PackageCode = Literal[
     "missing_registry",
     "duplicate_registry",
     "registry_not_a_file",
-    "duplicate_parse",
+    "duplicate_table",
     "table_type",
     "column_type_mismatch",
     "version_mismatch",
@@ -546,10 +546,15 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     First ``package.yaml`` itself (:func:`timetoshare.validate_package`; a
     problem there ends the check, another version being
     ``version_mismatch``), then its registry: no table of the type
-    ``Registry`` (``missing_registry``, at ``tables``), a second one
-    (``duplicate_registry``) or a second table of the type ``Parse``
-    (``duplicate_parse``), each at the later entry's ``type``; only the
-    first of each is read. A Registry entry whose URL names a folder (ends in
+    ``Registry`` (``missing_registry``, at ``tables``) or a second one
+    (``duplicate_registry``), at the later entry's ``type``; only the first
+    is read. Of every other type a package lists at most one local table,
+    an entry whose URL is a relative reference inside the package (a file or
+    a folder), and any number of external ones, whose URL is an absolute
+    URI, which the check does not follow; a second local one is
+    ``duplicate_table``, at its ``type``. A relative URL leading outside
+    the package is neither, and names no table (``missing_file``). A
+    Registry entry whose URL names a folder (ends in
     ``/``) is no registry: the registry is one Parquet file
     (``registry_not_a_file``, at the entry's ``url``; nothing at the URL is
     read). Then, manifest by manifest as listed, a file that
@@ -645,7 +650,7 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     except SchemaValidationError as error:
         problems.add(error.code, PACKAGE_FILE, None, error.path, error.message)
         return problems.found
-    _registry_entries(value, problems)
+    _one_table_per_type(value, problems)
     version = value["timetoshare"]
     manifests, unread = _manifests(root, value, problems)
     entries = _entries(root, value, version, problems)
@@ -658,13 +663,24 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     return problems.found
 
 
-def _registry_entries(value: Mapping[str, Any], problems: _Problems) -> None:
-    """``missing_registry``, ``duplicate_registry``, ``duplicate_parse``."""
-    by_type: dict[str, list[int]] = {"Registry": [], "Parse": []}
+def _is_external(url: str) -> bool:
+    """Whether a URL of the package is an absolute URI, naming a resource
+    outside the package that the check does not follow."""
+    return bool(urlsplit(url).scheme)
+
+
+def _one_table_per_type(value: Mapping[str, Any], problems: _Problems) -> None:
+    """``missing_registry`` and ``duplicate_registry`` over every Registry
+    entry; ``duplicate_table`` over the local entries of every other type."""
+    by_type: dict[str, list[int]] = {}
     for index, entry in enumerate(value["tables"]):
-        if entry["type"] in by_type:
-            by_type[entry["type"]].append(index)
-    if not by_type["Registry"]:
+        kind = entry["type"]
+        if kind == "Registry" or (
+            not _is_external(entry["url"])
+            and package_path(entry["url"], "") is not None
+        ):
+            by_type.setdefault(kind, []).append(index)
+    if "Registry" not in by_type:
         problems.add(
             "missing_registry",
             PACKAGE_FILE,
@@ -672,18 +688,16 @@ def _registry_entries(value: Mapping[str, Any], problems: _Problems) -> None:
             ("tables",),
             "the package lists no table of the type Registry",
         )
-    for kind, code in (
-        ("Registry", "duplicate_registry"),
-        ("Parse", "duplicate_parse"),
-    ):
-        indices = by_type[kind]
+    for kind, indices in by_type.items():
+        registry = kind == "Registry"
         for later in indices[1:]:
             problems.add(
-                code,
+                "duplicate_registry" if registry else "duplicate_table",
                 PACKAGE_FILE,
                 None,
                 ("tables", later, "type"),
-                f"the package lists a second table of the type {kind}, first at "
+                f"the package lists a second {'' if registry else 'local '}table "
+                f"of the type {kind}, first at "
                 f"{json_pointer(('tables', indices[0], 'type'))}",
             )
 
@@ -741,7 +755,8 @@ def _entries(
     earlier entry of its type reaches already is left to that entry, a
     Registry entry naming a folder (``registry_not_a_file``) and a table of
     events without an ``id`` column of strings (``foreign_table``) are
-    reported and not read."""
+    reported and not read, an external entry of another type than
+    ``Registry`` is not followed."""
     found = []
     reached: dict[tuple[str, str], int] = {}
     for index, entry in enumerate(value["tables"]):
@@ -755,6 +770,8 @@ def _entries(
                 ("tables", index, "url"),
                 _NOT_A_FILE.format(url=entry["url"]),
             )
+            continue
+        if entry["type"] != "Registry" and _is_external(entry["url"]):
             continue
         target = None if url is None else root / url
         if target is None or not (target.is_dir() if folder else target.is_file()):
@@ -1555,7 +1572,7 @@ class _Check:
             strict=True,
         ):
             # An absolute URI names a resource outside the package, unchecked.
-            outside = location is not None and bool(urlsplit(location).scheme)
+            outside = location is not None and _is_external(location)
             url = None if location is None or outside else package_path(location)
             entry_of.append(by_url.get((url, kind)) if url is not None else None)
             named.append(location is None or outside or (url, kind) in self.listed)
