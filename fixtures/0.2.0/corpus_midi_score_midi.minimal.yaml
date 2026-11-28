@@ -53,11 +53,83 @@
   type: "@type"
   unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+measure_maps:
+  -
+    id: "#measure_map_2n8hwqxf5xk4w"
+    rows:
+      -
+        actual_length: [1, 2]
+        count: 1
+        end_repeat: false
+        name: "1"
+        next: ["2"]
+        nominal_length: [1, 2]
+        number: 1
+        qstamp: [0, 1]
+        start_repeat: false
+        time_signature: "1/8"
+      -
+        actual_length: [4, 1]
+        count: 2
+        end_repeat: false
+        name: "2"
+        next: ["3"]
+        nominal_length: [4, 1]
+        number: 2
+        qstamp: [1, 2]
+        start_repeat: false
+        time_signature: "4/4"
+      -
+        actual_length: [2, 1]
+        count: 5
+        end_repeat: false
+        name: "5"
+        nominal_length: [4, 1]
+        number: 5
+        qstamp: [25, 2]
+        start_repeat: false
+        time_signature: "4/4"
 meta:
-  generator: "timetoalign 1.2.0 (0117c0f1)"
+  generator: "timetoalign 1.2.0 (3cf3b671)"
 timelines:
   -
+    conversion_maps:
+      -
+        extrapolate: linear
+        id: "#cmap_0eo709a75m24g"
+        source_unit: ticks
+        target_unit: seconds
+        type: TableMap
+        x_values: [0, 6960]
+        y_values:
+          - [0, 1]
+          - [29, 4]
+      -
+        id: "#cmap_3e564pkyn9jkr"
+        scalar: [1, 480]
+        source_unit: ticks
+        target_unit: quarters
+        type: LinearMap
+      -
+        id: "#cmap_3fi6lwu9utard"
+        maps:
+          -
+            id: "#cmap_2ed3lf0cxmw1j"
+            scalar: [1, 480]
+            source_unit: ticks
+            target_unit: quarters
+            type: LinearMap
+          -
+            id: "#cmap_0daspbztq9itp"
+            measure_map: "#measure_map_2n8hwqxf5xk4w"
+            source_unit: quarters
+            target_unit: null
+            type: MeasureRecordMap
+        source_unit: ticks
+        target_unit: null
+        type: ChainMap
     id: "#dlt_2yklvx93ukbwa"
-    length: 6959
+    length: 6960
+    locked: true
     unit: ticks
 timetoshare: "0.2.0"
