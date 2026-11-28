@@ -57,72 +57,52 @@ graphical:
   elisions: []
   matchstamps: []
   order:
-    "#group_0i5w3bp2zadi2": ["#dpt_36c2wnc3esuh3"]
-    "#group_2jq8lmvzmih8c": ["#dpt_0ig2a624g4mfr"]
+    "#group_0p7z3elmgzrxy": ["#cpt_36c2wnc3esuh3"]
+    "#group_3f0gkchu0kt0q": ["#cpt_0ig2a624g4mfr"]
   rules: []
   styles: {}
   timestamps: []
 groups:
   -
-    id: "#group_0i5w3bp2zadi2"
-    members: ["#dpt_36c2wnc3esuh3"]
+    id: "#group_0p7z3elmgzrxy"
+    members: ["#cpt_36c2wnc3esuh3"]
     meta: {}
     name: rec-a
   -
-    id: "#group_2jq8lmvzmih8c"
-    members: ["#dpt_0ig2a624g4mfr"]
+    id: "#group_3f0gkchu0kt0q"
+    members: ["#cpt_0ig2a624g4mfr"]
     meta: {}
     name: rec-ref
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (b76ec413)"
+  generator: "timetoalign 1.2.0 (13f55078)"
 name: alignment
 resources: []
 timelines:
   -
     children: []
-    conversion_maps:
-      -
-        id: "#cmap_0ybicnsgz6xly"
-        name: null
-        offset: 0
-        scalar: [1, 44100]
-        source_unit: samples
-        target_unit: seconds
-        type: LinearMap
+    conversion_maps: []
     flow_control: []
-    id: "#dpt_0ig2a624g4mfr"
+    id: "#cpt_0ig2a624g4mfr"
     is_segment_line: false
-    length: 2205
+    length: 0.05
     locked: false
-    meta:
-      sample_rate: 44100
-      sample_rate_provenance: assumed
+    meta: {}
     name: "rec ref"
-    number_type: int
+    number_type: float
     regions: []
-    unit: samples
+    unit: seconds
   -
     children: []
-    conversion_maps:
-      -
-        id: "#cmap_1x9xnimsreb7w"
-        name: null
-        offset: 0
-        scalar: [1, 44100]
-        source_unit: samples
-        target_unit: seconds
-        type: LinearMap
+    conversion_maps: []
     flow_control: []
-    id: "#dpt_36c2wnc3esuh3"
+    id: "#cpt_36c2wnc3esuh3"
     is_segment_line: false
-    length: 1764
+    length: 0.04
     locked: false
-    meta:
-      sample_rate: 44100
-      sample_rate_provenance: assumed
+    meta: {}
     name: "rec a"
-    number_type: int
+    number_type: float
     regions: []
-    unit: samples
+    unit: seconds
 timetoshare: "0.2.0"

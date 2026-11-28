@@ -55,49 +55,29 @@
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
 graphical:
   order:
-    "#group_0i5w3bp2zadi2": ["#dpt_36c2wnc3esuh3"]
-    "#group_2jq8lmvzmih8c": ["#dpt_0ig2a624g4mfr"]
+    "#group_0p7z3elmgzrxy": ["#cpt_36c2wnc3esuh3"]
+    "#group_3f0gkchu0kt0q": ["#cpt_0ig2a624g4mfr"]
 groups:
   -
-    id: "#group_0i5w3bp2zadi2"
-    members: ["#dpt_36c2wnc3esuh3"]
+    id: "#group_0p7z3elmgzrxy"
+    members: ["#cpt_36c2wnc3esuh3"]
     name: rec-a
   -
-    id: "#group_2jq8lmvzmih8c"
-    members: ["#dpt_0ig2a624g4mfr"]
+    id: "#group_3f0gkchu0kt0q"
+    members: ["#cpt_0ig2a624g4mfr"]
     name: rec-ref
 meta:
-  generator: "timetoalign 1.2.0 (b76ec413)"
+  generator: "timetoalign 1.2.0 (13f55078)"
 name: alignment
 timelines:
   -
-    conversion_maps:
-      -
-        id: "#cmap_0ybicnsgz6xly"
-        scalar: [1, 44100]
-        source_unit: samples
-        target_unit: seconds
-        type: LinearMap
-    id: "#dpt_0ig2a624g4mfr"
-    length: 2205
-    meta:
-      sample_rate: 44100
-      sample_rate_provenance: assumed
+    id: "#cpt_0ig2a624g4mfr"
+    length: 0.05
     name: "rec ref"
-    unit: samples
+    unit: seconds
   -
-    conversion_maps:
-      -
-        id: "#cmap_1x9xnimsreb7w"
-        scalar: [1, 44100]
-        source_unit: samples
-        target_unit: seconds
-        type: LinearMap
-    id: "#dpt_36c2wnc3esuh3"
-    length: 1764
-    meta:
-      sample_rate: 44100
-      sample_rate_provenance: assumed
+    id: "#cpt_36c2wnc3esuh3"
+    length: 0.04
     name: "rec a"
-    unit: samples
+    unit: seconds
 timetoshare: "0.2.0"
