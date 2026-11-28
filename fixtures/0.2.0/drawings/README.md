@@ -1223,6 +1223,11 @@ after segment in traversal order (§6.4, Segments without a line):
     96.89915556066177 → 96.8992.
   - `region_2` runs from `x(14)` = 379.2521 to `x(17)` = 449.8403,
     with its tip at `x(31/2)` = 414.54621438419116 → 414.5462.
+  - Both lie in the band's one row, `region_1` first by the lower end
+    of its extent (0 against 14 on `form`'s axis): `region_1` is stroked
+    black `#000000`, `region_2`, the second of the row, matches
+    `{"element": "region", "alternate": true}` and is stroked `#595959`
+    (§2.3, §4).
 - `Hm` = 16 + 49.453125 + 8 = 73.453125.
 - `W` = 8 + (10 + 478.34033203125) = 496.34033203125; `H` = 8 + (10 +
   73.453125) = 91.453125.
