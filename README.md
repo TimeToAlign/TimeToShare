@@ -2138,7 +2138,7 @@ open:
 | `id` | no | the package's IRI where it is published, such as its repository or its DOI |
 | `name`, `meta` | no | its name and free-form metadata, as a manifest's |
 | `manifests` | yes | the manifests, each once, each a descriptor ([Resources](#resources)): its `url`, and optionally its `media_type`, `size` and `integrity` |
-| `tables` | yes | the tables, each a descriptor with the `type` of its rows: `Registry` for the registry, exactly one entry, a file; `Parse` for the Parse table, at most one entry; `MatchClaim` for the MatchClaim table; and an event type for a pre-parsed table of it, such as `MidiNote`. A type other than `Registry` and `Parse` may have several entries, for rows kept in different files |
+| `tables` | yes | the tables, each a descriptor with the `type` of its rows: `Registry` for the registry, exactly one entry, a file; `Parse` for the Parse table; `MatchClaim` for the MatchClaim table; and an event type for a pre-parsed table of it, such as `MidiNote`. An entry is **local** when its `url` is a relative URL resolving inside the package's root, to a file or a folder, and **external** when it is an absolute URI, with a scheme such as `https://`, which the package check does not follow. Each type other than `Registry` has at most one local entry, beside which any number of external entries of that type may stand |
 
 - **URLs** are resolved against the address of the document stating
   them: an entry of `package.yaml` against the package's root, a
@@ -2148,6 +2148,10 @@ open:
   folder, read as one table ([Resources](#resources)); a folder has no
   `size` and no `integrity`. The registry is never a folder.
 - **The manifests are listed one by one**, never by a pattern.
+- **A package keeps its tables in one place**, one local table of each
+  type, which its manifests share: a manifest of a package names these
+  tables in its resources rather than keeping tables of its own beside
+  it.
 - **Each manifest's resources name the tables it reads**, the registry
   and the MatchClaim tables, with the timelines whose rows it keeps, and
   nothing in a table file names a manifest. A **table resource** is one
@@ -2318,13 +2322,15 @@ order:
 
 1. `package.yaml` itself, by `validate_package`; a problem there ends the
    check, another version being reported as `version_mismatch`. Then its
-   registry: no table of the type `Registry`, a second one, a registry
-   entry whose `url` names a folder, which is then not read, or a second
-   table of the type `Parse`; only the first of each is read.
+   tables by type: no table of the type `Registry`, a second one, a
+   registry entry whose `url` names a folder, which is then not read, and
+   a second local table of any other type; only the first registry and
+   the first local Parse table are read.
 2. Manifest by manifest, as listed: a missing manifest, a manifest
    that is not valid, with its validation's code and path, and a
    resource of type `Registry` whose `url` names a folder.
-3. Table by table and file by file: a missing file or folder, a file an
+3. Table by table and file by file, external entries not followed: a
+   missing file or folder, a file an
    earlier entry of the same type reaches already, such as a file entry
    inside a listed folder (the later entry reads its other files only, so
    that no row is read twice), a file of another type or version, a
@@ -2364,7 +2370,7 @@ order:
 | --- | --- | --- | --- |
 | `package.yaml` lists no table of the type `Registry` | `missing_registry` | `package.yaml`, `tables` | `the package lists no table of the type Registry` |
 | `package.yaml` lists a second table of the type `Registry` | `duplicate_registry` | `package.yaml`, the later entry's `type` | `the package lists a second table of the type Registry, first at <pointer>` |
-| `package.yaml` lists a second table of the type `Parse` | `duplicate_parse` | `package.yaml`, the later entry's `type` | `the package lists a second table of the type Parse, first at <pointer>` |
+| `package.yaml` lists a second local table of one type other than `Registry` | `duplicate_table` | `package.yaml`, the later local entry's `type` | `the package lists a second local table of the type <type>, first at <pointer>` |
 | A table entry of the type `Registry` in `package.yaml`, or a manifest's resource of that type, has a `url` ending in `/`, naming a folder | `registry_not_a_file` | `package.yaml` or the manifest, the entry's or the resource's `url` | `the registry '<url>' names a folder; a registry is one Parquet file` |
 | A manifest `package.yaml` lists is missing | `missing_file` | `package.yaml`, the entry's `url` | `no manifest lies at '<url>' in the package` |
 | A manifest declares another version than the package | `version_mismatch` | the manifest, `timetoshare` | `the manifest declares the version '<version>', the package '<version>'` |

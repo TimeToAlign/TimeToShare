@@ -628,6 +628,7 @@ resolutions of some IDs:
 | `recording_resource` | Bach's manifest names a recording beside it (`Audio`, `recording.flac`, `audio/flac`), a resource naming no table, which `package.yaml` does not list; the registry holds a non-event row of the resource |
 | `timeline_in_two_manifests` | Handel's manifest holds a timeline `dpt_1`, as Bach's does, and keeps its event rows too; `dpt_1` resolves through each manifest to its own element, and through the package root to both, and Bach's `projection_1` resolves through Handel's manifest |
 | `re_parsable_event` | an onset of Bach's parse, `onset_9`, has no pre-parsed content: its `location` is null, its content re-parsable from the parse's source file; it resolves through Bach's manifest with the location `None` |
+| `external_table_entry` | `package.yaml` lists, beside the local table of notes, an external table of notes, `https://example.org/tables/notes.parquet`, which the package check does not follow; the rows read are the shared package's |
 
 `rejections/<case>/` are the shared package with one change each, beside
 an `expected.yaml` listing every problem the package check reports, in
@@ -646,11 +647,12 @@ order (`code`, `file` from the package's root, `row` in that file or null,
 | `axis_mismatch` | an event row on the samples timeline `dpt_1` written in seconds | `axis_mismatch` |
 | `file_of_another_type` | a file of the folder of notes states the type `MatchClaim` | `table_type` |
 | `table_listed_twice` | `package.yaml` lists the folder of notes twice | `duplicate_url` (`validate_package`) |
-| `file_in_a_listed_folder` | `package.yaml` lists a file of the folder of notes as a table of its own | `duplicate_url` |
+| `file_in_a_listed_folder` | `package.yaml` lists a file of the folder of notes as a table of its own, a second local table of notes | `duplicate_table`, `duplicate_url` |
 | `registry_missing` | `package.yaml` lists no registry | `missing_registry` |
 | `registry_listed_twice` | `package.yaml` lists a second registry | `duplicate_registry` |
 | `registry_folder` | `package.yaml` names the registry `registry/`, a folder | `registry_not_a_file` |
-| `parse_table_listed_twice` | `package.yaml` lists a second Parse table | `duplicate_parse` |
+| `parse_table_listed_twice` | `package.yaml` lists a second Parse table | `duplicate_table` |
+| `event_table_listed_twice` | `package.yaml` lists a second local table of notes, under another URL | `duplicate_table` |
 | `unknown_parse` | an event row of Handel's names `parse_9`, which the Parse table does not hold | `unknown_parse` |
 | `vanished_in_an_unknown_parse` | an event row of Handel's vanished in `parse_4`, which the Parse table does not hold | `unknown_parse` |
 | `unknown_location` | a note's event row names `tables/Box/`, which `package.yaml` does not list, as its content's table | `unknown_location` |
