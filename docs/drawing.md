@@ -439,7 +439,7 @@ source's, with the source's domain, modality and class (section 8.10):
 
 | Domain | Units |
 |---|---|
-| `logical` | `number`, `floating_measures`, `whole_notes`, `quarters`, `ticks` |
+| `logical` | `number`, `floating_measures`, `whole_notes`, `quarters`, `ordinals`, `ticks` |
 | `physical` | `milliseconds`, `seconds`, `minutes`, `samples`, `frames` |
 | `graphical` | `pixels`, `meters`, `centimeters`, `millimeters`, `inches`, `points`, `css_pixels`, `user_units` |
 
@@ -1336,7 +1336,7 @@ coordinate (section 1), and no position is computed from its label.
 | `points` | `pt` |
 | `meters`, `centimeters`, `millimeters`, `inches` | `m`, `cm`, `mm`, `in` |
 | `user_units` | `uu` |
-| any other unit | the unit's name (`ticks`, `frames`, `number`, `floating_measures`, `css_pixels`) |
+| any other unit | the unit's name (`ticks`, `frames`, `number`, `floating_measures`, `ordinals`, `css_pixels`) |
 
 `css_pixels` has no abbreviation, since `px` is the pretty unit of the
 discrete `pixels`: a coordinate in CSS pixels is labelled with the unit's

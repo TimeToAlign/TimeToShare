@@ -80,6 +80,7 @@ UNITS: Mapping[str, UnitEntry] = MappingProxyType(
         "floating_measures": UnitEntry("logical", "continuous", "float", _CONTINUOUS),
         "whole_notes": UnitEntry("logical", "continuous", "fraction", _CONTINUOUS),
         "quarters": UnitEntry("logical", "continuous", "fraction", _CONTINUOUS),
+        "ordinals": UnitEntry("logical", "continuous", "fraction", _CONTINUOUS),
         "ticks": UnitEntry("logical", "discrete", "int", _DISCRETE),
         "milliseconds": UnitEntry("physical", "continuous", "float", _CONTINUOUS),
         "seconds": UnitEntry("physical", "continuous", "float", _CONTINUOUS),

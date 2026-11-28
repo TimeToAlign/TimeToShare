@@ -335,6 +335,19 @@ def test_a_vector_graphics_unit_is_read_as_points_is(
     assert _accepted(root) is accepted
 
 
+@pytest.mark.parametrize(
+    ("number_type", "length", "accepted"),
+    [("fraction", [7, 3], True), ("float", 2.5, True), ("int", 3, False)],
+)
+def test_an_ordinals_axis_is_read_as_quarters_is(
+    number_type: str, length: Any, accepted: bool
+) -> None:
+    quarters = manifest(timeline("piece", "quarters", length, number_type=number_type))
+    root = manifest(timeline("piece", "ordinals", length, number_type=number_type))
+    assert _accepted(quarters) is accepted
+    assert _accepted(root) is accepted
+
+
 _TWO = {"int": 2, "float": 2.0, "fraction": [2, 1]}
 """The value 2 as each number type spells it."""
 
@@ -1255,9 +1268,9 @@ def test_an_unknown_unit_names_the_admitted_units() -> None:
     assert _problem(manifest(timeline("score", "furlongs"))) == (
         ("timelines", 0, "unit"),
         "'furlongs' is not one of ['number', 'floating_measures', 'whole_notes', "
-        "'quarters', 'ticks', 'milliseconds', 'seconds', 'minutes', 'samples', "
-        "'frames', 'pixels', 'meters', 'centimeters', 'millimeters', 'inches', "
-        "'points', 'css_pixels', 'user_units']",
+        "'quarters', 'ordinals', 'ticks', 'milliseconds', 'seconds', 'minutes', "
+        "'samples', 'frames', 'pixels', 'meters', 'centimeters', 'millimeters', "
+        "'inches', 'points', 'css_pixels', 'user_units']",
     )
 
 

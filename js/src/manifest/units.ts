@@ -36,6 +36,7 @@ export const UNITS: Readonly<Record<TimeUnit, UnitEntry>> = Object.freeze({
   floating_measures: unit("logical", "continuous", "float", CONTINUOUS),
   whole_notes: unit("logical", "continuous", "fraction", CONTINUOUS),
   quarters: unit("logical", "continuous", "fraction", CONTINUOUS),
+  ordinals: unit("logical", "continuous", "fraction", CONTINUOUS),
   ticks: unit("logical", "discrete", "int", DISCRETE),
   milliseconds: unit("physical", "continuous", "float", CONTINUOUS),
   seconds: unit("physical", "continuous", "float", CONTINUOUS),

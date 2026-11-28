@@ -273,6 +273,7 @@ describe("the complete and the minimal form", () => {
     ["ticks", "int"],
     ["seconds", "float"],
     ["whole_notes", "fraction"],
+    ["ordinals", "fraction"],
     ["pixels", "int"],
     ["css_pixels", "float"],
     ["user_units", "float"],

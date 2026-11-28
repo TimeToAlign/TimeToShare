@@ -847,6 +847,10 @@ export const schema = {
           "description": "Logical, continuous; default number type fraction."
         },
         {
+          "const": "ordinals",
+          "description": "Logical, continuous; default number type fraction. Positions in an ordered structure of units of length 1 (an edition's pages), subdivided exactly (a page's accolades, an accolade's measures)."
+        },
+        {
           "const": "ticks",
           "description": "Logical, discrete; default number type int."
         },

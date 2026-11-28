@@ -350,6 +350,22 @@ describe("the units", () => {
     expect(accepted(root)).toBe(valid);
   });
 
+  it.each([
+    ["fraction", [7, 3], true],
+    ["float", 2.5, true],
+    ["int", 3, false],
+  ] as const)(
+    "reads ordinals with the number type %s as quarters is read",
+    (numberType, length, valid) => {
+      const quarters = manifest([
+        timeline("piece", "quarters", length, { number_type: numberType }),
+      ]);
+      const root = manifest([timeline("piece", "ordinals", length, { number_type: numberType })]);
+      expect(accepted(quarters)).toBe(valid);
+      expect(accepted(root)).toBe(valid);
+    },
+  );
+
   /** The value 2 and the value 0 as each number type spells it. */
   const TWO: Readonly<Record<timetoshare.NumberType, unknown>> = {
     int: 2,
@@ -878,9 +894,9 @@ describe("the worded refusals", () => {
       "schema",
       ["timelines", 0, "unit"],
       "'furlongs' is not one of ['number', 'floating_measures', 'whole_notes', " +
-        "'quarters', 'ticks', 'milliseconds', 'seconds', 'minutes', 'samples', " +
-        "'frames', 'pixels', 'meters', 'centimeters', 'millimeters', 'inches', " +
-        "'points', 'css_pixels', 'user_units']",
+        "'quarters', 'ordinals', 'ticks', 'milliseconds', 'seconds', 'minutes', " +
+        "'samples', 'frames', 'pixels', 'meters', 'centimeters', 'millimeters', " +
+        "'inches', 'points', 'css_pixels', 'user_units']",
     ]);
   });
 

@@ -436,10 +436,13 @@ manifest's keys never appear in the next run's list (`validate.test.ts`).
 `validate.test.ts` proves the Python README's section "The units" with
 the same roots: `css_pixels` and `user_units` validate with `float` and
 `fraction` exactly where `points` does, all three refuse `int`, and `px` and `uu` are refused with the
-code `schema` at `["timelines", 0, "unit"]`. `defaults.ts` completes a
+code `schema` at `["timelines", 0, "unit"]`. `ordinals` validates with
+`fraction` (`[7, 3]`) and `float` (`2.5`) exactly where `quarters` does,
+and both refuse `int` (`3`). `defaults.ts` completes a
 timeline's `number_type` for exactly the keys of `UNITS`, its
-one list of units, so the default number type of both new units is
-`float` in `defaults.test.ts` as in the Python suite.
+one list of units, so the default number type of both vector-graphics
+units is `float`, and that of `ordinals` `fraction`, in
+`defaults.test.ts` as in the Python suite.
 
 Which number types a unit admits is the Python README's paragraph of that
 name, proved with the same values: `UNITS` (exported from the package

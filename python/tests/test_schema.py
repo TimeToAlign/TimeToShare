@@ -312,6 +312,7 @@ UNIT_TABLE = {
     "floating_measures": ("logical", "continuous", "float", _CONTINUOUS),
     "whole_notes": ("logical", "continuous", "fraction", _CONTINUOUS),
     "quarters": ("logical", "continuous", "fraction", _CONTINUOUS),
+    "ordinals": ("logical", "continuous", "fraction", _CONTINUOUS),
     "ticks": ("logical", "discrete", "int", ("int",)),
     "milliseconds": ("physical", "continuous", "float", _CONTINUOUS),
     "seconds": ("physical", "continuous", "float", _CONTINUOUS),

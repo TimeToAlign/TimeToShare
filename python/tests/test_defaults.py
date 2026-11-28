@@ -235,6 +235,7 @@ def test_every_object_gains_exactly_its_defaults() -> None:
         ("ticks", "int"),
         ("seconds", "float"),
         ("whole_notes", "fraction"),
+        ("ordinals", "fraction"),
         ("pixels", "int"),
         ("css_pixels", "float"),
         ("user_units", "float"),

@@ -130,7 +130,7 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
   | --- | --- | --- | --- | --- |
   | `number` | logical | continuous | `float` | `int`, `float`, `fraction` |
   | `floating_measures` | logical | continuous | `float` | `float`, `fraction` |
-  | `whole_notes`, `quarters` | logical | continuous | `fraction` | `float`, `fraction` |
+  | `whole_notes`, `quarters`, `ordinals` | logical | continuous | `fraction` | `float`, `fraction` |
   | `ticks` | logical | discrete | `int` | `int` |
   | `milliseconds`, `seconds`, `minutes` | physical | continuous | `float` | `float`, `fraction` |
   | `samples`, `frames` | physical | discrete | `int` | `int` |
@@ -148,6 +148,11 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
   the space of an SVG `viewBox`; only that document knows its size, so it
   is related to another unit only through a conversion map of the timeline
   that measures in it.
+
+  `ordinals` places positions in an ordered structure of units of length
+  1, subdivided exactly: an edition's pages are 1 each, a page's n
+  accolades 1/n each, an accolade's m measures 1/m each, so every
+  position is an exact fraction.
 
   The domain and modality decide the timeline's class (`seconds` makes a
   `ContinuousPhysicalTimeline`), which a timeline never writes.

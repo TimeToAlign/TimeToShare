@@ -392,6 +392,7 @@ describe("the schema document", () => {
       ["floating_measures", "logical", "continuous", "float", continuous],
       ["whole_notes", "logical", "continuous", "fraction", continuous],
       ["quarters", "logical", "continuous", "fraction", continuous],
+      ["ordinals", "logical", "continuous", "fraction", continuous],
       ["ticks", "logical", "discrete", "int", ["int"]],
       ["milliseconds", "physical", "continuous", "float", continuous],
       ["seconds", "physical", "continuous", "float", continuous],

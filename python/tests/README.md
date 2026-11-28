@@ -273,6 +273,15 @@ code `schema` at `["timelines", 0, "unit"]`, as the shared case
 `timeline_unit_unknown` refuses `beats`, so a short spelling can never be
 read as the discrete `pixels`.
 
+`ordinals`, the logical unit of positions in an ordered structure of units
+of length 1 subdivided exactly, is read like `quarters`, the other
+continuous logical unit whose default number type is `fraction`
+(`test_validate.py`): a root of each, with the length `[7, 3]` and
+`number_type` `fraction`, `2.5` and `float`, or `3` and `int`, validates
+exactly where the same root in `quarters` validates (the first two; `int`
+is refused for both, `ordinals` being continuous). Its default number type
+is `fraction` (`test_defaults.py`).
+
 **Which number types a unit admits.** `UNITS` (exported as
 `timetoshare.UNITS`, the one table of the package, which every module
 reading a unit's default number type reads) gives every unit its domain, modality, default number type
@@ -386,7 +395,7 @@ selects: an int axis an integral JSON number, a float axis any JSON number
 that a float equals exactly (an integer beyond 2^53 may have none), a
 fraction axis a pair. The axis is the timeline's `number_type`, else its
 unit's default (`int` for ticks, samples, frames, pixels; `fraction` for
-quarters, whole_notes; `float` otherwise). A child's offset lies on its
+quarters, whole_notes, ordinals; `float` otherwise). A child's offset lies on its
 parent's axis, a root's on its own. A mismatch is reported after the schema,
 at the value, as `<key> <value> of '<id>' is <found> on <axis> axis: write
 <value rewritten>`, the ID that of the object holding the key, the value
@@ -521,8 +530,9 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   keeps `[]` in both forms; its `width` `{"ratio": 1}` stays in both forms,
   as no width has a default.
   The unit default of `number_type` is stated for ticks (`int`), seconds
-  (`float`), whole_notes (`fraction`), pixels (`int`), and the two
-  vector-graphics units css_pixels and user_units (`float`).
+  (`float`), whole_notes (`fraction`), ordinals (`fraction`), pixels
+  (`int`), and the two vector-graphics units css_pixels and user_units
+  (`float`).
 - **Never added, never removed.** `id`, `graphical` and a root's `offset`
   are absent from the completion of a manifest without them; a present
   `graphical: {}` completes to its six keys (`styles`, `rules`,

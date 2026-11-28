@@ -27,6 +27,7 @@ export type TimeUnit =
   | "floating_measures"
   | "whole_notes"
   | "quarters"
+  | "ordinals"
   | "ticks"
   | "milliseconds"
   | "seconds"
