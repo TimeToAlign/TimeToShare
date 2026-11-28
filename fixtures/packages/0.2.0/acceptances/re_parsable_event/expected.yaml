@@ -6,7 +6,7 @@ resolutions:
       -
         kind: Onset
         location: null
-        manifest: bach/manifest.yaml
+        manifest: bach.tts.yaml
         row:
           duration: null
           id: onset_9
@@ -24,4 +24,4 @@ resolutions:
           unit: samples
           vanished_in: null
     id: onset_9
-    path: bach/manifest.yaml
+    path: bach.tts.yaml

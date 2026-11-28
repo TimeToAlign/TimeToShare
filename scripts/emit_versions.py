@@ -4,7 +4,7 @@
 
 A version case is two trees, ``old/`` and ``new/``, beside an
 ``expected.yaml`` of the step and the findings ``tree_step`` gives. The
-cases of tables are packages: ``package.yaml``, the manifest ``score.yaml``
+cases of tables are packages: ``package.yaml``, the manifest ``score.tts.yaml``
 (the quarters timeline ``score`` and the seconds timeline ``take``), the
 registry ``registry.parquet`` and the Parse table ``parses.parquet``. Their
 YAML files and ``expected.yaml`` are written by hand; this script writes

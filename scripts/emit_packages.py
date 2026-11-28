@@ -16,9 +16,9 @@ version, whose tag ``v<version>`` exists, are never overwritten.
 Run it from ``python/`` with ``uv run python ../scripts/emit_packages.py``;
 pyarrow is a development dependency of the package.
 
-The package ``shared/``: two manifests, ``bach/manifest.yaml`` (a score
+The package ``shared/``: two manifests, ``bach.tts.yaml`` (a score
 ``clt_1`` in quarters and a performance ``dpt_1`` in samples) and
-``handel/manifest.yaml`` (a score ``clt_2`` with a child ``clt_3`` starting
+``handel.tts.yaml`` (a score ``clt_2`` with a child ``clt_3`` starting
 at the quarter 4, and a performance ``dpt_2``), share the registry
 ``registry.parquet``, one file holding every row: first the non-event rows of
 both manifests' elements, the MatchClaims and the parses, sorted by
@@ -88,8 +88,8 @@ MATCH_CLAIMS = "tables/MatchClaim/"
 PART_A_FILE = f"{NOTES}part_a.parquet"
 PART_B_FILE = f"{NOTES}part_b.parquet"
 CLAIM_FILE = f"{MATCH_CLAIMS}part_a.parquet"
-BACH_FILE = "bach/manifest.yaml"
-HANDEL_FILE = "handel/manifest.yaml"
+BACH_FILE = "bach.tts.yaml"
+HANDEL_FILE = "handel.tts.yaml"
 SOURCE = "bach/alignment.csv"
 SOURCE_TEXT = "onset,sample\n0,0\n1,44100\n2,88200\n3,132300\n"
 """The source file of the first parse, Bach's alignment."""
@@ -106,14 +106,14 @@ BACH: dict[str, Any] = {
             "id": "resource_1",
             "type": "MatchClaim",
             "timelines": ["clt_1", "dpt_1"],
-            "url": f"../{MATCH_CLAIMS}",
+            "url": MATCH_CLAIMS,
             "media_type": PARQUET,
         },
         {
             "id": "resource_2",
             "type": "Registry",
             "timelines": ["clt_1", "dpt_1"],
-            "url": f"../{REGISTRY}",
+            "url": REGISTRY,
             "media_type": PARQUET,
         },
     ],
@@ -139,14 +139,14 @@ HANDEL: dict[str, Any] = {
             "id": "resource_1",
             "type": "MatchClaim",
             "timelines": ["clt_2", "dpt_2"],
-            "url": f"../{MATCH_CLAIMS}",
+            "url": MATCH_CLAIMS,
             "media_type": PARQUET,
         },
         {
             "id": "resource_2",
             "type": "Registry",
             "timelines": ["clt_2", "clt_3", "dpt_2"],
-            "url": f"../{REGISTRY}",
+            "url": REGISTRY,
             "media_type": PARQUET,
         },
     ],
@@ -706,7 +706,7 @@ def _recording_resource(package: Package) -> None:
             "id": "resource_3",
             "type": "Audio",
             "timelines": ["dpt_1"],
-            "url": "recording.flac",
+            "url": "bach/recording.flac",
             "media_type": "audio/flac",
         }
     )
@@ -935,7 +935,7 @@ def _resource_naming_no_table(package: Package) -> None:
             "id": "resource_3",
             "type": "Box",
             "timelines": ["clt_1"],
-            "url": "../tables/Box/",
+            "url": "tables/Box/",
         }
     )
     package.registry.insert(4, non_event("resource_3", "Resource", BACH_FILE))
@@ -1068,7 +1068,7 @@ def _registry_folder(package: Package) -> None:
     package.metadata[f"registry/{REGISTRY}"] = package.metadata.pop(REGISTRY)
     package.package["tables"][0]["url"] = "registry/"
     for manifest in package.manifests.values():
-        manifest["resources"][1]["url"] = "../registry/"
+        manifest["resources"][1]["url"] = "registry/"
 
 
 FEATURES = "tables/features.parquet"
@@ -1173,7 +1173,7 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 BACH_FILE,
                 None,
                 ["resources", 2, "url"],
-                "the resource 'resource_3' names '../tables/Box/', which is no table "
+                "the resource 'resource_3' names 'tables/Box/', which is no table "
                 "of the type Box in the package",
             ),
         ],
@@ -1201,7 +1201,7 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 REGISTRY,
                 24,
                 ["timeline_id"],
-                "the timeline 'clt_3' of 'handel/manifest.yaml' is listed by no "
+                "the timeline 'clt_3' of 'handel.tts.yaml' is listed by no "
                 "resource of the type Registry naming this table",
             ),
             problem(
@@ -1209,7 +1209,7 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 REGISTRY,
                 25,
                 ["timeline_id"],
-                "the timeline 'clt_3' of 'handel/manifest.yaml' is listed by no "
+                "the timeline 'clt_3' of 'handel.tts.yaml' is listed by no "
                 "resource of the type Registry naming this table",
             ),
         ],
@@ -1471,7 +1471,7 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 REGISTRY,
                 0,
                 ["kind"],
-                "the non-event row of the ID 'clt_1' at 'bach/manifest.yaml' has the "
+                "the non-event row of the ID 'clt_1' at 'bach.tts.yaml' has the "
                 "kind 'VirtualTimeline', not 'Timeline'",
             ),
             problem(
@@ -1480,7 +1480,7 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 4,
                 ["id"],
                 "the registry holds the non-event row of the ID 'region_9' at "
-                "'bach/manifest.yaml', which no manifest or table holds there",
+                "'bach.tts.yaml', which no manifest or table holds there",
             ),
             problem(
                 "stale_non_event_row",
@@ -1488,7 +1488,7 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 None,
                 ["id"],
                 "the registry lacks the non-event row of the ID 'group_1' at "
-                "'handel/manifest.yaml'",
+                "'handel.tts.yaml'",
             ),
         ],
     ),
@@ -1510,7 +1510,7 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 BACH_FILE,
                 None,
                 ["resources", 1, "url"],
-                "the registry '../registry/' names a folder; a registry is one "
+                "the registry 'registry/' names a folder; a registry is one "
                 "Parquet file",
             ),
             problem(
@@ -1518,7 +1518,7 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 HANDEL_FILE,
                 None,
                 ["resources", 1, "url"],
-                "the registry '../registry/' names a folder; a registry is one "
+                "the registry 'registry/' names a folder; a registry is one "
                 "Parquet file",
             ),
         ],

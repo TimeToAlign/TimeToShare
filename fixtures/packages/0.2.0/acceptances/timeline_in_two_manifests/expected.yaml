@@ -5,13 +5,13 @@ resolutions:
     found:
       -
         kind: Timeline
-        location: bach/manifest.yaml
-        manifest: bach/manifest.yaml
+        location: bach.tts.yaml
+        manifest: bach.tts.yaml
         row:
           duration: null
           id: dpt_1
           kind: Timeline
-          location: bach/manifest.yaml
+          location: bach.tts.yaml
           locator: null
           number_type: null
           parse_id: null
@@ -21,18 +21,18 @@ resolutions:
           unit: null
           vanished_in: null
     id: dpt_1
-    path: bach/manifest.yaml
+    path: bach.tts.yaml
   -
     found:
       -
         kind: Timeline
-        location: handel/manifest.yaml
-        manifest: handel/manifest.yaml
+        location: handel.tts.yaml
+        manifest: handel.tts.yaml
         row:
           duration: null
           id: dpt_1
           kind: Timeline
-          location: handel/manifest.yaml
+          location: handel.tts.yaml
           locator: null
           number_type: null
           parse_id: null
@@ -42,13 +42,13 @@ resolutions:
           unit: null
           vanished_in: null
     id: dpt_1
-    path: handel/manifest.yaml
+    path: handel.tts.yaml
   -
     found:
       -
         kind: Projection
         location: null
-        manifest: handel/manifest.yaml
+        manifest: handel.tts.yaml
         row:
           duration: null
           id: projection_1
@@ -68,18 +68,18 @@ resolutions:
           unit: samples
           vanished_in: null
     id: projection_1
-    path: handel/manifest.yaml
+    path: handel.tts.yaml
   -
     found:
       -
         kind: Timeline
-        location: bach/manifest.yaml
-        manifest: bach/manifest.yaml
+        location: bach.tts.yaml
+        manifest: bach.tts.yaml
         row:
           duration: null
           id: dpt_1
           kind: Timeline
-          location: bach/manifest.yaml
+          location: bach.tts.yaml
           locator: null
           number_type: null
           parse_id: null
@@ -90,13 +90,13 @@ resolutions:
           vanished_in: null
       -
         kind: Timeline
-        location: handel/manifest.yaml
-        manifest: handel/manifest.yaml
+        location: handel.tts.yaml
+        manifest: handel.tts.yaml
         row:
           duration: null
           id: dpt_1
           kind: Timeline
-          location: handel/manifest.yaml
+          location: handel.tts.yaml
           locator: null
           number_type: null
           parse_id: null

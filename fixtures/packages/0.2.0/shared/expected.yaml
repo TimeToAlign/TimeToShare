@@ -1,8 +1,8 @@
 read:
-  bach/manifest.yaml:
+  bach.tts.yaml:
     resource_1: [claim_1, claim_2, claim_5]
     resource_2: [note_1, note_2, note_3, note_4, projection_1, projection_2, projection_7, projection_9]
-  handel/manifest.yaml:
+  handel.tts.yaml:
     resource_1: [claim_3, claim_4]
     resource_2: [note_5, note_6, note_7, projection_3, projection_4, projection_5, projection_6, projection_8]
 resolutions:
@@ -10,13 +10,13 @@ resolutions:
     found:
       -
         kind: Timeline
-        location: bach/manifest.yaml
-        manifest: bach/manifest.yaml
+        location: bach.tts.yaml
+        manifest: bach.tts.yaml
         row:
           duration: null
           id: dpt_1
           kind: Timeline
-          location: bach/manifest.yaml
+          location: bach.tts.yaml
           locator: null
           number_type: null
           parse_id: null
@@ -26,13 +26,13 @@ resolutions:
           unit: null
           vanished_in: null
     id: dpt_1
-    path: bach/manifest.yaml
+    path: bach.tts.yaml
   -
     found:
       -
         kind: Projection
         location: null
-        manifest: bach/manifest.yaml
+        manifest: bach.tts.yaml
         row:
           duration: null
           id: projection_1
@@ -52,17 +52,17 @@ resolutions:
           unit: samples
           vanished_in: null
     id: projection_1
-    path: bach/manifest.yaml
+    path: bach.tts.yaml
   -
     found: []
     id: projection_3
-    path: bach/manifest.yaml
+    path: bach.tts.yaml
   -
     found:
       -
         kind: MatchClaim
         location: tables/MatchClaim/
-        manifest: bach/manifest.yaml
+        manifest: bach.tts.yaml
         row:
           duration: null
           id: claim_1
@@ -77,13 +77,13 @@ resolutions:
           unit: null
           vanished_in: null
     id: claim_1
-    path: bach/manifest.yaml
+    path: bach.tts.yaml
   -
     found:
       -
         kind: Parse
         location: tables/parses.parquet
-        manifest: bach/manifest.yaml
+        manifest: bach.tts.yaml
         row:
           duration: null
           id: parse_1
@@ -98,17 +98,17 @@ resolutions:
           unit: null
           vanished_in: null
     id: parse_1
-    path: bach/manifest.yaml
+    path: bach.tts.yaml
   -
     found: []
     id: parse_2
-    path: bach/manifest.yaml
+    path: bach.tts.yaml
   -
     found:
       -
         kind: Projection
         location: null
-        manifest: handel/manifest.yaml
+        manifest: handel.tts.yaml
         row:
           duration:
             denominator: 2
@@ -131,18 +131,18 @@ resolutions:
           unit: quarters
           vanished_in: null
     id: projection_5
-    path: handel/manifest.yaml
+    path: handel.tts.yaml
   -
     found:
       -
         kind: Resource
-        location: bach/manifest.yaml
-        manifest: bach/manifest.yaml
+        location: bach.tts.yaml
+        manifest: bach.tts.yaml
         row:
           duration: null
           id: resource_1
           kind: Resource
-          location: bach/manifest.yaml
+          location: bach.tts.yaml
           locator: null
           number_type: null
           parse_id: null
@@ -153,13 +153,13 @@ resolutions:
           vanished_in: null
       -
         kind: Resource
-        location: handel/manifest.yaml
-        manifest: handel/manifest.yaml
+        location: handel.tts.yaml
+        manifest: handel.tts.yaml
         row:
           duration: null
           id: resource_1
           kind: Resource
-          location: handel/manifest.yaml
+          location: handel.tts.yaml
           locator: null
           number_type: null
           parse_id: null

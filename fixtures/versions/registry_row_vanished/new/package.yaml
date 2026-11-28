@@ -1,6 +1,6 @@
 manifests:
   -
-    url: score.yaml
+    url: score.tts.yaml
 tables:
   -
     type: Registry

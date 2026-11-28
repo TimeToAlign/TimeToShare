@@ -6,7 +6,7 @@ resolutions:
       -
         kind: Note
         location: "https://example.org/events/note_1"
-        manifest: bach/manifest.yaml
+        manifest: bach.tts.yaml
         row:
           duration:
             denominator: 1
@@ -27,4 +27,4 @@ resolutions:
           unit: quarters
           vanished_in: null
     id: note_1
-    path: bach/manifest.yaml
+    path: bach.tts.yaml

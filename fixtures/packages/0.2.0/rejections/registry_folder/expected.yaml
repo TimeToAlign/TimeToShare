@@ -7,14 +7,14 @@ problems:
     row: null
   -
     code: registry_not_a_file
-    file: bach/manifest.yaml
-    message: "the registry '../registry/' names a folder; a registry is one Parquet file"
+    file: bach.tts.yaml
+    message: "the registry 'registry/' names a folder; a registry is one Parquet file"
     path: [resources, 1, url]
     row: null
   -
     code: registry_not_a_file
-    file: handel/manifest.yaml
-    message: "the registry '../registry/' names a folder; a registry is one Parquet file"
+    file: handel.tts.yaml
+    message: "the registry 'registry/' names a folder; a registry is one Parquet file"
     path: [resources, 1, url]
     row: null
 reason: "package.yaml and both manifests name a folder registry/ as the registry, the file registry.parquet inside it; a registry is one Parquet file."

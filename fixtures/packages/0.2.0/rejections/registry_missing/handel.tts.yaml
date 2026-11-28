@@ -1,0 +1,24 @@
+name: Handel
+resources:
+  -
+    id: "#resource_1"
+    media_type: application/vnd.apache.parquet
+    timelines: ["#clt_2", "#dpt_2"]
+    type: MatchClaim
+    url: tables/MatchClaim/
+timelines:
+  -
+    children:
+      -
+        id: "#clt_3"
+        length: [4, 1]
+        offset: [4, 1]
+        unit: quarters
+    id: "#clt_2"
+    length: [8, 1]
+    unit: quarters
+  -
+    id: "#dpt_2"
+    length: 352800
+    unit: samples
+timetoshare: "0.2.0"

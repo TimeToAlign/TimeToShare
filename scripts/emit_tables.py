@@ -56,9 +56,9 @@ are not held. Every event row names ``parse_1``, the aligner's run
 without a source file, and the event its Projection stands for in its
 ``projection_of``; its ``location`` is null, a Projection holding nothing
 but its ID and that event, so it has no pre-parsed table. The
-registry is one file: its non-event rows (each timeline and resource at
-``manifest.yaml``, each MatchClaim at ``match_claims.parquet``, the parse at
-``parses.parquet``) sorted by location and ID, then its
+registry is one file: its non-event rows (each MatchClaim at
+``match_claims.parquet``, the parse at ``parses.parquet``, each timeline and
+resource at ``tables.tts.yaml``) sorted by location and ID, then its
 event rows sorted by timeline, start and ID.
 
 A number is written by its number type alone (``numerator`` for an int,
@@ -94,6 +94,8 @@ from timetoshare.tables import (
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 TABLE_DIR = REPOSITORY_ROOT / "fixtures" / "tables" / SCHEMA_VERSION
+MANIFEST_FILE = "tables.tts.yaml"
+"""The file of the manifest naming both tables."""
 
 ACTOR = "https://orcid.org/0000-0002-1825-0097"
 """The actor whose beliefs the filter cases read."""
@@ -492,17 +494,17 @@ def _non_event(identifier: str, kind: str, location: str) -> dict[str, Any]:
 
 
 NON_EVENTS: list[dict[str, Any]] = [
-    _non_event("clt_1", "Timeline", "manifest.yaml"),
-    _non_event("clt_2", "Timeline", "manifest.yaml"),
-    _non_event("cpt_1", "Timeline", "manifest.yaml"),
-    _non_event("dpt_1", "Timeline", "manifest.yaml"),
-    _non_event("resource_1", "Resource", "manifest.yaml"),
-    _non_event("resource_2", "Resource", "manifest.yaml"),
     *(
         _non_event(f"claim_{number}", "MatchClaim", "match_claims.parquet")
         for number in (1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 2, 3, 4, 5, 6, 7, 8, 9)
     ),
     _non_event(PARSE, "Parse", "parses.parquet"),
+    _non_event("clt_1", "Timeline", MANIFEST_FILE),
+    _non_event("clt_2", "Timeline", MANIFEST_FILE),
+    _non_event("cpt_1", "Timeline", MANIFEST_FILE),
+    _non_event("dpt_1", "Timeline", MANIFEST_FILE),
+    _non_event("resource_1", "Resource", MANIFEST_FILE),
+    _non_event("resource_2", "Resource", MANIFEST_FILE),
 ]
 """The registry's non-event rows, by location and ID (code point), listed by hand."""
 
@@ -754,7 +756,7 @@ def main() -> int:
     check_match_claims(claims, named)
     check_registry(registry, named)
     check_parses(parses)
-    _write_text(TABLE_DIR / "manifest.yaml", dumps(named))
+    _write_text(TABLE_DIR / MANIFEST_FILE, dumps(named))
     _write_text(TABLE_DIR / "expected.yaml", dumps(EXPECTED))
     return 0
 
