@@ -2303,7 +2303,7 @@ with one line on standard error starting `timetoshare:`.
 
 ```console
 $ timetoshare registry --check
-registry/non_events.parquet: stale_non_event_row: the non-event rows lack the ID 'region_9' at 'bach/manifest.yaml'
+registry/non_events.parquet: stale_non_event_row: the registry lacks the non-event row of the ID 'region_9' at 'bach/manifest.yaml'
 ```
  This repository's
 `.pre-commit-hooks.yaml` offers the hook `timetoshare-registry`, which
@@ -2338,8 +2338,8 @@ order:
    column of two Arrow types (whose rows are then not read), and a table
    of another type than the registry, the Extraction table and the
    MatchClaim table that holds no `id` column of strings without a null,
-   such as a table of audio features: it is reported, never read as a
-   pre-parsed table.
+   such as a table of audio features: it is reported, its rows are read
+   by no other rule and its table check is not run.
 4. The rules the manifests and the tables keep together, rule by rule as
    the table below lists them, each over every row in the order of the
    entries, their files and their rows. They read the identifying
@@ -2379,7 +2379,7 @@ order:
 | A file states another type than its entry | `table_type` | the file, `[]` | `the file holds the type <type>, its table the type <type>` |
 | A file declares another version than the package | `version_mismatch` | the file, `[]` | `the file declares the version '<version>', the package '<version>'` |
 | One column has two Arrow types in two files | `column_type_mismatch` | the folder, the column | `the column '<name>' is <type> in '<file>' and <type> in '<file>'` |
-| A table of another type than `Registry`, `Extraction` and `MatchClaim` holds no `id` column of strings without a null | `foreign_table` | the table's file or folder, `id` | `the table '<path>' of type '<type>' has no 'id' column: a package's tables hold the registry, the Extraction table, MatchClaim tables and pre-parsed tables of events keyed by 'id'` |
+| A table of another type than `Registry`, `Extraction` and `MatchClaim` holds no `id` column of strings without a null | `foreign_table` | the table's file or folder, `[]` | `the table '<path>' of type '<type>' has no 'id' column: a package's tables hold the registry, the Extraction table, MatchClaim tables and pre-parsed tables of events keyed by 'id'` |
 | A table resource's URL names no table entry of its type, or leads outside the package | `unknown_table` | the manifest, the resource's `url` | `the resource '<id>' names '<url>', which is no table of the type <type> in the package` |
 | In the registry, an event, MatchClaim or extraction ID held by an earlier row of these, in any part, or a manifest element's ID held by an earlier row of the same `location`; an event ID held twice among the rows of the pre-parsed tables, of every type and file; a MatchClaim ID held twice among the MatchClaims | `duplicate_id` | the later row's file and row, `id` | `the ID '<id>' is given twice, first in '<file>' at row <row>` (`the ID '<id>' is given twice at '<location>', first in …` for an element, `the event ID …` in the pre-parsed tables, `the MatchClaim ID …`) |
 | An event row's timeline, or a MatchClaim's either, column by column, is null, where the file holds the column as strings | `schema_violation` | the row, the column | `'<column>' is null` |
@@ -2392,7 +2392,7 @@ order:
 | A row of a pre-parsed table has an `id` no event row of the table's type has | `unregistered_id` | that table's file and row, `id` | `no event row of the type <type> in the registry has the ID '<id>'` |
 | A pre-parsed Projection stands for an event of its own registry row's timeline | `invalid_projection_of` | the Projection table's file and row, `projection_of.timeline_id` | `a Projection stands for an event of another timeline than '<id>'` |
 | A pre-parsed Projection stands for an event of a timeline no manifest holds | `unknown_timeline` | the Projection table's file and row, `projection_of.timeline_id` | `no manifest of the package has the timeline '<id>'` |
-| A non-event row stands for nothing a manifest element, a MatchClaim or an extraction gives at its `location`, or repeats an earlier non-event row there; its `kind` or `timeline_id` differs from what they give; or a row they give is missing, one problem per row | `stale_non_event_row` | the non-event part, the row (`None` for a missing row), `id` for an extra or a missing row, else the differing column | `the non-event rows hold the ID '<id>' at '<location>', which no manifest or table holds there`, `the non-event row of the ID '<id>' at '<location>' has the <column> <value>, not <value>`, `the non-event rows lack the ID '<id>' at '<location>'` |
+| A non-event row stands for nothing a manifest element, a MatchClaim or an extraction gives at its `location`, or repeats an earlier non-event row there; its `kind` or `timeline_id` differs from what they give; or a row they give is missing, one problem per row | `stale_non_event_row` | the non-event part, the row (`None` for a missing row), `id` for an extra or a missing row, else the differing column | `the registry holds the non-event row of the ID '<id>' at '<location>', which no manifest or table holds there`, `the non-event row of the ID '<id>' at '<location>' has the <column> <value>, not <value>`, `the registry lacks the non-event row of the ID '<id>' at '<location>'` |
 | No manifest holds both timelines of a MatchClaim | `claim_across_manifests` | the row, `timeline_b_id` | `no manifest of the package holds both the timeline '<id>' and the timeline '<id>'` |
 
 In the message of a differing non-event row, each `<value>` is written as

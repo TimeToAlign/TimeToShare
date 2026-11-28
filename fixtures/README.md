@@ -1108,7 +1108,7 @@ its table changes and refuses to replace the files while the tag
 | `registry_row_added` | an event `note_3` added | `added_row`, minor |
 | `registry_projection_moved` | the start of the Projection `proj_1` moved | `edited_row`, minor |
 | `registry_row_vanished` | the `vanished_in` of `note_2` set | `vanished_row`, minor |
-| `registry_non_event_only` | the timeline `score` renamed in the manifest; its non-event row stays as it was, the registry holding no name | `label`, patch (the manifest's finding alone) |
+| `registry_non_event_rows_only` | the timeline `score` renamed in the manifest; its non-event row stays as it was, the registry holding no name | `label`, patch (the manifest's finding alone) |
 | `projection_row_edited` | the `projection_of` of `proj_1` edited in the pre-parsed table | `edited_row`, minor |
 | `projection_row_removed` | `proj_1` removed from the registry and the pre-parsed table | `removed_row` twice, major |
 
