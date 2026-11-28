@@ -10,7 +10,7 @@ tables:
   -
     media_type: application/vnd.apache.parquet
     type: Registry
-    url: registry/
+    url: registry.parquet
   -
     media_type: application/vnd.apache.parquet
     type: Extraction

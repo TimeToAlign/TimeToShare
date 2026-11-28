@@ -68,7 +68,6 @@ describe("validatePackage", () => {
       "external_location",
       "re_parsable_event",
       "recording_resource",
-      "single_file_registry",
       "timeline_in_two_manifests",
     ]);
   });
@@ -89,6 +88,7 @@ describe("validatePackage", () => {
       "projection_id_in_two_files",
       "projection_of_its_own_timeline",
       "projection_of_no_timeline",
+      "registry_folder",
       "registry_id_twice",
       "registry_listed_twice",
       "registry_missing",

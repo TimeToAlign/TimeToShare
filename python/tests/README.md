@@ -3197,8 +3197,7 @@ What proves them (`test_packages.py`, needs pyarrow):
   manifest holding `dpt_1` too and listing it in its Registry resource:
   manifests sharing a timeline ID share its event rows, which pass the
   registry check against either manifest, and the ID resolves through
-  each; `single_file_registry`, the registry one file holding the 25 rows
-  of the three parts; `re_parsable_event`, an `Onset` event row without a
+  each; `re_parsable_event`, an `Onset` event row without a
   location, its content only re-parsable from its extraction's source;
   `external_location`, the event row of `projection_1` whose `location`
   is the absolute URI `https://example.org/events/projection_1`, its
@@ -3214,30 +3213,31 @@ What proves them (`test_packages.py`, needs pyarrow):
 
 | Case | Code | File, row, path |
 | --- | --- | --- |
-| `row_of_no_manifest` | `unknown_timeline` | `registry/extraction_1.parquet`, 4, `[timeline_id]` |
-| `projection_id_in_two_files` | `duplicate_id`, then `missing_content` | `tables/Projection/part_b.parquet`, 3, `[id]`; `registry/extraction_1.parquet`, 2, `[location]` (`projection_9`'s content is gone) |
+| `row_of_no_manifest` | `unknown_timeline` | `registry.parquet`, 25, `[timeline_id]` |
+| `projection_id_in_two_files` | `duplicate_id`, then `missing_content` | `tables/Projection/part_b.parquet`, 3, `[id]`; `registry.parquet`, 20, `[location]` (`projection_9`'s content is gone) |
 | `claim_across_manifests` | `claim_across_manifests` | `tables/MatchClaim/part_a.parquet`, 2, `[timeline_b_id]` |
 | `column_in_two_types` | `column_type_mismatch` | `tables/Projection/`, null, `[velocity]` |
 | `version_mismatch` | `version_mismatch` | `tables/Projection/part_b.parquet`, null, `[]` |
 | `resource_naming_no_table` | `unknown_table` | `bach/manifest.yaml`, null, `[resources, 2, url]` |
 | `folder_with_size` | `folder_descriptor` | `package.yaml`, null, `[tables, 3, size]` |
-| `timeline_unlisted` | `unlisted_timeline` | `registry/extraction_2.parquet`, 0 and 1, `[timeline_id]` |
-| `axis_mismatch` | `axis_mismatch` | `registry/extraction_1.parquet`, 3, `[unit]` |
+| `timeline_unlisted` | `unlisted_timeline` | `registry.parquet`, 16 and 17, `[timeline_id]` |
+| `axis_mismatch` | `axis_mismatch` | `registry.parquet`, 21, `[unit]` |
 | `file_of_another_type` | `table_type` | `tables/Projection/part_b.parquet`, null, `[]` |
 | `table_listed_twice` | `duplicate_url` | `package.yaml`, null, `[tables, 4, url]` |
 | `file_in_a_listed_folder` | `duplicate_url` | `package.yaml`, null, `[tables, 4, url]` |
 | `registry_missing` | `missing_registry` | `package.yaml`, null, `[tables]` |
 | `registry_listed_twice` | `duplicate_registry` | `package.yaml`, null, `[tables, 4, type]` |
 | `extraction_table_listed_twice` | `duplicate_extraction` | `package.yaml`, null, `[tables, 4, type]` |
-| `unknown_extraction` | `unknown_extraction` | `registry/extraction_2.parquet`, 2, `[extraction_id]` |
-| `vanished_in_an_unknown_extraction` | `unknown_extraction` | `registry/extraction_2.parquet`, 2, `[vanished_in]` |
-| `unknown_location` | `unknown_location` | `registry/extraction_1.parquet`, 1, `[location]` |
-| `missing_content` | `missing_content` | `registry/extraction_1.parquet`, 4, `[location]` |
+| `unknown_extraction` | `unknown_extraction` | `registry.parquet`, 22, `[extraction_id]` |
+| `vanished_in_an_unknown_extraction` | `unknown_extraction` | `registry.parquet`, 22, `[vanished_in]` |
+| `unknown_location` | `unknown_location` | `registry.parquet`, 19, `[location]` |
+| `missing_content` | `missing_content` | `registry.parquet`, 22, `[location]` |
 | `unregistered_id` | `unregistered_id` | `tables/Projection/part_b.parquet`, 4, `[id]` |
-| `locator_twice` | `duplicate_locator` | `registry/extraction_1.parquet`, 3, `[locator]` |
-| `registry_id_twice` | `duplicate_id` | `registry/non_events.parquet`, 9, `[id]` (an onset holds `claim_1`) |
-| `non_event_row_with_a_position` | `schema_violation` | `registry/non_events.parquet`, 0, `[unit]`, `[number_type]`, `[start]` |
-| `stale_non_event_row` | `stale_non_event_row` | `registry/non_events.parquet`, 0, `[kind]` (differing); 4, `[id]` (extra); null, `[id]` (missing) |
+| `locator_twice` | `duplicate_locator` | `registry.parquet`, 21, `[locator]` |
+| `registry_id_twice` | `duplicate_id` | `registry.parquet`, 25, `[id]` (an onset holds `claim_1`, a MatchClaim's ID at row 9) |
+| `registry_folder` | `registry_not_a_file` | `package.yaml`, null, `[tables, 0, url]`; `bach/manifest.yaml` and `handel/manifest.yaml`, null, `[resources, 1, url]` |
+| `non_event_row_with_a_position` | `schema_violation` | `registry.parquet`, 0, `[unit]`, `[number_type]`, `[start]` |
+| `stale_non_event_row` | `stale_non_event_row` | `registry.parquet`, 0, `[kind]` (differing); 4, `[id]` (extra); null, `[id]` (missing) |
 | `foreign_table` | `foreign_table` | `tables/features.parquet`, null, `[]` |
 | `projection_of_its_own_timeline` | `invalid_projection_of` | `tables/Projection/part_a.parquet`, 1, `[projection_of, timeline_id]` |
 | `projection_of_no_timeline` | `unknown_timeline` | `tables/Projection/part_b.parquet`, 1, `[projection_of, timeline_id]` |
@@ -3254,7 +3254,10 @@ What proves them (`test_packages.py`, needs pyarrow):
   `the table 'tables/Projection/' holds no row of the ID 'projection_10'`,
   `no event row of the type Projection in the registry has the ID
   'projection_10'`, `the ID 'claim_1' is given twice, first in
-  'registry/extraction_2.parquet' at row 5`, and the three of
+  'registry.parquet' at row 9`, the three of `registry_not_a_file`: `the
+  registry 'registry/' names a folder; a registry is one Parquet file` and
+  twice `the registry '../registry/' names a folder; a registry is one
+  Parquet file`, and the three of
   `stale_non_event_row`: `the non-event row of the ID 'clt_1' at
   'bach/manifest.yaml' has the kind 'VirtualTimeline', not 'Timeline'`,
   `the registry holds the non-event row of the ID 'region_9' at
@@ -3342,20 +3345,21 @@ What proves them (`test_packages.py`, needs pyarrow):
   registry, Extraction and pre-parsed Projection checks run once over the
   whole table; the MatchClaim checks once per manifest and table, over
   that manifest's rows alone, found once for every row by its timelines'
-  listings. A package whose `extraction_1.parquet` holds 20,000 event rows
+  listings. A package whose registry holds its 16 non-event rows and
+  20,000 event rows of the first extraction
   over two manifests (`dpt_1` on the odd rows, `dpt_2` on the even), two
   of them sharing one ID, gives exactly one `duplicate_id`, and its table
   checks, recorded, are called exactly three times: the registry's (20,016
   rows, the non-event rows included), Bach's MatchClaims (3 rows), Handel's
   MatchClaims (2).
 - **The fixture files are the script's.** `package.yaml` lists the
-  registry folder, the Extraction file, the MatchClaim folder and the
-  Projection folder; every file states its type and the version `0.2.0`,
-  the MatchClaim file alone a shared provenance; the non-event part lies
-  sorted by location and ID and holds timelines, resources, MatchClaims
-  and extractions; each extraction part lies sorted by timeline, exact
-  start and ID and holds the rows of its extraction alone, the first with
-  locators, the second without; Handel's two rows on `clt_3` lie at 9/2
+  registry file `registry.parquet`, the Extraction file, the MatchClaim
+  folder and the Projection folder; every file states its type and the
+  version `0.2.0`, the MatchClaim file alone a shared provenance; the
+  registry holds 25 rows, the non-event rows first, sorted by location and
+  ID, timelines, resources, MatchClaims and extractions, then the event
+  rows, sorted by timeline, exact start and ID, those of the first
+  extraction with locators, those of the second without; Handel's two rows on `clt_3` lie at 9/2
   and 11/2, on the root's axis; the first extraction's integrity is the
   SHA-256 digest of its source file `bach/alignment.csv`, which the
   package holds, the second has no source.
@@ -4031,43 +4035,68 @@ other kind; no name, which the manifest holds), one per MatchClaim
 Extraction entry's URL), every other column null, sorted by `location`
 then `id` by code point. A manifest that does not validate gives no rows.
 
-**Writing the non-event rows.** With a registry folder (`registry/`, the
-non-event part beside two extraction parts), `write_non_event_rows` writes
-`non_events.parquet`
-holding exactly `non_event_rows`, with the file metadata `timetoshare:type`
-`Registry` and `timetoshare:version` `0.2.0`; the two extraction parts are
-byte for byte as before, and no file starting with `.` is left in the
-folder. A missing folder is created. With a single-file registry holding
-two event rows and a stale non-event row, the file afterwards holds the fresh
-non-event rows followed by the two event rows, cell for cell. An event row
-that was written into `non_events.parquet` is kept there too: no rewrite drops
-a row it does not own. A package whose `package.yaml` lists no Registry
-table is refused with `package.yaml lists no table of the type Registry`.
+**Writing the non-event rows.** The registry is one file,
+`registry.parquet`, holding three event rows (on `score`, `shared` and
+`aria`, written in that order) and no non-event row.
+`write_non_event_rows` returns that file's path and rewrites it to hold
+exactly the rows of `non_event_rows` first, then the three event rows,
+cell for cell, by timeline (`aria`, `score`, `shared`), with the file
+metadata `timetoshare:type` `Registry` and `timetoshare:version` `0.2.0`;
+no file starting with `.` is left beside it. A missing file is written with
+the non-event rows alone. A file holding two event rows and a stale
+non-event row afterwards holds the fresh non-event rows and the two event
+rows. Event rows keep every value as written: a start written `2/4` stays
+`(2, 4)`, a further column `velocity` of the file keeps its values, and
+an event row of a kind the format does not know is kept: no rewrite drops
+or alters a row it does not own. A package whose `package.yaml` lists no
+Registry table is refused with `package.yaml lists no table of the type
+Registry`; one whose Registry entry names a folder (`registry/`) with `the
+registry 'registry/' names a folder; a registry is one Parquet file`, by
+`write_non_event_rows`, `stale_non_event_rows` and `resolve` through the
+package alike, and `resolve` through a manifest whose Registry resource
+names a folder with the same message for its URL (`../registry/`); the
+command prints it after `timetoshare: ` and exits 1.
+
+**The order of a registry file.** `write_registry` writes every row it is
+given, the non-event rows first, by `location`, then `id`, then the event
+rows by `timeline_id`, the exact value of `start` and `id`, strings by code
+point. The proof is an input whose order is the reverse of the expected one
+and whose starts a double cannot tell apart: on one fraction timeline the
+starts `1/3` and `6004799503160661/18014398509481984` (the double nearest
+1/3, read exactly, a smaller value), `2/4` and `1/2` (one value, so ordered
+by ID), and on one int timeline `9007199254740993` and `9007199254740992`
+(2^53 + 1 and 2^53, one double); the file holds the rows in exactly the
+order the test lists by hand. A registry whose `start` column holds
+strings, which its table check refuses, is still written whole, its event
+rows by timeline and ID, every value kept. Writing the shared package fixture's rows
+reversed gives back its file's rows in its order, and
+`write_non_event_rows` over a copy of the shared package leaves its
+registry's table equal to the fixture's, metadata included.
 
 **Stale non-event rows.** `stale_non_event_rows` of a freshly written
 package is empty. Then each difference gives one problem, code
-`stale_non_event_row`, file the non-event part
-(`registry/non_events.parquet`), held to the exact message: a region added
+`stale_non_event_row`, file the registry file (`registry.parquet`), held
+to the exact message: a region added
 to a manifest after the write (missing: row null, path `["id"]`, "the
 registry lacks the non-event row of the ID 'region_9' at
 'bach/manifest.yaml'"), a group removed (extra: its row in the part, "the
 registry holds the non-event row of the ID 'pair' at 'bach/manifest.yaml',
 which no manifest or table holds there"), a named timestamp moved to
-another timeline (differing: row 17, path `["timeline_id"]`, "the
+another timeline (differing: row 17 of the file, path `["timeline_id"]`, "the
 non-event row of the ID 'ts_1' at 'bach/manifest.yaml' has the timeline_id
 'score', not 'shared'"), the score timeline renamed in the same change (no
 problem: the registry holds no names, so a rename leaves the rows fresh),
 and a MatchClaim added to the MatchClaim folder (missing, at the MatchClaim
-entry's URL). The problems are in this order: the non-event part's rows in
+entry's URL). The problems are in this order: the file's non-event rows in
 their order (extra or differing), then the missing rows by location and
-ID. Without a non-event part every non-event row is missing. Only `kind`
+ID. A registry holding event rows alone lacks every non-event row. Only `kind`
 and `timeline_id` are compared: the other columns of a non-event row are
 null by the format.
 
 **One comparison of the non-event rows.** `stale_non_event_rows` and the
 package check compare the non-event rows alike, by one function: over the shared package and
 every acceptance and rejection under `fixtures/packages/0.2.0/` whose
-`package.yaml` lists exactly one registry, over a copy of `shared/` whose
+`package.yaml` lists exactly one registry, a file, over a copy of `shared/` whose
 Handel manifest is made invalid (a unit spelled `quarter`), and over a
 copy whose `package.yaml` writes every URL with a leading `./`,
 `stale_non_event_rows(root)` equals the `stale_non_event_row` problems of
@@ -4081,7 +4110,7 @@ stale.
 
 **The names are public.** `timetoshare.tables` exports `Resolution`,
 `resolve`, `non_event_rows`, `write_non_event_rows`, `stale_non_event_rows`
-and `NON_EVENT_PART`,
+and `write_registry`,
 each the object `timetoshare.tables.registry` holds, and
 `ELEMENT_KINDS`, the non-event kinds but `MatchClaim` and `Extraction`.
 
@@ -4112,9 +4141,10 @@ manifest without a Registry resource resolves its own elements with the
 row null and nothing else.
 
 **The command and the hook.** `timetoshare registry PACKAGE` writes the
-non-event part and prints `wrote registry/non_events.parquet`,
-exit 0; without PACKAGE it takes the current directory. `--check` on the
-fresh package prints nothing and exits 0, writes nothing (the part's bytes
+non-event rows into the registry file and prints `wrote registry.parquet`,
+exit 0, the file then holding the non-event rows and the three event rows;
+without PACKAGE it takes the current directory. `--check` on the
+fresh package prints nothing and exits 0, writes nothing (the file's bytes
 unchanged); after a region is added it prints one line per problem,
 `<file>: row <row>: stale_non_event_row: <message>` (`<file>: stale_non_event_row:
 <message>` for a missing row, which has none), and exits 1, still writing nothing. A folder without
@@ -4126,13 +4156,13 @@ and dependency of the other hooks; its entry parses as the command.
 
 **Version steps over the registry.** Hand-authored cases under
 `fixtures/versions/`, each an `old/` and a `new/` package (`package.yaml`,
-the manifest `score.yaml`, a registry folder of a non-event part and one
-extraction part, an Extraction table, a pre-parsed Projection table), the
+the manifest `score.yaml`, the registry `registry.parquet`, an Extraction
+table, a pre-parsed Projection table), the
 `new/` one edit of the one `old/`:
 
 | Case | Change | Findings |
 | --- | --- | --- |
-| `registry_row_removed` | the event `note_2` removed from its extraction part | `removed_row`, major |
+| `registry_row_removed` | the event `note_2` removed from the registry | `removed_row`, major |
 | `registry_row_added` | an event `note_3` added | `added_row`, minor |
 | `registry_projection_moved` | the start of the Projection `proj_1` moved | `edited_row`, minor |
 | `registry_row_vanished` | `vanished_in` of `note_2` set | `vanished_row`, minor |
@@ -4142,19 +4172,20 @@ extraction part, an Extraction table, a pre-parsed Projection table), the
 
 Every finding lies at the manifest whose Registry resource lists the
 row's timeline (`score.yaml`, scope `score`). The cases' manifests
-validate and their non-event parts are not stale (`stale_non_event_rows`
+validate and their registries' non-event rows are not stale (`stale_non_event_rows`
 empty). Their
 other Parquet files are `scripts/emit_versions.py`'s: for each case the
-script names (exactly the seven), each tree's extraction part, Extraction
+script names (exactly the seven), each tree's event rows of the registry
+(its rows whose kind is no non-event kind, in the file's order), Extraction
 table and pre-parsed Projection table equal, cell for cell and with their
 metadata, the tables the script builds from its literal rows.
 Inline: an event row whose timeline no manifest's Registry resource lists
 lies at `package.yaml`; with two manifests listing one timeline, a removed
 row is reported at both; a vanished row's detail names the extraction
-(`row note_2 of registry/, vanished in the extraction ext_2`); without
+(`row note_2 of registry.parquet, vanished in the extraction ext_2`); without
 pyarrow a changed registry is `changed_table`, undetermined, at the
 `package.yaml` listing it, and the step does not rise. `git_step` reads
-the registry folder and the pre-parsed Projection table from git, the
+the registry file and the pre-parsed Projection table from git, the
 latter reached through the registry's rows alone (its `package.yaml`
 entry taken out), and gives each case's `expected.yaml` for the staged
 change of `registry_row_removed` and `projection_row_edited`.

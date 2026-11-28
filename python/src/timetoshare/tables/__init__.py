@@ -13,7 +13,8 @@ schema's ``tables.json``, reads a table, a file or a folder of files,
 keeping the rows of some timelines or IDs (``read_table``), checks a table
 (alone, or against a manifest, every row then the manifest's: a shared file
 is read filtered first), checks a package whole (``package_problems``), resolves an ID
-(``resolve``) and builds, writes and checks the registry's non-event rows
+(``resolve``), writes the registry, one Parquet file, in the order of the
+format (``write_registry``) and builds, rewrites and checks its non-event rows
 (``non_event_rows``, ``write_non_event_rows``, ``stale_non_event_rows``),
 checks the succession rule
 between a table and the one written over it, and derives the
@@ -94,7 +95,6 @@ from .columns import (
     tables_path,
 )
 from .package import (
-    NON_EVENT_PART,
     PACKAGE_FILE,
     TYPE_METADATA_KEY,
     VERSION_METADATA_KEY,
@@ -112,10 +112,10 @@ from .registry import (
     resolve,
     stale_non_event_rows,
     write_non_event_rows,
+    write_registry,
 )
 
 __all__ = [
-    "NON_EVENT_PART",
     "PACKAGE_FILE",
     "TYPE_METADATA_KEY",
     "VERSION_METADATA_KEY",
@@ -186,4 +186,5 @@ __all__ = [
     "succession_problems",
     "tables_path",
     "write_non_event_rows",
+    "write_registry",
 ]

@@ -1,22 +1,22 @@
-"""The registry of a package: its non-event rows, resolving an ID, writing them.
+"""The registry of a package: its non-event rows, resolving an ID, writing it.
 
 A package's registry is the table of the type ``Registry`` its
-``package.yaml`` lists: one row per resolvable ID. An **event row** gives an
-event's position on the axis of the root of its timeline's family, its
-extraction and its locator; a **non-event row** names an element of a
-manifest, a MatchClaim or an Extraction by its ``kind`` and its
-``location``. Non-event rows are derived: :func:`non_event_rows` builds them
-from the manifests, the MatchClaim tables and the Extraction table,
-:func:`write_non_event_rows` writes them into the registry's non-event part,
-and :func:`stale_non_event_rows` lists where the non-event part disagrees
-with them, as the package check does. :func:`resolve`
-finds every row of an ID, through a package or through one of its
-manifests.
+``package.yaml`` lists: one Parquet file, one row per resolvable ID. An
+**event row** gives an event's position on the axis of the root of its
+timeline's family, its extraction and its locator; a **non-event row** names
+an element of a manifest, a MatchClaim or an Extraction by its ``kind`` and
+its ``location``. The non-event rows are the rows whose ``kind`` is one of
+:data:`~timetoshare.tables.NON_EVENT_KINDS`, a filter on the one file. They
+are derived: :func:`non_event_rows` builds them from the manifests, the
+MatchClaim tables and the Extraction table, :func:`write_non_event_rows`
+rewrites them inside the registry file, and :func:`stale_non_event_rows`
+lists where the file disagrees with them, as the package check does.
+:func:`write_registry` writes a registry file in the order of the format.
+:func:`resolve` finds every row of an ID, through a package or through one
+of its manifests.
 
-The registry is a file, or a folder of parts when its URL ends in ``/``:
-``non_events.parquet`` holds the non-event rows, every other part the event
-rows of one extraction. A ``location`` is a URI reference resolved against the
-package root, the folder of ``package.yaml`` (a manifest alone: its folder).
+A ``location`` is a URI reference resolved against the package root, the
+folder of ``package.yaml`` (a manifest alone: its folder).
 """
 
 from __future__ import annotations
@@ -24,6 +24,7 @@ from __future__ import annotations
 import os
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
+from fractions import Fraction
 from pathlib import Path
 from typing import Any
 
@@ -42,10 +43,9 @@ from ..validate import (
 )
 from ..validation.diagnostics import entries_of
 from .checks import TableError, _schema_problems, is_non_event
-from .columns import ELEMENT_KINDS, REGISTRY_SCHEMA
+from .columns import ELEMENT_KINDS, NUMBER_TYPE, REGISTRY_SCHEMA
 from .package import (
     _NON_EVENT_ROW,
-    NON_EVENT_PART,
     TYPE_METADATA_KEY,
     VERSION_METADATA_KEY,
     PackageProblem,
@@ -58,12 +58,12 @@ from .package import (
 )
 
 __all__ = [
-    "NON_EVENT_PART",
     "Resolution",
     "non_event_rows",
     "resolve",
     "stale_non_event_rows",
     "write_non_event_rows",
+    "write_registry",
 ]
 
 
@@ -89,6 +89,12 @@ class Resolution:
     location: str | None
     manifest: str | None
     row: dict[str, Any] | None
+
+
+def _not_a_file(url: str) -> ValueError:
+    return ValueError(
+        f"the registry '{url}' names a folder; a registry is one Parquet file"
+    )
 
 
 def _bare(id: str) -> str:
@@ -136,12 +142,14 @@ class _Package:
 
         Raises:
             ValueError: If ``package.yaml`` lists no table or two tables of
-                the type ``Registry``.
+                the type ``Registry``, or the one names a folder.
         """
         urls = self.urls("tables", "Registry")
         if len(urls) != 1:
             many = "no table" if not urls else f"{len(urls)} tables"
             raise ValueError(f"{PACKAGE_FILE} lists {many} of the type Registry")
+        if urls[0].endswith("/"):
+            raise _not_a_file(urls[0])
         return urls[0]
 
     def sources(self) -> _Sources:
@@ -179,15 +187,12 @@ class _Package:
         rows = rows.sort_by([("location", "ascending"), ("id", "ascending")])
         return _Sources(rows, frozenset(unread))
 
-    def non_event_part(self) -> tuple[Path, str]:
-        """The non-event part of the registry: its path, and its path from the
-        package root."""
+    def registry_file(self) -> tuple[Path, str]:
+        """The registry file: its path, and its path from the package root."""
         url = self.registry()
         path = package_path(url)
         if path is None:
             raise ValueError(f"the registry '{url}' lies outside the package")
-        if url.endswith("/"):
-            path += NON_EVENT_PART
         return self.root / path, path
 
 
@@ -226,19 +231,159 @@ def non_event_rows(package_root: str | os.PathLike[str]) -> pa.Table:
     return _as_registry(_Package.at(package_root).sources().rows)
 
 
-# The non-event part.
+# Writing the registry.
 
 
-def _held_rows(part: Path) -> pa.Table | None:
-    """The rows of a non-event part as written; ``None`` for no part."""
-    if not part.is_file():
+def _held_rows(file: Path) -> pa.Table | None:
+    """The rows of a registry file as written; ``None`` for no file."""
+    if not file.is_file():
         return None
-    return read_table(part, type="Registry")
+    return read_table(file, type="Registry")
 
 
-def _write(table: pa.Table, target: Path) -> None:
-    """Write a registry file atomically: a name starting with ``.`` beside it,
-    then renamed over it."""
+def _start_values(starts: pa.Array) -> pa.Array:
+    """A double per ``start``, equal for equal values and ordered as they are
+    wherever two doubles differ: a float's value, an int's or a fraction's
+    quotient as a double; null where the cell holds none of them."""
+    numerator = pc.cast(pc.struct_field(starts, "numerator"), pa.float64(), safe=False)
+    denominator = pc.cast(
+        pc.struct_field(starts, "denominator"), pa.float64(), safe=False
+    )
+    quotient = pc.divide(numerator, pc.coalesce(denominator, pa.scalar(1.0)))
+    return pc.coalesce(pc.struct_field(starts, "value"), quotient)
+
+
+def _is_number(kind: pa.DataType) -> bool:
+    """Whether a column holds numbers: a struct of the members of a number,
+    of their types, whatever their nullability."""
+    return pa.types.is_struct(kind) and [
+        (field.name, field.type) for field in kind
+    ] == [(field.name, field.type) for field in NUMBER_TYPE]
+
+
+_NO_RANKS = pa.table(
+    {"row": pa.array([], pa.int64()), "rank": pa.array([], pa.int64())}
+)
+
+
+def _exact_ranks(events: pa.Table, order: pa.Table) -> pa.Table:
+    """The rank of the exact value of each event row's ``start`` among the
+    rows of its timeline whose double (:func:`_start_values`) is the same,
+    for the rows where two distinct values share one; the other rows have
+    none. Only those rows are read in Python."""
+    starts = events.column("start").combine_chunks()
+    members = pa.table(
+        {
+            "timeline": order["timeline"],
+            "double": order["double"],
+            "numerator": pc.struct_field(starts, "numerator"),
+            "denominator": pc.struct_field(starts, "denominator"),
+            "value": pc.struct_field(starts, "value"),
+            "row": order["row"],
+        }
+    )
+    keys = ["timeline", "double"]
+    spellings = members.group_by(
+        [*keys, "numerator", "denominator", "value"]
+    ).aggregate([])
+    shared = spellings.group_by(keys).aggregate([([], "count_all")])
+    shared = shared.filter(pc.greater(shared["count_all"], 1)).select(keys)
+    if not len(shared):
+        return _NO_RANKS
+    ambiguous = members.join(shared, keys=keys, join_type="inner").to_pylist()
+    groups: dict[tuple[Any, Any], list[tuple[Fraction, int]]] = {}
+    for member in ambiguous:
+        value = (
+            Fraction(member["value"])
+            if member["value"] is not None
+            else Fraction(member["numerator"], member["denominator"] or 1)
+        )
+        groups.setdefault((member["timeline"], member["double"]), []).append(
+            (value, member["row"])
+        )
+    ranked_rows: list[int] = []
+    ranks: list[int] = []
+    for group in groups.values():
+        values = sorted({value for value, _ in group})
+        for value, row in group:
+            ranked_rows.append(row)
+            ranks.append(values.index(value))
+    return pa.table(
+        {"row": pa.array(ranked_rows, pa.int64()), "rank": pa.array(ranks, pa.int64())}
+    )
+
+
+def _event_order(events: pa.Table) -> pa.Array:
+    """The order of event rows: by ``timeline_id`` (code point), the exact
+    value of ``start``, then ``id``. A ``start`` column that is no number,
+    which the registry's table check reports, takes no part, nor does a
+    column of another type than strings."""
+    numbers = _is_number(events.schema.field("start").type)
+    starts = events.column("start").combine_chunks()
+    order = pa.table(
+        {
+            "timeline": _strings(events, "timeline_id"),
+            "double": _start_values(starts)
+            if numbers
+            else pa.nulls(len(events), pa.float64()),
+            "id": _strings(events, "id"),
+            "row": pa.array(range(len(events)), pa.int64()),
+        }
+    )
+    ranks = _exact_ranks(events, order) if numbers else _NO_RANKS
+    if len(ranks):
+        order = order.join(ranks, keys="row", join_type="left outer")
+    else:
+        order = order.append_column("rank", pa.nulls(len(order), pa.int64()))
+    order = order.set_column(
+        order.schema.get_field_index("rank"),
+        "rank",
+        pc.fill_null(order["rank"], 0),
+    )
+    order = order.sort_by(
+        [
+            ("timeline", "ascending"),
+            ("double", "ascending"),
+            ("rank", "ascending"),
+            ("id", "ascending"),
+        ]
+    )
+    return order["row"].combine_chunks()
+
+
+def _in_order(table: pa.Table) -> pa.Table:
+    """A registry's rows in the order of the format: the non-event rows by
+    ``location``, then ``id``; then the event rows (:func:`_event_order`)."""
+    non_event = is_non_event(_strings(table, "kind"))
+    non_events = table.filter(non_event).sort_by(
+        [("location", "ascending"), ("id", "ascending")]
+    )
+    events = table.filter(pc.invert(non_event))
+    events = events.take(_event_order(events))
+    return pa.concat_tables([non_events, events])
+
+
+def write_registry(rows: pa.Table, path: str | os.PathLike[str]) -> Path:
+    """Write a registry file: every row, in the order of the format.
+
+    The non-event rows come first, sorted by ``location``, then ``id``; then
+    the event rows, sorted by ``timeline_id``, the exact value of ``start``
+    (``2/4`` and ``1/2`` are one value), then ``id``; strings by code point,
+    nulls last. Readers never rely on the order. Every value is written as
+    given, a further column included; a column of the registry the table
+    lacks is written null. The file states the type ``Registry`` and the
+    format version in its metadata, beside the table's own, and is written
+    under a name starting with ``.`` beside ``path``, then renamed over it.
+
+    Args:
+        rows: The registry's rows, every one, non-event and event rows alike.
+        path: The registry file.
+
+    Returns:
+        The path written.
+    """
+    target = Path(path)
+    table = _in_order(_with_registry_columns(rows))
     metadata = {
         **(table.schema.metadata or {}),
         TYPE_METADATA_KEY.encode(): b"Registry",
@@ -251,6 +396,17 @@ def _write(table: pa.Table, target: Path) -> None:
         os.replace(temporary, target)
     finally:
         temporary.unlink(missing_ok=True)
+    return target
+
+
+def _with_registry_columns(table: pa.Table) -> pa.Table:
+    """A table with every column of the registry, those it lacks null, in the
+    registry's order, then its further columns."""
+    for field in REGISTRY_SCHEMA:
+        if field.name not in table.column_names:
+            table = table.append_column(field, pa.nulls(len(table), field.type))
+    further = [name for name in table.column_names if name not in REGISTRY_SCHEMA.names]
+    return table.select([*REGISTRY_SCHEMA.names, *further])
 
 
 def _at_unread(table: pa.Table, unread: Iterable[str]) -> pa.Array:
@@ -262,69 +418,67 @@ def _at_unread(table: pa.Table, unread: Iterable[str]) -> pa.Array:
 
 
 def write_non_event_rows(package_root: str | os.PathLike[str]) -> Path:
-    """Write the registry's non-event part from the package's sources.
+    """Rewrite the non-event rows inside the registry file from the
+    package's sources.
 
-    For a registry folder the part is ``non_events.parquet`` in it, the other
-    parts untouched; for a single file the file itself. The part holds the
-    non-event rows of :func:`non_event_rows`, and, sorted in among them, the
-    non-event rows it held at a manifest or table that could not be read, which
-    cannot be rebuilt and are kept as they were; then the rows that are no
-    non-event rows, as they were, so that no event row is lost. The file is
-    written under a name starting with ``.`` and renamed over the part, and
-    states the type ``Registry`` and the format version in its metadata.
+    The file then holds the non-event rows of :func:`non_event_rows`, with
+    the non-event rows it held at a manifest or table that could not be read,
+    which cannot be rebuilt and are kept as they were; and every row it held
+    that is no non-event row, each with its values unchanged, so that no
+    event row is lost. It is written whole by :func:`write_registry`, in the
+    order of the format; a missing file is written with the non-event rows
+    alone.
 
     Returns:
-        The path of the part written.
+        The path of the registry file.
 
     Raises:
         FileNotFoundError: If ``package_root`` holds no ``package.yaml``.
         ValueError: If ``package.yaml`` lists no table, or two tables, of the
-            type ``Registry``, or the registry lies outside the package.
+            type ``Registry``, or the registry names a folder or lies outside
+            the package.
     """
     package = _Package.at(package_root)
-    part, _ = package.non_event_part()
+    file, _ = package.registry_file()
     sources = package.sources()
-    rows = _as_registry(sources.rows)
-    held = _held_rows(part)
+    parts = [_as_registry(sources.rows)]
+    held = _held_rows(file)
     if held is not None:
         held = held.replace_schema_metadata(None)
         non_event = is_non_event(_strings(held, "kind"))
         non_events = held.filter(non_event)
-        kept = non_events.filter(_at_unread(non_events, sources.unread))
-        if len(kept):
-            rows = pa.concat_tables([rows, kept], promote_options="default").sort_by(
-                [("location", "ascending"), ("id", "ascending")]
-            )
-        events = held.filter(pc.invert(non_event))
-        if len(events):
-            rows = pa.concat_tables([rows, events], promote_options="default")
-    _write(rows, part)
-    return part
+        parts.append(non_events.filter(_at_unread(non_events, sources.unread)))
+        parts.append(held.filter(pc.invert(non_event)))
+    rows = pa.concat_tables(parts, promote_options="default")
+    return write_registry(rows, file)
 
 
 def stale_non_event_rows(
     package_root: str | os.PathLike[str],
 ) -> list[PackageProblem]:
-    """Where the registry's non-event part disagrees with the package's sources.
+    """Where the registry file's non-event rows disagree with the package's
+    sources.
 
-    The non-event rows of the part are compared with :func:`non_event_rows`
-    by     :func:`~timetoshare.tables.package.stale_problems`, the comparison the
+    The non-event rows of the file are compared with :func:`non_event_rows`
+    by :func:`~timetoshare.tables.package.stale_problems`, the comparison the
     package check makes, so that this list is the package check's
-    ``stale_non_event_row`` problems: rows matched by ``id`` and ``location``
-    resolved against the package root, ``kind`` and ``timeline_id``
-    compared, rows at a manifest or table that could not be read not
-    compared. A missing non-event part lacks every row; a part whose columns
+    ``stale_non_event_row`` problems, each in the registry file (its path
+    from the package root) at its row there: rows matched by ``id`` and
+    ``location`` resolved against the package root, ``kind`` and
+    ``timeline_id`` compared, rows at a manifest or table that could not be
+    read not compared. A missing file lacks every row; a file whose columns
     are not the registry's has none compared, its table check's to report.
 
     Raises:
         FileNotFoundError: If ``package_root`` holds no ``package.yaml``.
         ValueError: If ``package.yaml`` lists no table, or two tables, of the
-            type ``Registry``, or the registry lies outside the package.
+            type ``Registry``, or the registry names a folder or lies outside
+            the package.
     """
     package = _Package.at(package_root)
-    part, file = package.non_event_part()
+    file, at = package.registry_file()
     sources = package.sources()
-    held = _held_rows(part)
+    held = _held_rows(file)
     if held is None or _schema_problems(held.schema.empty_table(), REGISTRY_SCHEMA):
         held = REGISTRY_SCHEMA.empty_table()
     rows = pc.indices_nonzero(is_non_event(_strings(held, "kind")))
@@ -334,7 +488,7 @@ def stale_non_event_rows(
             "row": rows.cast(pa.int64()),
         }
     )
-    return stale_problems(non_events, sources.rows, file, sources.unread)
+    return stale_problems(non_events, sources.rows, at, sources.unread)
 
 
 # Resolving.
@@ -417,6 +571,9 @@ def _through_manifest(file: Path, id: str) -> list[Resolution]:
             and (path := package_path(resource["url"], at)) is not None
         ]
 
+    for resource in resources:
+        if resource.get("type") == "Registry" and str(resource["url"]).endswith("/"):
+            raise _not_a_file(resource["url"])
     registries = paths("Registry")
     with_id = _rows_with(root, registries, id)
     resolved = _resolved_locations(_strings(with_id, "location"))
@@ -488,7 +645,8 @@ def resolve(path: str | os.PathLike[str], id: str) -> list[Resolution]:
     Raises:
         FileNotFoundError: If ``path`` is neither a package root nor a file.
         ValueError: If a package root's ``package.yaml`` lists no table, or
-            two tables, of the type ``Registry``.
+            two tables, of the type ``Registry``, or a registry the package or
+            the manifest names is a folder.
     """
     bare = _bare(id)
     path = Path(path)

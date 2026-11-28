@@ -399,7 +399,7 @@ export type Resource = Descriptor & {
    */
   id: Id;
   /**
-   * What the file's rows are: `Registry` for the package's registry, `MatchClaim` for a MatchClaim table, or the type of what another file holds. The registry is experimental: it may change in any version.
+   * What the file's rows are: `Registry` for the package's registry, one Parquet file, `MatchClaim` for a MatchClaim table, or the type of what another file holds. The registry is experimental: it may change in any version.
    */
   type: string;
   /**
@@ -1519,7 +1519,7 @@ export interface MeasureMapRow {
  */
 export interface Descriptor {
   /**
-   * Where the file or the folder lies: a reference resolved against the address of the document naming it, such as `match_claims.parquet` beside a manifest, or `../registry/`, a folder.
+   * Where the file or the folder lies: a reference resolved against the address of the document naming it, such as `../registry.parquet`, the package's registry, or `../match_claims/`, a folder.
    */
   url: IriReference;
   /**

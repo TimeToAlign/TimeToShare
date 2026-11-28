@@ -1,8 +1,8 @@
 problems:
   -
     code: unknown_timeline
-    file: registry/extraction_1.parquet
+    file: registry.parquet
     message: "no manifest of the package has the timeline 'dpt_9'"
     path: [timeline_id]
-    row: 4
+    row: 25
 reason: "An event row lies on dpt_9, a timeline no manifest of the package holds."

@@ -11,7 +11,7 @@ resources:
     media_type: application/vnd.apache.parquet
     timelines: ["#dpt_1"]
     type: Registry
-    url: "../registry/"
+    url: "../registry.parquet"
   -
     id: "#resource_3"
     timelines: ["#clt_1"]

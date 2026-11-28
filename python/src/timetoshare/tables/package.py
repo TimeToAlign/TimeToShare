@@ -80,7 +80,6 @@ from .columns import (
 )
 
 __all__ = [
-    "NON_EVENT_PART",
     "PACKAGE_FILE",
     "TYPE_METADATA_KEY",
     "VERSION_METADATA_KEY",
@@ -102,13 +101,11 @@ TYPE_METADATA_KEY = "timetoshare:type"
 VERSION_METADATA_KEY = "timetoshare:version"
 """The schema-metadata key holding the format version of a file."""
 
-NON_EVENT_PART = "non_events.parquet"
-"""The part of a registry folder holding the non-event rows."""
-
 PackageCode = Literal[
     "missing_file",
     "missing_registry",
     "duplicate_registry",
+    "registry_not_a_file",
     "duplicate_extraction",
     "table_type",
     "column_type_mismatch",
@@ -557,7 +554,10 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     ``Registry`` (``missing_registry``, at ``tables``), a second one
     (``duplicate_registry``) or a second table of the type ``Extraction``
     (``duplicate_extraction``), each at the later entry's ``type``; only the
-    first of each is read. Then, manifest by manifest as listed, a file that
+    first of each is read. A Registry entry whose URL names a folder (ends in
+    ``/``) is no registry: the registry is one Parquet file
+    (``registry_not_a_file``, at the entry's ``url``; nothing at the URL is
+    read). Then, manifest by manifest as listed, a file that
     is missing (``missing_file``) or that is no valid manifest (its
     validation's code and path; another version ``version_mismatch``).
     Then, table by table and file by file, a file or folder that is missing
@@ -575,6 +575,8 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     the rows keep together, each over every row in the order of the
     entries, their files and their rows:
 
+    - ``registry_not_a_file``: a manifest's ``Registry`` resource whose URL
+      names a folder, at its ``url``;
     - ``unknown_table``: a manifest's table resource whose URL names no
       table entry of the resource's type, or leads outside the package
       (:func:`is_table_resource`); any other resource, a recording, an
@@ -734,18 +736,32 @@ def _manifests(
     return found, unread
 
 
+_NOT_A_FILE = "the registry '{url}' names a folder; a registry is one Parquet file"
+"""The message of ``registry_not_a_file``."""
+
+
 def _entries(
     root: Path, value: Mapping[str, Any], version: str, problems: _Problems
 ) -> list[_Entry]:
     """The table entries whose files could be read as one table; a file an
-    earlier entry of its type reaches already is left to that entry, and a
-    table of events without an ``id`` column of strings is reported
-    (``foreign_table``) and not read."""
+    earlier entry of its type reaches already is left to that entry, a
+    Registry entry naming a folder (``registry_not_a_file``) and a table of
+    events without an ``id`` column of strings (``foreign_table``) are
+    reported and not read."""
     found = []
     reached: dict[tuple[str, str], int] = {}
     for index, entry in enumerate(value["tables"]):
         url = package_path(entry["url"], "")
         folder = entry["url"].endswith("/")
+        if folder and entry["type"] == "Registry":
+            problems.add(
+                "registry_not_a_file",
+                PACKAGE_FILE,
+                None,
+                ("tables", index, "url"),
+                _NOT_A_FILE.format(url=entry["url"]),
+            )
+            continue
         target = None if url is None else root / url
         if target is None or not (target.is_dir() if folder else target.is_file()):
             problems.add(
@@ -1193,8 +1209,9 @@ class _Check:
         self.owner_of = first["manifest"].combine_chunks()
 
     def _resources(self) -> None:
-        """Each table resource's table entry; ``unknown_table``; the
-        listings. A resource naming no table is passed over."""
+        """Each table resource's table entry; ``registry_not_a_file`` for a
+        Registry resource naming a folder; ``unknown_table``; the listings. A
+        resource naming no table is passed over."""
         by_url = {(entry.url, entry.kind): entry for entry in self.entries}
         self.resolved: dict[tuple[int, int], _Entry] = {}
         listing_entry: list[int] = []
@@ -1203,6 +1220,15 @@ class _Check:
         for number, manifest in enumerate(self.manifests):
             for index, resource in enumerate(entries_of(manifest.bare, "resources")):
                 if not is_table_resource(resource):
+                    continue
+                if resource["type"] == "Registry" and resource["url"].endswith("/"):
+                    self.problems.add(
+                        "registry_not_a_file",
+                        manifest.file,
+                        None,
+                        ("resources", index, "url"),
+                        _NOT_A_FILE.format(url=resource["url"]),
+                    )
                     continue
                 url = package_path(resource["url"], manifest.file)
                 named = None if url is None else (url, resource["type"])
@@ -1688,23 +1714,18 @@ class _Check:
     def _stale(
         self, registry: pa.Table, claims: pa.Table, extractions: pa.Table
     ) -> None:
-        """The non-event part's non-event rows (``non_events.parquet`` of a
-        folder, else the file) against the rows the sources give
+        """The registry's non-event rows against the rows the sources give
         (:func:`stale_problems`); rows at a manifest or table that could not
         be read are not compared."""
         entry = self.registry
         if entry is None:
             return
-        at = f"{entry.url}{NON_EVENT_PART}" if entry.url.endswith("/") else entry.url
         non_events = registry.filter(is_non_event(registry["kind"]))
-        if at in self.names:
-            part = pa.array([self.names.index(at)], pa.int64())
-            non_events = non_events.filter(pc.is_in(non_events["file"], value_set=part))
-        else:
-            non_events = non_events.slice(0, 0)
         held = non_events.select([*_NON_EVENT_ROW.names, "row"])
         expected = self._expected_non_event_rows(claims, extractions)
-        self.problems.found.extend(stale_problems(held, expected, at, self.unread))
+        self.problems.found.extend(
+            stale_problems(held, expected, entry.url, self.unread)
+        )
 
     def _across(self, claims: pa.Table) -> None:
         """A MatchClaim whose two timelines are held, but by no one manifest."""

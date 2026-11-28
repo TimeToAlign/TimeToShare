@@ -4,7 +4,7 @@ manifests:
 tables:
   -
     type: Registry
-    url: registry/
+    url: registry.parquet
   -
     type: Extraction
     url: extractions.parquet

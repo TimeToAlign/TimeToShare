@@ -1403,7 +1403,7 @@ def tree_step(old_root: Path, new_root: Path) -> StepReport:
     undetermined.
 
     A registry, the table of the type ``Registry`` that a ``package.yaml``
-    lists or a manifest's resource names (a file, or a folder of parts), is
+    lists or a manifest's resource names (one Parquet file), is
     compared once by its event rows, and so is every pre-parsed Projection
     table, one a ``package.yaml`` lists or a registry's Projection rows
     locate: a row removed is major, one added minor, a cell changed minor

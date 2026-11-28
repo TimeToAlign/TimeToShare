@@ -1,8 +1,8 @@
 problems:
   -
     code: missing_content
-    file: registry/extraction_1.parquet
+    file: registry.parquet
     message: "the table 'tables/Projection/' holds no row of the ID 'projection_10'"
     path: [location]
-    row: 4
+    row: 22
 reason: "An event row names the pre-parsed Projections, which hold no row of its ID."

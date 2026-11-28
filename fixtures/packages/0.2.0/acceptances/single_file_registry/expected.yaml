@@ -1,2 +1,0 @@
-problems: []
-reason: "The registry is one file, registry.parquet, holding the non-event rows and the event rows of both extractions."

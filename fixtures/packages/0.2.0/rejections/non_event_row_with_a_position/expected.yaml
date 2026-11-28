@@ -1,19 +1,19 @@
 problems:
   -
     code: schema_violation
-    file: registry/non_events.parquet
+    file: registry.parquet
     message: "a non-event row has no 'unit'"
     path: [unit]
     row: 0
   -
     code: schema_violation
-    file: registry/non_events.parquet
+    file: registry.parquet
     message: "a non-event row has no 'number_type'"
     path: [number_type]
     row: 0
   -
     code: schema_violation
-    file: registry/non_events.parquet
+    file: registry.parquet
     message: "a non-event row has no 'start'"
     path: [start]
     row: 0

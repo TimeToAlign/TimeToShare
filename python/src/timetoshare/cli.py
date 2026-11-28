@@ -25,7 +25,9 @@ appends the report to FILE as Markdown, the job summary of a workflow.
 ``timetoshare registry [--check] [PACKAGE]`` rewrites the non-event rows of
 the registry of the package PACKAGE (a folder holding ``package.yaml``, the
 current directory without it) from its manifests, MatchClaim tables and
-Extraction table, the event rows untouched; with ``--check`` it writes
+Extraction table, inside the one registry file, its event rows kept with
+their values unchanged and the file written in the order of the format;
+with ``--check`` it writes
 nothing and lists every non-event row that is missing, extra or differs, one
 line each, exiting 1 when there is one: the check of the pre-commit hook
 ``timetoshare-registry``.

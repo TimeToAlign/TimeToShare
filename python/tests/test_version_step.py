@@ -168,8 +168,12 @@ def test_every_case_package_has_fresh_non_event_rows(root: Path) -> None:
 
 
 def test_the_case_tables_are_the_scripts() -> None:
+    pa = pytest.importorskip("pyarrow")
+    pc = pytest.importorskip("pyarrow.compute")
     pq = pytest.importorskip("pyarrow.parquet")
     import importlib.util
+
+    from timetoshare.tables import NON_EVENT_KINDS
 
     script_path = Path(__file__).resolve().parents[2] / "scripts" / "emit_versions.py"
     spec = importlib.util.spec_from_file_location("emit_versions", script_path)
@@ -190,7 +194,16 @@ def test_the_case_tables_are_the_scripts() -> None:
                 table = table.replace_schema_metadata(
                     {"timetoshare:type": kind, "timetoshare:version": "0.2.0"}
                 )
-                assert pq.read_table(root / file).equals(table, check_metadata=True), (
+                held = pq.read_table(root / file)
+                if kind == "Registry":
+                    # The registry file holds the case's event rows after the
+                    # non-event rows written from its manifest and tables.
+                    held = held.filter(
+                        pc.invert(
+                            pc.is_in(held["kind"], value_set=pa.array(NON_EVENT_KINDS))
+                        )
+                    )
+                assert held.equals(table, check_metadata=True), (
                     name,
                     side,
                     file,
@@ -501,7 +514,11 @@ def test_a_row_listed_by_no_manifest_lies_at_the_package(tmp_path: Path) -> None
         listing(root, "score.yaml", [])
     assert tree_step(old, new).findings == (
         Finding(
-            "removed_row", "major", "package.yaml", "note_2", "row note_2 of registry/"
+            "removed_row",
+            "major",
+            "package.yaml",
+            "note_2",
+            "row note_2 of registry.parquet",
         ),
     )
 
@@ -513,10 +530,18 @@ def test_a_row_two_manifests_list_lies_at_both(tmp_path: Path) -> None:
         listing(root, "other.yaml", ["#score"])
     assert tree_step(old, new).findings == (
         Finding(
-            "removed_row", "major", "other.yaml", "note_2", "row note_2 of registry/"
+            "removed_row",
+            "major",
+            "other.yaml",
+            "note_2",
+            "row note_2 of registry.parquet",
         ),
         Finding(
-            "removed_row", "major", "score.yaml", "note_2", "row note_2 of registry/"
+            "removed_row",
+            "major",
+            "score.yaml",
+            "note_2",
+            "row note_2 of registry.parquet",
         ),
     )
 
@@ -530,7 +555,7 @@ def test_a_vanished_row_names_the_extraction(tmp_path: Path) -> None:
             "minor",
             "score.yaml",
             "note_2",
-            "row note_2 of registry/, vanished in the extraction ext_2",
+            "row note_2 of registry.parquet, vanished in the extraction ext_2",
         ),
     )
 
@@ -547,7 +572,7 @@ def test_without_pyarrow_a_changed_registry_is_undetermined(
             "undetermined",
             "package.yaml",
             None,
-            "registry/ changed; comparing its rows needs pyarrow: pip install "
+            "registry.parquet changed; comparing its rows needs pyarrow: pip install "
             '"timetoshare[tables]"',
         ),
     )
@@ -687,7 +712,7 @@ def test_a_registry_and_its_tables_are_read_from_git(
         write(repo / "package.yaml", package)
         git(repo, "add", ".")
         git(repo, "commit", "--quiet", "-m", "first")
-        for part in ("registry/ext_1.parquet", "tables/Projection/part.parquet"):
+        for part in ("registry.parquet", "tables/Projection/part.parquet"):
             shutil.copy(VERSIONS / case / "new" / part, repo / part)
         git(repo, "add", ".")
         expected = loads((VERSIONS / case / "expected.yaml").read_text())

@@ -1,8 +1,8 @@
 problems:
   -
     code: axis_mismatch
-    file: registry/extraction_1.parquet
+    file: registry.parquet
     message: "a coordinate in seconds (float) on the timeline 'dpt_1' in samples (int)"
     path: [unit]
-    row: 3
+    row: 21
 reason: "An event row on the samples timeline dpt_1 is written in seconds."

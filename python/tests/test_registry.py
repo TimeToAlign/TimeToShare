@@ -30,6 +30,7 @@ from timetoshare.tables.registry import (  # noqa: E402
     resolve,
     stale_non_event_rows,
     write_non_event_rows,
+    write_registry,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -90,6 +91,7 @@ CLAIMS = pa.schema(
 
 BACH = "bach/manifest.yaml"
 HANDEL = "handel/manifest.yaml"
+REGISTRY_FILE = "registry.parquet"
 
 
 def bach() -> dict[str, Any]:
@@ -164,7 +166,7 @@ def bach() -> dict[str, Any]:
             {
                 "id": "registry",
                 "type": "Registry",
-                "url": "../registry/",
+                "url": "../registry.parquet",
                 "timelines": ["score", "movement", "shared"],
             },
             {
@@ -234,7 +236,7 @@ def handel() -> dict[str, Any]:
             {
                 "id": "handel_registry",
                 "type": "Registry",
-                "url": "../registry/",
+                "url": "../registry.parquet",
                 "timelines": ["shared", "aria"],
             }
         ],
@@ -332,8 +334,9 @@ def manifest(root: Path, url: str, value: dict[str, Any]) -> None:
     path.write_text(dumps(with_file_ids(value)), encoding="utf-8")
 
 
-def package(root: Path, registry: str = "registry/") -> Path:
-    """The test package, its non-event part not yet written."""
+def package(root: Path, registry: str = "registry.parquet") -> Path:
+    """The test package, its registry holding its three event rows, unsorted,
+    and no non-event row yet."""
     manifest(root, BACH, bach())
     manifest(root, HANDEL, handel())
     (root / "package.yaml").write_text(
@@ -351,11 +354,7 @@ def package(root: Path, registry: str = "registry/") -> Path:
         ),
         encoding="utf-8",
     )
-    if registry.endswith("/"):
-        parquet(
-            root / registry / "ext_1.parquet", [NOTE_1, PROJ_1], REGISTRY, "Registry"
-        )
-        parquet(root / registry / "ext_2.parquet", [NOTE_2], REGISTRY, "Registry")
+    parquet(root / REGISTRY_FILE, [NOTE_1, PROJ_1, NOTE_2], REGISTRY, "Registry")
     parquet(
         root / "extractions.parquet",
         [extraction("ext_1", "bach/take.mid"), extraction("ext_2", "handel/aria.mid")],
@@ -462,59 +461,67 @@ def test_a_manifest_that_does_not_validate_gives_no_rows(tmp_path: Path) -> None
 # Writing -------------------------------------------------------------------------
 
 
-def test_writing_into_a_folder(tmp_path: Path) -> None:
+EVENTS = [NOTE_2, NOTE_1, PROJ_1]
+"""The three event rows in the order of the format: by timeline, ``aria``,
+``score``, ``shared``."""
+
+
+def test_writing_keeps_the_event_rows(tmp_path: Path) -> None:
     root = package(tmp_path)
-    parts = {
-        name: (root / "registry" / name).read_bytes()
-        for name in ("ext_1.parquet", "ext_2.parquet")
-    }
     written = write_non_event_rows(root)
-    assert written == root / "registry" / "non_events.parquet"
+    assert written == root / REGISTRY_FILE
     table = pq.read_table(written)
-    assert table.to_pylist() == NON_EVENTS
+    assert table.to_pylist() == [*NON_EVENTS, *EVENTS]
     assert table.schema.metadata == {
         b"timetoshare:type": b"Registry",
         b"timetoshare:version": b"0.2.0",
     }
-    for name, data in parts.items():
-        assert (root / "registry" / name).read_bytes() == data
-    assert sorted(p.name for p in (root / "registry").iterdir()) == [
-        "ext_1.parquet",
-        "ext_2.parquet",
-        "non_events.parquet",
-    ]
-
-
-def test_writing_creates_a_missing_folder(tmp_path: Path) -> None:
-    root = package(tmp_path)
-    shutil.rmtree(root / "registry")
-    write_non_event_rows(root)
-    assert (
-        pq.read_table(root / "registry" / "non_events.parquet").to_pylist()
-        == NON_EVENTS
-    )
-
-
-def test_writing_into_a_single_file_keeps_its_event_rows(tmp_path: Path) -> None:
-    root = package(tmp_path, registry="registry.parquet")
-    stale = row("gone", "Region", BACH, "score")
-    parquet(root / "registry.parquet", [NOTE_1, stale, NOTE_2], REGISTRY, "Registry")
-    write_non_event_rows(root)
-    assert pq.read_table(root / "registry.parquet").to_pylist() == [
-        *NON_EVENTS,
-        NOTE_1,
-        NOTE_2,
-    ]
     assert [p.name for p in root.iterdir() if p.name.startswith(".")] == []
 
 
-def test_an_event_row_in_the_non_event_part_is_kept(tmp_path: Path) -> None:
+def test_writing_a_missing_registry_file(tmp_path: Path) -> None:
     root = package(tmp_path)
-    parquet(root / "registry" / "non_events.parquet", [NOTE_2], REGISTRY, "Registry")
+    (root / REGISTRY_FILE).unlink()
     write_non_event_rows(root)
-    assert pq.read_table(root / "registry" / "non_events.parquet").to_pylist() == [
+    assert pq.read_table(root / REGISTRY_FILE).to_pylist() == NON_EVENTS
+
+
+def test_writing_replaces_a_stale_non_event_row(tmp_path: Path) -> None:
+    root = package(tmp_path)
+    stale = row("gone", "Region", BACH, "score")
+    parquet(root / REGISTRY_FILE, [NOTE_1, stale, NOTE_2], REGISTRY, "Registry")
+    write_non_event_rows(root)
+    assert pq.read_table(root / REGISTRY_FILE).to_pylist() == [
         *NON_EVENTS,
         NOTE_2,
+        NOTE_1,
+    ]
+
+
+def test_event_rows_keep_every_value(tmp_path: Path) -> None:
+    root = package(tmp_path)
+    respelled = {**NOTE_1, "start": number(2, 4, None)}
+    unknown = event(
+        "blob_1", "Blob", "score", "quarters", "fraction", number(3, 1, None), "ext_1"
+    )
+    rows = [
+        {**respelled, "velocity": 64},
+        {**unknown, "velocity": None},
+        {**NOTE_2, "velocity": 80},
+    ]
+    parquet(
+        root / REGISTRY_FILE,
+        rows,
+        REGISTRY.append(pa.field("velocity", pa.int64())),
+        "Registry",
+    )
+    write_non_event_rows(root)
+    with_velocity = [{**r, "velocity": None} for r in NON_EVENTS]
+    assert pq.read_table(root / REGISTRY_FILE).to_pylist() == [
+        *with_velocity,
+        {**NOTE_2, "velocity": 80},
+        {**respelled, "velocity": 64},
+        {**unknown, "velocity": None},
     ]
 
 
@@ -530,9 +537,104 @@ def test_a_package_without_a_registry_is_refused(tmp_path: Path) -> None:
         write_non_event_rows(root)
 
 
+def folder_package(root: Path) -> Path:
+    """The test package with its Registry entry and resources naming a folder."""
+    package(root)
+    value = yaml.safe_load((root / "package.yaml").read_text(encoding="utf-8"))
+    value["tables"][0]["url"] = "registry/"
+    (root / "package.yaml").write_text(dumps(value), encoding="utf-8")
+    changed = bach()
+    changed["resources"][0]["url"] = "../registry/"
+    manifest(root, BACH, changed)
+    return root
+
+
+FOLDER = "the registry 'registry/' names a folder; a registry is one Parquet file"
+
+
+def test_a_registry_folder_is_refused(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
+    root = folder_package(tmp_path)
+    for call in (write_non_event_rows, stale_non_event_rows):
+        with pytest.raises(ValueError) as raised:
+            call(root)
+        assert str(raised.value) == FOLDER
+    with pytest.raises(ValueError) as raised:
+        resolve(root, "note_1")
+    assert str(raised.value) == FOLDER
+    with pytest.raises(ValueError) as raised:
+        resolve(root / BACH, "score")
+    assert str(raised.value) == (
+        "the registry '../registry/' names a folder; a registry is one Parquet file"
+    )
+    assert run(capsys, str(root)) == (1, [], f"timetoshare: {FOLDER}\n")
+    assert run(capsys, "--check", str(root)) == (1, [], f"timetoshare: {FOLDER}\n")
+
+
+# The order of a registry file ---------------------------------------------------
+
+
+def test_write_registry_orders_the_rows(tmp_path: Path) -> None:
+    near = 6004799503160661
+
+    def at(id: str, timeline: str, number_type: str, start: dict) -> dict:
+        return event(id, "MidiNote", timeline, "quarters", number_type, start, "ext_1")
+
+    expected = [
+        row("ext_1", "Extraction", "extractions.parquet"),
+        row("a", "Timeline", "m/a.yaml"),
+        row("b", "Timeline", "m/a.yaml"),
+        row("a", "Timeline", "m/b.yaml"),
+        at("e_near", "f", "fraction", number(near, 2**54, None)),
+        at("e_third", "f", "fraction", number(1, 3, None)),
+        at("e_half_b", "f", "fraction", number(1, 2, None)),
+        at("e_half_c", "f", "fraction", number(2, 4, None)),
+        at("e_two", "f", "fraction", number(2, 1, None)),
+        at("e_low", "i", "int", number(2**53, None, None)),
+        at("e_high", "i", "int", number(2**53 + 1, None, None)),
+        at("e_float", "x", "float", number(None, None, -0.5)),
+    ]
+    written = write_registry(
+        pa.Table.from_pylist(list(reversed(expected)), schema=REGISTRY),
+        tmp_path / REGISTRY_FILE,
+    )
+    assert written == tmp_path / REGISTRY_FILE
+    table = pq.read_table(written)
+    assert table.to_pylist() == expected
+    assert table.schema.metadata == {
+        b"timetoshare:type": b"Registry",
+        b"timetoshare:version": b"0.2.0",
+    }
+
+
+def test_a_registry_of_another_shape_is_written_whole(tmp_path: Path) -> None:
+    texts = pa.schema([field for field in REGISTRY if field.name != "start"]).append(
+        pa.field("start", pa.string())
+    )
+    rows = [
+        {**event("e_2", "MidiNote", "t", "quarters", "int", None, "x"), "start": "1"},
+        {**event("e_1", "MidiNote", "t", "quarters", "int", None, "x"), "start": "2"},
+        {**row("a", "Timeline", "m.yaml"), "start": None},
+    ]
+    written = write_registry(pa.Table.from_pylist(rows, schema=texts), tmp_path / "r")
+    assert pq.read_table(written).column("id").to_pylist() == ["a", "e_1", "e_2"]
+    assert pq.read_table(written).column("start").to_pylist() == [None, "2", "1"]
+
+
+def test_the_shared_registry_is_in_the_order_of_the_format(tmp_path: Path) -> None:
+    held = pq.read_table(package_fixture_path("shared") / REGISTRY_FILE)
+    reversed_rows = held.take(pa.array(range(len(held) - 1, -1, -1)))
+    written = write_registry(reversed_rows, tmp_path / REGISTRY_FILE)
+    assert pq.read_table(written).equals(held, check_metadata=True)
+    root = _shared_copy(tmp_path / "copy")
+    write_non_event_rows(root)
+    assert pq.read_table(root / REGISTRY_FILE).equals(held, check_metadata=True)
+
+
 # Stale non-event rows ----------------------------------------------------------
 
-PART = "registry/non_events.parquet"
+PART = REGISTRY_FILE
 
 
 def stale_package(root: Path) -> Path:
@@ -602,7 +704,7 @@ def test_each_stale_row_is_one_problem(tmp_path: Path) -> None:
     ]
 
 
-def test_without_a_non_event_part_every_row_is_missing(tmp_path: Path) -> None:
+def test_a_registry_of_event_rows_alone_lacks_every_row(tmp_path: Path) -> None:
     problems = stale_non_event_rows(package(tmp_path))
     assert [(p.row, p.message) for p in problems] == [
         (
@@ -618,21 +720,23 @@ def test_without_a_non_event_part_every_row_is_missing(tmp_path: Path) -> None:
 
 
 def _package_fixtures() -> list[Path]:
-    """Every package fixture whose package.yaml lists exactly one registry."""
+    """Every package fixture whose package.yaml lists exactly one registry,
+    a file."""
     base = package_fixture_path()
     roots = [base / "shared"] + [
         case
         for kind in ("acceptances", "rejections")
         for case in sorted((base / kind).iterdir())
     ]
+
+    def registries(root: Path) -> list[str]:
+        tables = yaml.safe_load((root / "package.yaml").read_text())["tables"]
+        return [entry["url"] for entry in tables if entry["type"] == "Registry"]
+
     return [
         root
         for root in roots
-        if [
-            entry["type"]
-            for entry in yaml.safe_load((root / "package.yaml").read_text())["tables"]
-        ].count("Registry")
-        == 1
+        if len(found := registries(root)) == 1 and not found[0].endswith("/")
     ]
 
 
@@ -663,7 +767,7 @@ def test_an_invalid_manifests_rows_are_not_compared(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     assert stale_non_event_rows(root) == _the_checks_stale(root) == []
-    part = root / "registry" / "non_events.parquet"
+    part = root / REGISTRY_FILE
     before = pq.read_table(part).to_pylist()
     write_non_event_rows(root)
     after = pq.read_table(part).to_pylist()
@@ -695,7 +799,7 @@ def test_the_registry_names_are_public() -> None:
         "non_event_rows",
         "write_non_event_rows",
         "stale_non_event_rows",
-        "NON_EVENT_PART",
+        "write_registry",
     ):
         assert name in tables.__all__
         assert getattr(tables, name) is getattr(registry, name)
@@ -861,7 +965,7 @@ def test_the_command_writes_the_non_event_rows(
         [f"wrote {PART}"],
         "",
     )
-    assert pq.read_table(root / PART).to_pylist() == NON_EVENTS
+    assert pq.read_table(root / PART).to_pylist() == [*NON_EVENTS, *EVENTS]
 
 
 def test_the_command_takes_the_current_directory(

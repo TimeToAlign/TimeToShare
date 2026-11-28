@@ -20,13 +20,13 @@ The package ``shared/``: two manifests, ``bach/manifest.yaml`` (a score
 ``clt_1`` in quarters and a performance ``dpt_1`` in samples) and
 ``handel/manifest.yaml`` (a score ``clt_2`` with a child ``clt_3`` starting
 at the quarter 4, and a performance ``dpt_2``), share the registry
-``registry/``, a folder of parts: ``non_events.parquet``, the non-event rows
-of both manifests' elements, the MatchClaims and the extractions, sorted by
-location and ID, and one part per extraction holding its event rows, sorted
-by timeline, start and ID: ``extraction_1.parquet``, Bach's Projections,
-made from ``bach/alignment.csv``, each with its locator, and
-``extraction_2.parquet``, Handel's, made by a tool without a source file,
-the two on ``clt_3`` at their positions on the root ``clt_2``. The
+``registry.parquet``, one file holding every row: first the non-event rows of
+both manifests' elements, the MatchClaims and the extractions, sorted by
+location and ID, then the event rows, sorted by timeline, start and ID:
+Bach's Projections, made from ``bach/alignment.csv`` (``extraction_1``),
+each with its locator, and Handel's, made by a tool without a source file
+(``extraction_2``), the two on ``clt_3`` at their positions on the root
+``clt_2``. The
 Extraction table ``tables/extractions.parquet`` records both runs. The
 pre-parsed Projection table ``tables/Projection/`` holds each Projection's
 ``projection_of`` in two files whose rows interleave the two manifests',
@@ -77,13 +77,10 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_DIR = REPOSITORY_ROOT / "fixtures" / "packages" / SCHEMA_VERSION
 
 PARQUET = "application/vnd.apache.parquet"
-REGISTRY = "registry/"
+REGISTRY = "registry.parquet"
 EXTRACTIONS = "tables/extractions.parquet"
 PROJECTIONS = "tables/Projection/"
 MATCH_CLAIMS = "tables/MatchClaim/"
-NON_EVENTS_FILE = f"{REGISTRY}non_events.parquet"
-BACH_PART = f"{REGISTRY}extraction_1.parquet"
-HANDEL_PART = f"{REGISTRY}extraction_2.parquet"
 PART_A_FILE = f"{PROJECTIONS}part_a.parquet"
 PART_B_FILE = f"{PROJECTIONS}part_b.parquet"
 CLAIM_FILE = f"{MATCH_CLAIMS}part_a.parquet"
@@ -255,6 +252,10 @@ HANDEL_EVENTS: list[dict[str, Any]] = [
 ]
 """Handel's event rows, sorted by timeline, start and ID; the two on the
 child ``clt_3`` lie at 1/2 and 3/2 on it, 9/2 and 11/2 on its root."""
+
+EVENTS: list[dict[str, Any]] = [*HANDEL_EVENTS[:2], *BACH_EVENTS, *HANDEL_EVENTS[2:]]
+"""Every event row, sorted by timeline, start and ID: Handel's two on
+``clt_3``, Bach's four on ``dpt_1``, Handel's three on ``dpt_2``."""
 
 NON_EVENTS: list[dict[str, Any]] = [
     non_event("clt_1", "Timeline", BACH_FILE),
@@ -523,18 +524,14 @@ class Package:
             HANDEL_FILE: copy.deepcopy(HANDEL),
         }
         self.tables: dict[str, tuple[list[dict[str, Any]], pa.Schema]] = {
-            NON_EVENTS_FILE: (copy.deepcopy(NON_EVENTS), REGISTRY_SCHEMA),
-            BACH_PART: (copy.deepcopy(BACH_EVENTS), REGISTRY_SCHEMA),
-            HANDEL_PART: (copy.deepcopy(HANDEL_EVENTS), REGISTRY_SCHEMA),
+            REGISTRY: (copy.deepcopy([*NON_EVENTS, *EVENTS]), REGISTRY_SCHEMA),
             EXTRACTIONS: (extractions(), EXTRACTION_SCHEMA),
             PART_A_FILE: (copy.deepcopy(PART_A), PROJECTION_SCHEMA),
             PART_B_FILE: (copy.deepcopy(PART_B), PROJECTION_SCHEMA),
             CLAIM_FILE: (copy.deepcopy(CLAIMS), MATCH_CLAIM_SCHEMA),
         }
         self.metadata = {
-            NON_EVENTS_FILE: _metadata("Registry"),
-            BACH_PART: _metadata("Registry"),
-            HANDEL_PART: _metadata("Registry"),
+            REGISTRY: _metadata("Registry"),
             EXTRACTIONS: _metadata("Extraction"),
             PART_A_FILE: _metadata("Projection"),
             PART_B_FILE: _metadata("Projection"),
@@ -544,6 +541,22 @@ class Package:
             },
         }
         self.texts = {SOURCE: SOURCE_TEXT}
+
+    @property
+    def registry(self) -> list[dict[str, Any]]:
+        """The rows of the registry file, in their order."""
+        return self.tables[REGISTRY][0]
+
+    def event(self, identifier: str) -> dict[str, Any]:
+        """The event row of an ID in the registry."""
+        (row,) = (
+            row for row in self.registry[len(NON_EVENTS) :] if row["id"] == identifier
+        )
+        return row
+
+    def insert_after(self, identifier: str, row: dict[str, Any]) -> None:
+        """Insert an event row after the event row of an ID."""
+        self.registry.insert(self.registry.index(self.event(identifier)) + 1, row)
 
     def table(self, name: str) -> pa.Table:
         rows, schema = self.tables[name]
@@ -580,7 +593,7 @@ EXTERNAL = "https://example.org/events/projection_1"
 
 
 def _external_location(package: Package) -> None:
-    package.tables[BACH_PART][0][0]["location"] = EXTERNAL
+    package.event("projection_1")["location"] = EXTERNAL
     rows = package.tables[PART_A_FILE][0]
     rows[:] = [row for row in rows if row["id"] != "projection_1"]
 
@@ -595,37 +608,19 @@ def _recording_resource(package: Package) -> None:
             "media_type": "audio/flac",
         }
     )
-    package.tables[NON_EVENTS_FILE][0].insert(
-        4, non_event("resource_3", "Resource", BACH_FILE)
-    )
+    package.registry.insert(4, non_event("resource_3", "Resource", BACH_FILE))
 
 
 def _timeline_in_two_manifests(package: Package) -> None:
     handel = package.manifests[HANDEL_FILE]
     handel["timelines"].insert(1, {"id": "dpt_1", "unit": "samples", "length": 352800})
     handel["resources"][1]["timelines"].append("dpt_1")
-    package.tables[NON_EVENTS_FILE][0].insert(
-        6, non_event("dpt_1", "Timeline", HANDEL_FILE)
-    )
-
-
-def _single_file_registry(package: Package) -> None:
-    rows = [
-        *package.tables.pop(NON_EVENTS_FILE)[0],
-        *package.tables.pop(BACH_PART)[0],
-        *package.tables.pop(HANDEL_PART)[0],
-    ]
-    for name in (NON_EVENTS_FILE, BACH_PART, HANDEL_PART):
-        del package.metadata[name]
-    package.tables["registry.parquet"] = (rows, REGISTRY_SCHEMA)
-    package.metadata["registry.parquet"] = _metadata("Registry")
-    package.package["tables"][0]["url"] = "registry.parquet"
-    for manifest in package.manifests.values():
-        manifest["resources"][1]["url"] = "../registry.parquet"
+    package.registry.insert(6, non_event("dpt_1", "Timeline", HANDEL_FILE))
 
 
 def _re_parsable_event(package: Package) -> None:
-    package.tables[BACH_PART][0].append(
+    package.insert_after(
+        "projection_7",
         event(
             "onset_9",
             "dpt_1",
@@ -635,7 +630,7 @@ def _re_parsable_event(package: Package) -> None:
             locator="row 5",
             kind="Onset",
             location=None,
-        )
+        ),
     )
 
 
@@ -726,12 +721,6 @@ ACCEPTANCES: dict[
             },
         ],
     ),
-    "single_file_registry": (
-        _single_file_registry,
-        "The registry is one file, registry.parquet, holding the non-event rows and "
-        "the event rows of both extractions.",
-        None,
-    ),
     "re_parsable_event": (
         _re_parsable_event,
         "An onset of Bach's extraction has no pre-parsed content: its location "
@@ -770,7 +759,8 @@ none); the package check finds no problem."""
 
 
 def _row_of_no_manifest(package: Package) -> None:
-    package.tables[BACH_PART][0].append(
+    package.insert_after(
+        "projection_6",
         event(
             "onset_9",
             "dpt_9",
@@ -780,7 +770,7 @@ def _row_of_no_manifest(package: Package) -> None:
             locator="row 5",
             kind="Onset",
             location=None,
-        )
+        ),
     )
 
 
@@ -798,9 +788,7 @@ def _claim_across_manifests(package: Package) -> None:
             (coordinate(3, QUARTERS), coordinate(132300, SAMPLES)),
         ),
     )
-    package.tables[NON_EVENTS_FILE][0].insert(
-        14, non_event("claim_6", "MatchClaim", MATCH_CLAIMS)
-    )
+    package.registry.insert(14, non_event("claim_6", "MatchClaim", MATCH_CLAIMS))
 
 
 def _column_in_two_types(package: Package) -> None:
@@ -824,9 +812,7 @@ def _resource_naming_no_table(package: Package) -> None:
             "url": "../tables/Box/",
         }
     )
-    package.tables[NON_EVENTS_FILE][0].insert(
-        4, non_event("resource_3", "Resource", BACH_FILE)
-    )
+    package.registry.insert(4, non_event("resource_3", "Resource", BACH_FILE))
 
 
 def _folder_with_size(package: Package) -> None:
@@ -838,8 +824,8 @@ def _timeline_unlisted(package: Package) -> None:
 
 
 def _axis_mismatch(package: Package) -> None:
-    rows = package.tables[BACH_PART][0]
-    rows[3] = event(
+    rows = package.registry
+    rows[rows.index(package.event("projection_7"))] = event(
         "projection_7",
         "dpt_1",
         ("seconds", "float"),
@@ -867,8 +853,8 @@ def _file_in_a_listed_folder(package: Package) -> None:
 
 def _registry_missing(package: Package) -> None:
     del package.package["tables"][0]
-    for name in (NON_EVENTS_FILE, BACH_PART, HANDEL_PART):
-        del package.tables[name]
+    del package.tables[REGISTRY]
+    del package.metadata[REGISTRY]
     for manifest in package.manifests.values():
         del manifest["resources"][1]
 
@@ -890,22 +876,23 @@ def _extraction_table_listed_twice(package: Package) -> None:
 
 
 def _unknown_extraction(package: Package) -> None:
-    package.tables[HANDEL_PART][0][2]["extraction_id"] = "extraction_9"
+    package.event("projection_3")["extraction_id"] = "extraction_9"
 
 
 def _vanished_in_an_unknown_extraction(package: Package) -> None:
-    package.tables[HANDEL_PART][0][2]["vanished_in"] = "extraction_3"
+    package.event("projection_3")["vanished_in"] = "extraction_3"
 
 
 def _unknown_location(package: Package) -> None:
-    package.tables[BACH_PART][0][1]["location"] = "tables/Note/"
+    package.event("projection_2")["location"] = "tables/Note/"
 
 
 def _missing_content(package: Package) -> None:
-    package.tables[BACH_PART][0].append(
+    package.insert_after(
+        "projection_7",
         event(
             "projection_10", "dpt_1", SAMPLES, 176400, "extraction_1", locator="row 5"
-        )
+        ),
     )
 
 
@@ -914,11 +901,12 @@ def _unregistered_id(package: Package) -> None:
 
 
 def _locator_twice(package: Package) -> None:
-    package.tables[BACH_PART][0][3]["locator"] = "row 1"
+    package.event("projection_7")["locator"] = "row 1"
 
 
 def _registry_id_twice(package: Package) -> None:
-    package.tables[HANDEL_PART][0].append(
+    package.insert_after(
+        "projection_6",
         event(
             "claim_1",
             "dpt_2",
@@ -927,22 +915,30 @@ def _registry_id_twice(package: Package) -> None:
             "extraction_2",
             kind="Onset",
             location=None,
-        )
+        ),
     )
 
 
 def _non_event_row_with_a_position(package: Package) -> None:
-    row = package.tables[NON_EVENTS_FILE][0][0]
+    row = package.registry[0]
     row.update(unit="quarters", number_type="fraction", start=number(0, "fraction"))
 
 
 def _stale_non_event_row(package: Package) -> None:
-    rows = package.tables[NON_EVENTS_FILE][0]
+    rows = package.registry
     rows[0]["kind"] = "VirtualTimeline"
     rows.insert(4, non_event("region_9", "Region", BACH_FILE, timeline_id="clt_1"))
     package.manifests[HANDEL_FILE]["groups"] = [
         {"id": "group_1", "members": ["clt_2", "dpt_2"]}
     ]
+
+
+def _registry_folder(package: Package) -> None:
+    package.tables[f"registry/{REGISTRY}"] = package.tables.pop(REGISTRY)
+    package.metadata[f"registry/{REGISTRY}"] = package.metadata.pop(REGISTRY)
+    package.package["tables"][0]["url"] = "registry/"
+    for manifest in package.manifests.values():
+        manifest["resources"][1]["url"] = "../registry/"
 
 
 FEATURES = "tables/features.parquet"
@@ -981,8 +977,8 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
         [
             problem(
                 "unknown_timeline",
-                BACH_PART,
-                4,
+                REGISTRY,
+                25,
                 ["timeline_id"],
                 "no manifest of the package has the timeline 'dpt_9'",
             ),
@@ -1004,8 +1000,8 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
             ),
             problem(
                 "missing_content",
-                BACH_PART,
-                2,
+                REGISTRY,
+                20,
                 ["location"],
                 "the table 'tables/Projection/' holds no row of the ID 'projection_9'",
             ),
@@ -1088,16 +1084,16 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
         [
             problem(
                 "unlisted_timeline",
-                HANDEL_PART,
-                0,
+                REGISTRY,
+                16,
                 ["timeline_id"],
                 "the timeline 'clt_3' of 'handel/manifest.yaml' is listed by no "
                 "resource of the type Registry naming this table",
             ),
             problem(
                 "unlisted_timeline",
-                HANDEL_PART,
-                1,
+                REGISTRY,
+                17,
                 ["timeline_id"],
                 "the timeline 'clt_3' of 'handel/manifest.yaml' is listed by no "
                 "resource of the type Registry naming this table",
@@ -1110,8 +1106,8 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
         [
             problem(
                 "axis_mismatch",
-                BACH_PART,
-                3,
+                REGISTRY,
+                21,
                 ["unit"],
                 "a coordinate in seconds (float) on the timeline 'dpt_1' in samples "
                 "(int)",
@@ -1210,8 +1206,8 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
         [
             problem(
                 "unknown_extraction",
-                HANDEL_PART,
-                2,
+                REGISTRY,
+                22,
                 ["extraction_id"],
                 "no extraction of the package has the ID 'extraction_9'",
             ),
@@ -1224,8 +1220,8 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
         [
             problem(
                 "unknown_extraction",
-                HANDEL_PART,
-                2,
+                REGISTRY,
+                22,
                 ["vanished_in"],
                 "no extraction of the package has the ID 'extraction_3'",
             ),
@@ -1238,8 +1234,8 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
         [
             problem(
                 "unknown_location",
-                BACH_PART,
-                1,
+                REGISTRY,
+                19,
                 ["location"],
                 "the location 'tables/Note/' names no table of the type Projection in "
                 "the package",
@@ -1252,8 +1248,8 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
         [
             problem(
                 "missing_content",
-                BACH_PART,
-                4,
+                REGISTRY,
+                22,
                 ["location"],
                 "the table 'tables/Projection/' holds no row of the ID 'projection_10'",
             ),
@@ -1279,8 +1275,8 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
         [
             problem(
                 "duplicate_locator",
-                BACH_PART,
-                3,
+                REGISTRY,
+                21,
                 ["locator"],
                 "the locator 'row 1' is given twice in the extraction 'extraction_1'",
             ),
@@ -1293,11 +1289,10 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
         [
             problem(
                 "duplicate_id",
-                NON_EVENTS_FILE,
-                9,
+                REGISTRY,
+                25,
                 ["id"],
-                "the ID 'claim_1' is given twice, first in "
-                "'registry/extraction_2.parquet' at row 5",
+                "the ID 'claim_1' is given twice, first in 'registry.parquet' at row 9",
             ),
         ],
     ),
@@ -1308,21 +1303,21 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
         [
             problem(
                 "schema_violation",
-                NON_EVENTS_FILE,
+                REGISTRY,
                 0,
                 ["unit"],
                 "a non-event row has no 'unit'",
             ),
             problem(
                 "schema_violation",
-                NON_EVENTS_FILE,
+                REGISTRY,
                 0,
                 ["number_type"],
                 "a non-event row has no 'number_type'",
             ),
             problem(
                 "schema_violation",
-                NON_EVENTS_FILE,
+                REGISTRY,
                 0,
                 ["start"],
                 "a non-event row has no 'start'",
@@ -1337,7 +1332,7 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
         [
             problem(
                 "stale_non_event_row",
-                NON_EVENTS_FILE,
+                REGISTRY,
                 0,
                 ["kind"],
                 "the non-event row of the ID 'clt_1' at 'bach/manifest.yaml' has the "
@@ -1345,7 +1340,7 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
             ),
             problem(
                 "stale_non_event_row",
-                NON_EVENTS_FILE,
+                REGISTRY,
                 4,
                 ["id"],
                 "the registry holds the non-event row of the ID 'region_9' at "
@@ -1353,11 +1348,42 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
             ),
             problem(
                 "stale_non_event_row",
-                NON_EVENTS_FILE,
+                REGISTRY,
                 None,
                 ["id"],
                 "the registry lacks the non-event row of the ID 'group_1' at "
                 "'handel/manifest.yaml'",
+            ),
+        ],
+    ),
+    "registry_folder": (
+        _registry_folder,
+        "package.yaml and both manifests name a folder registry/ as the registry, "
+        "the file registry.parquet inside it; a registry is one Parquet file.",
+        [
+            problem(
+                "registry_not_a_file",
+                "package.yaml",
+                None,
+                ["tables", 0, "url"],
+                "the registry 'registry/' names a folder; a registry is one Parquet "
+                "file",
+            ),
+            problem(
+                "registry_not_a_file",
+                BACH_FILE,
+                None,
+                ["resources", 1, "url"],
+                "the registry '../registry/' names a folder; a registry is one "
+                "Parquet file",
+            ),
+            problem(
+                "registry_not_a_file",
+                HANDEL_FILE,
+                None,
+                ["resources", 1, "url"],
+                "the registry '../registry/' names a folder; a registry is one "
+                "Parquet file",
             ),
         ],
     ),

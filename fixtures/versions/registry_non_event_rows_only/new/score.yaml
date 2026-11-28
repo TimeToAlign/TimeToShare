@@ -3,7 +3,7 @@ resources:
     id: "#registry"
     timelines: ["#score"]
     type: Registry
-    url: registry/
+    url: registry.parquet
 timelines:
   -
     id: "#score"

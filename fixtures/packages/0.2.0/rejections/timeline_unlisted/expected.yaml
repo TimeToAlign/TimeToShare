@@ -1,14 +1,14 @@
 problems:
   -
     code: unlisted_timeline
-    file: registry/extraction_2.parquet
+    file: registry.parquet
     message: "the timeline 'clt_3' of 'handel/manifest.yaml' is listed by no resource of the type Registry naming this table"
     path: [timeline_id]
-    row: 0
+    row: 16
   -
     code: unlisted_timeline
-    file: registry/extraction_2.parquet
+    file: registry.parquet
     message: "the timeline 'clt_3' of 'handel/manifest.yaml' is listed by no resource of the type Registry naming this table"
     path: [timeline_id]
-    row: 1
+    row: 17
 reason: "Handel's Registry resource no longer lists its child clt_3, whose event rows the registry holds; a reader of the manifest would not find them."

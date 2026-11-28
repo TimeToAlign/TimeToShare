@@ -5,17 +5,18 @@
 A version case is two trees, ``old/`` and ``new/``, beside an
 ``expected.yaml`` of the step and the findings ``tree_step`` gives. The
 cases of tables are packages: ``package.yaml``, the manifest ``score.yaml``,
-a registry folder ``registry/`` of a non-event part and one extraction part
-``ext_1.parquet``, the Extraction table ``extractions.parquet`` and the
-pre-parsed Projection table ``tables/Projection/part.parquet``. Their YAML
+the registry ``registry.parquet``, the Extraction table
+``extractions.parquet`` and the pre-parsed Projection table
+``tables/Projection/part.parquet``. Their YAML
 files and ``expected.yaml`` are written by hand; this script writes their
 Parquet files. Every row is literal data here, never computed by the code
 the cases test: each ``old/`` tree holds the same three event rows (the
 MIDI notes ``note_1`` and ``note_2`` and the Projection ``proj_1`` on the
 quarters timeline ``score``), one extraction and one pre-parsed Projection,
-and each ``new/`` tree the one change of its case. The non-event part of each
-tree is then written by ``timetoshare.tables.write_non_event_rows`` from the tree's
-hand-written manifest and tables, so that no case's non-event rows are stale.
+and each ``new/`` tree the one change of its case. The non-event rows of each
+tree's registry are then written into it by
+``timetoshare.tables.write_non_event_rows`` from the tree's hand-written
+manifest and tables, so that no case's non-event rows are stale.
 
 A Parquet file is rewritten only when its table changes, and the files of
 a released version, whose tag ``v<version>`` exists, are never overwritten.
@@ -50,7 +51,7 @@ from timetoshare.tables import (
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 VERSIONS_DIR = REPOSITORY_ROOT / "fixtures" / "versions"
 
-EVENT_PART = "registry/ext_1.parquet"
+REGISTRY = "registry.parquet"
 EXTRACTIONS = "extractions.parquet"
 PROJECTIONS = "tables/Projection/part.parquet"
 
@@ -141,7 +142,7 @@ class Tree:
                 EXTRACTION_SCHEMA,
                 "Extraction",
             ),
-            EVENT_PART: (copy.deepcopy(EVENTS), REGISTRY_SCHEMA, "Registry"),
+            REGISTRY: (copy.deepcopy(EVENTS), REGISTRY_SCHEMA, "Registry"),
             PROJECTIONS: (
                 copy.deepcopy(PROJECTION_ROWS),
                 PROJECTION_SCHEMA,
@@ -162,21 +163,21 @@ class Tree:
 
 
 def _row_removed(tree: Tree) -> None:
-    del tree.rows(EVENT_PART)[1]
+    del tree.rows(REGISTRY)[1]
 
 
 def _row_added(tree: Tree) -> None:
-    tree.rows(EVENT_PART).append(
+    tree.rows(REGISTRY).append(
         event("note_3", Fraction(3), locator="track 0 message 2")
     )
 
 
 def _projection_moved(tree: Tree) -> None:
-    tree.rows(EVENT_PART)[2]["start"] = number(Fraction(5, 2))
+    tree.rows(REGISTRY)[2]["start"] = number(Fraction(5, 2))
 
 
 def _row_vanished(tree: Tree) -> None:
-    tree.rows(EVENT_PART)[1]["vanished_in"] = "ext_2"
+    tree.rows(REGISTRY)[1]["vanished_in"] = "ext_2"
     tree.rows(EXTRACTIONS).append(extraction("ext_2", "2026-11-28T00:00:00Z"))
 
 
@@ -189,7 +190,7 @@ def _projection_edited(tree: Tree) -> None:
 
 
 def _projection_removed(tree: Tree) -> None:
-    del tree.rows(EVENT_PART)[2]
+    del tree.rows(REGISTRY)[2]
     tree.rows(PROJECTIONS).clear()
 
 

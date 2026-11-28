@@ -1,8 +1,8 @@
 problems:
   -
     code: duplicate_locator
-    file: registry/extraction_1.parquet
+    file: registry.parquet
     message: "the locator 'row 1' is given twice in the extraction 'extraction_1'"
     path: [locator]
-    row: 3
+    row: 21
 reason: "Two event rows of Bach's extraction give the locator 'row 1'."

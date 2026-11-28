@@ -269,7 +269,7 @@ export const schema = {
       "properties": {
         "url": {
           "$ref": "#/$defs/IriReference",
-          "description": "Where the file or the folder lies: a reference resolved against the address of the document naming it, such as `match_claims.parquet` beside a manifest, or `../registry/`, a folder."
+          "description": "Where the file or the folder lies: a reference resolved against the address of the document naming it, such as `../registry.parquet`, the package's registry, or `../match_claims/`, a folder."
         },
         "media_type": {
           "type": "string",
@@ -331,7 +331,7 @@ export const schema = {
         "type": {
           "type": "string",
           "minLength": 1,
-          "description": "What the file's rows are: `Registry` for the package's registry, `MatchClaim` for a MatchClaim table, or the type of what another file holds. The registry is experimental: it may change in any version."
+          "description": "What the file's rows are: `Registry` for the package's registry, one Parquet file, `MatchClaim` for a MatchClaim table, or the type of what another file holds. The registry is experimental: it may change in any version."
         },
         "timelines": {
           "type": "array",
@@ -2941,7 +2941,7 @@ export const packageSchema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://timetoalign.github.io/timetoshare/0.2.0/package.schema.json",
   "title": "TimeToShare package",
-  "description": "The `package.yaml` of a TimeToShare! 0.2.0 package: a folder holding manifests and the tables their resources name, with this file at its root. It lists every manifest of the package and every table, each by one `Descriptor` (`timetoshare.schema.json`), its `url` resolved against the address of `package.yaml`. The manifests are listed one by one, never by a pattern. A table is a file, or a folder of files read as one table when its `url` ends in `/`; a type may have several entries, for rows kept in different files. Files may hold rows of several manifests: each manifest's resources name the registry and the MatchClaim tables it reads, with the timelines whose rows it keeps, and the registry's rows name the pre-parsed tables holding their content, so nothing in a file names a manifest. Every manifest and every table file of the package declares the package's version. Every manifest is listed once and a folder has no `size` and no `integrity`, both checked after the schema; the rules a package's manifests and rows keep together (exactly one registry and at most one Extraction table, an event, MatchClaim and Extraction ID each held once in the registry, each event row's timeline listed by a manifest's `Registry` resource, the registry's non-event rows agreeing with the manifests and tables) are the package check's. Every object is open: a key an object does not declare is kept.",
+  "description": "The `package.yaml` of a TimeToShare! 0.2.0 package: a folder holding manifests and the tables their resources name, with this file at its root. It lists every manifest of the package and every table, each by one `Descriptor` (`timetoshare.schema.json`), its `url` resolved against the address of `package.yaml`. The manifests are listed one by one, never by a pattern. A table is a file, or a folder of files read as one table when its `url` ends in `/`; a type may have several entries, for rows kept in different files. The registry is one Parquet file, by convention `registry.parquet` at the package's root, holding every row: its non-event rows are a filter on it, never a file of their own. Files may hold rows of several manifests: each manifest's resources name the registry and the MatchClaim tables it reads, with the timelines whose rows it keeps, and the registry's rows name the pre-parsed tables holding their content, so nothing in a file names a manifest. Every manifest and every table file of the package declares the package's version. Every manifest is listed once and a folder has no `size` and no `integrity`, both checked after the schema; the rules a package's manifests and rows keep together (exactly one registry, which is a file, and at most one Extraction table, an event, MatchClaim and Extraction ID each held once in the registry, each event row's timeline listed by a manifest's `Registry` resource, the registry's non-event rows agreeing with the manifests and tables) are the package check's. Every object is open: a key an object does not declare is kept.",
   "type": "object",
   "properties": {
     "timetoshare": {
@@ -2969,7 +2969,7 @@ export const packageSchema = {
     },
     "tables": {
       "type": "array",
-      "description": "The tables of the package, each a file or a folder of files, with the type of its rows; the registry among them.",
+      "description": "The tables of the package, each a file or a folder of files, with the type of its rows; the registry among them, one file.",
       "items": {
         "$ref": "#/$defs/Table"
       }
@@ -2993,7 +2993,7 @@ export const packageSchema = {
         "type": {
           "type": "string",
           "minLength": 1,
-          "description": "What the rows are: `Registry` for the package's registry, exactly one entry, `Extraction` for its Extraction table, at most one entry, `MatchClaim` for MatchClaims, `Projection` for the pre-parsed Projections, or the type of the events a pre-parsed table holds, as the registry's event rows name it."
+          "description": "What the rows are: `Registry` for the package's registry, exactly one entry naming one Parquet file, `Extraction` for its Extraction table, at most one entry, `MatchClaim` for MatchClaims, `Projection` for the pre-parsed Projections, or the type of the events a pre-parsed table holds, as the registry's event rows name it."
         }
       },
       "required": [
@@ -3006,7 +3006,7 @@ export const packageSchema = {
       "properties": {
         "url": {
           "$ref": "#/$defs/IriReference",
-          "description": "Where the file or the folder lies: a reference resolved against the address of the document naming it, such as `match_claims.parquet` beside a manifest, or `../registry/`, a folder."
+          "description": "Where the file or the folder lies: a reference resolved against the address of the document naming it, such as `../registry.parquet`, the package's registry, or `../match_claims/`, a folder."
         },
         "media_type": {
           "type": "string",
