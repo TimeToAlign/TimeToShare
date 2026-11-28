@@ -1,0 +1,8 @@
+problems:
+  -
+    code: unknown_parse
+    file: registry.parquet
+    message: "no parse of the package has the ID 'parse_4'"
+    path: [vanished_in]
+    row: 30
+reason: "An event row of Handel's vanished in parse_4, which the Parse table does not hold."

@@ -48,9 +48,9 @@
   },
   "tables": {
     "Registry": {
-      "description": "The registry: one row per resolvable ID of the package. An event row (its `kind` the type of its event, `Projection` among them) states the event's timeline, its `start` and its `duration` (null for an instant) on the axis of the root of that timeline's family, in that axis's `unit` and `number_type`, and the extraction that made it; its `location` names the pre-parsed table holding its content, or is null where its content is only re-parsable from its extraction's source file. A non-event row (its `kind` one of `non_event_kinds`) points at what the manifests, the MatchClaim tables and the Extraction table hold: its `location` is the manifest holding the element, or the table entry holding the MatchClaim or the extraction; its `timeline_id` is the one timeline a Region, FlowControlElement, Elision or Timestamp lies on, else null; every other column null. The registry holds no names: an element's name is its manifest's, an event's its pre-parsed table's. A `location` is a URI reference resolved against the package's root. `locator` is the parser's pointer to the event in its source file and, where the source states a key of its own for the event (an ID, a key column, a measure key), holds that key as part of it, so that an original key survives where it is not the event's ID; opaque text, never parsed, unique within its extraction where given; `vanished_in` the extraction of an update that no longer found the event, whose row is kept. Event, MatchClaim and Extraction IDs are each held once among all of these rows; the ID of a manifest element is held once per `location`. The registry is one Parquet file holding every row: the non-event rows are the rows of the kinds `non_event_kinds` names, a filter on the file, never a file of their own. A writer writes the non-event rows first, sorted by `location` and `id`, then the event rows, sorted by `timeline_id`, the exact value of `start` and `id`; readers never rely on the order.",
+      "description": "The registry: one row per resolvable ID of the package. An event row (its `kind` the type of its event, `Projection` among them) states the event's timeline, its `start` and its `duration` (null for an instant) on the axis of the root of that timeline's family, in that axis's `unit` and `number_type`, and the parse that made it; its `location` names the pre-parsed table holding its content, or is null where the event's content lies nowhere but its registry row (a kind whose events hold nothing but their ID, Projection among them, has no pre-parsed table) or is only re-parsable from its parse's source file. `projection_of` is null on every row whose `kind` is not `Projection`; on a Projection row it names the event the Projection stands for, by its timeline and its ID, never a position of that event, or is null where a source states the position without an event of its own. A non-event row (its `kind` one of `non_event_kinds`) points at what the manifests, the MatchClaim tables and the Parse table hold: its `location` is the manifest holding the element, or the table entry holding the MatchClaim or the parse; its `timeline_id` is the one timeline a Region, FlowControlElement, Elision or Timestamp lies on, else null; every other column null. The registry holds no names: an element's name is its manifest's, an event's its pre-parsed table's. A `location` is a URI reference resolved against the package's root. `locator` is the parser's pointer to the event in its source file and, where the source states a key of its own for the event (an ID, a key column, a measure key), holds that key as part of it, so that an original key survives where it is not the event's ID; opaque text, never parsed, unique within its parse where given; `vanished_in` the parse of an update that no longer found the event, whose row is kept. Event, MatchClaim and Parse IDs are each held once among all of these rows; the ID of a manifest element is held once per `location`. The registry is one Parquet file holding every row: the non-event rows are the rows of the kinds `non_event_kinds` names, a filter on the file, never a file of their own. A writer writes the non-event rows first, sorted by `location` and `id`, then the event rows, sorted by `timeline_id`, the exact value of `start` and `id`; readers never rely on the order.",
       "status": "experimental",
-      "non_event_kinds": ["Manifest", "Timeline", "VirtualTimeline", "Group", "MeasureMap", "ConversionMap", "Region", "FlowControlElement", "Resource", "FlowMap", "Timestamp", "MatchStamp", "AlignmentAnchor", "Elision", "MatchClaim", "Extraction"],
+      "non_event_kinds": ["Manifest", "Timeline", "VirtualTimeline", "Group", "MeasureMap", "ConversionMap", "Region", "FlowControlElement", "Resource", "FlowMap", "Timestamp", "MatchStamp", "AlignmentAnchor", "Elision", "MatchClaim", "Parse"],
       "columns": [
         { "name": "id", "type": "string", "nullable": false },
         { "name": "kind", "type": "string", "nullable": false },
@@ -60,13 +60,14 @@
         { "name": "number_type", "type": "string", "nullable": true },
         { "name": "start", "type": "number", "nullable": true },
         { "name": "duration", "type": "number", "nullable": true },
-        { "name": "extraction_id", "type": "string", "nullable": true },
+        { "name": "parse_id", "type": "string", "nullable": true },
         { "name": "locator", "type": "string", "nullable": true },
-        { "name": "vanished_in", "type": "string", "nullable": true }
+        { "name": "vanished_in", "type": "string", "nullable": true },
+        { "name": "projection_of", "type": "projection_of", "nullable": true }
       ]
     },
-    "Extraction": {
-      "description": "The Extraction table: one row per extraction, a run of a parser over one source file (CRMdig's D10 Software Execution), named by the registry's event rows. `source` is the source file, a URI reference resolved against the package's root, null for events a tool made without a source file; `source_integrity` its digest, never null where `source` is given; `parser` and `parser_version` the parser run; `parameters` the parameters it was run with, the JSON text of an object, written in RFC 8785 JSON; `minter` the version of the algorithm minting the IDs it gave, `id_length` their length and `seed` the seed given, so that a run again mints the same IDs; `date` the date-time of the run, ISO 8601 in UTC, written `2026-11-27T21:30:00Z`.",
+    "Parse": {
+      "description": "The Parse table: one row per parse, a run of a parser over one source file, or of a tool without a source file, that made events (CRMdig's D10 Software Execution), named by the registry's event rows. `source` is the source file, a URI reference resolved against the package's root, null for events a tool made without a source file; `source_integrity` its digest, never null where `source` is given; `parser` and `parser_version` the parser run; `parameters` the parameters it was run with, the JSON text of an object, written in RFC 8785 JSON; `minter` the version of the algorithm minting the IDs it gave, `id_length` their length and `seed` the seed given, so that a run again mints the same IDs; `date` the date-time of the run, ISO 8601 in UTC, written `2026-11-27T21:30:00Z`.",
       "status": "experimental",
       "columns": [
         { "name": "id", "type": "string", "nullable": false },
@@ -79,14 +80,6 @@
         { "name": "id_length", "type": "int64", "nullable": false },
         { "name": "seed", "type": "string", "nullable": true },
         { "name": "date", "type": "string", "nullable": false }
-      ]
-    },
-    "Projection": {
-      "description": "The pre-parsed Projection table: one row per Projection, by its ID, with the event it stands for; its timeline and its position are its registry row's.",
-      "status": "experimental",
-      "columns": [
-        { "name": "id", "type": "string", "nullable": false },
-        { "name": "projection_of", "type": "projection_of", "nullable": true }
       ]
     },
     "MatchClaim": {

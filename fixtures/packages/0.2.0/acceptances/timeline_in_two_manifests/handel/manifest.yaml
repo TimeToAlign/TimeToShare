@@ -9,7 +9,7 @@ resources:
   -
     id: "#resource_2"
     media_type: application/vnd.apache.parquet
-    timelines: ["#clt_3", "#dpt_2", "#dpt_1"]
+    timelines: ["#clt_2", "#clt_3", "#dpt_2", "#dpt_1"]
     type: Registry
     url: "../registry.parquet"
 timelines:

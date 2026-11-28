@@ -546,7 +546,7 @@ def test_a_row_two_manifests_list_lies_at_both(tmp_path: Path) -> None:
     )
 
 
-def test_a_vanished_row_names_the_extraction(tmp_path: Path) -> None:
+def test_a_vanished_row_names_the_parse(tmp_path: Path) -> None:
     pytest.importorskip("pyarrow")
     case = VERSIONS / "registry_row_vanished"
     assert tree_step(case / "old", case / "new").findings == (
@@ -555,7 +555,7 @@ def test_a_vanished_row_names_the_extraction(tmp_path: Path) -> None:
             "minor",
             "score.yaml",
             "note_2",
-            "row note_2 of registry.parquet, vanished in the extraction ext_2",
+            "row note_2 of registry.parquet, vanished in the parse parse_2",
         ),
     )
 
@@ -706,14 +706,11 @@ def test_a_registry_and_its_tables_are_read_from_git(
         repo.mkdir()
         git(repo, "init", "--quiet")
         shutil.copytree(VERSIONS / case / "old", repo, dirs_exist_ok=True)
-        # The pre-parsed table is reached through the registry's rows alone.
-        package = loads((repo / "package.yaml").read_text(encoding="utf-8"))
-        package["tables"] = [t for t in package["tables"] if t["type"] != "Projection"]
-        write(repo / "package.yaml", package)
         git(repo, "add", ".")
         git(repo, "commit", "--quiet", "-m", "first")
-        for part in ("registry.parquet", "tables/Projection/part.parquet"):
-            shutil.copy(VERSIONS / case / "new" / part, repo / part)
+        shutil.copy(
+            VERSIONS / case / "new" / "registry.parquet", repo / "registry.parquet"
+        )
         git(repo, "add", ".")
         expected = loads((VERSIONS / case / "expected.yaml").read_text())
         assert summary(git_step("HEAD", None, repo)) == expected

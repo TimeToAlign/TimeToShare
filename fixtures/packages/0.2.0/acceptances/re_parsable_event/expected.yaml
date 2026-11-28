@@ -1,5 +1,5 @@
 problems: []
-reason: "An onset of Bach's extraction has no pre-parsed content: its location is null, its content re-parsable from the extraction's source file."
+reason: "An onset of Bach's parse has no pre-parsed content: its location is null, its content re-parsable from the parse's source file."
 resolutions:
   -
     found:
@@ -9,12 +9,13 @@ resolutions:
         manifest: bach/manifest.yaml
         row:
           duration: null
-          extraction_id: extraction_1
           id: onset_9
           kind: Onset
           location: null
           locator: "row 5"
           number_type: int
+          parse_id: parse_1
+          projection_of: null
           start:
             denominator: null
             numerator: 176400

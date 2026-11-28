@@ -1,8 +1,8 @@
 problems:
   -
     code: unregistered_id
-    file: tables/Projection/part_b.parquet
-    message: "no event row of the type Projection in the registry has the ID 'projection_10'"
+    file: tables/Note/part_b.parquet
+    message: "no event row of the type Note in the registry has the ID 'note_9'"
     path: [id]
-    row: 4
-reason: "A pre-parsed Projection has an ID no event row of the registry has."
+    row: 3
+reason: "A pre-parsed note has an ID no event row of the registry has."

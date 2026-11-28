@@ -6,9 +6,6 @@ tables:
     type: Registry
     url: registry.parquet
   -
-    type: Extraction
-    url: extractions.parquet
-  -
-    type: Projection
-    url: tables/Projection/
+    type: Parse
+    url: parses.parquet
 timetoshare: "0.2.0"

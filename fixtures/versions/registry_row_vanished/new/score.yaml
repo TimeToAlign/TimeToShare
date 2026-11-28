@@ -10,4 +10,9 @@ timelines:
     length: [8, 1]
     name: Score
     unit: quarters
+  -
+    id: "#take"
+    length: 8.0
+    name: Take
+    unit: seconds
 timetoshare: "0.2.0"

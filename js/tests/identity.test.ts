@@ -1209,9 +1209,9 @@ describe("identity", () => {
       },
       {
         id: "#resource_0a1b2c3d4e5f6",
-        type: "Projection",
+        type: "Note",
         timelines: ["#take_2"],
-        url: "projections.parquet",
+        url: "notes.parquet",
       },
     ];
     expect(timetoshare.identityProblems(value)).toEqual([]);

@@ -43,9 +43,9 @@ __all__ = [
     "COORDINATE_KEYS",
     "COORDINATE_TYPE",
     "ELEMENT_KINDS",
-    "EXTRACTION_COLUMNS",
-    "EXTRACTION_REQUIRED",
-    "EXTRACTION_SCHEMA",
+    "PARSE_COLUMNS",
+    "PARSE_REQUIRED",
+    "PARSE_SCHEMA",
     "NON_EVENT_KINDS",
     "INTEGRITY_TYPE",
     "MATCH_CLAIM_COLUMNS",
@@ -55,10 +55,7 @@ __all__ = [
     "NUMBER_KEYS",
     "NUMBER_MEMBERS",
     "NUMBER_TYPE",
-    "PROJECTION_COLUMNS",
-    "PROJECTION_REQUIRED",
     "PROJECTION_OF_TYPE",
-    "PROJECTION_SCHEMA",
     "PROVENANCE_KEYS",
     "PROVENANCE_METADATA_KEY",
     "PROVENANCE_TYPE",
@@ -80,8 +77,8 @@ TABLES_DOCUMENT = "tables.json"
 def tables_path() -> Path:
     """Return the path of the column types of the tables, ``tables.json``.
 
-    The one source of :data:`REGISTRY_SCHEMA`, :data:`EXTRACTION_SCHEMA`,
-    :data:`PROJECTION_SCHEMA` and :data:`MATCH_CLAIM_SCHEMA`: its ``types``
+    The one source of :data:`REGISTRY_SCHEMA`, :data:`PARSE_SCHEMA` and
+    :data:`MATCH_CLAIM_SCHEMA`: its ``types``
     declare the structs a cell holds, its ``tables`` each table's status and
     its columns, in order, and the registry's ``non_event_kinds``.
     """
@@ -204,7 +201,8 @@ PROVENANCE_METADATA_KEY = "timetoshare:provenance"
 """The schema-metadata key holding, as JSON, a provenance shared by every row."""
 
 PROJECTION_OF_TYPE = _arrow_type("projection_of")
-"""The event a Projection stands for, by its timeline and its ID."""
+"""The event a Projection stands for, by its timeline and its ID: the type of
+the registry's ``projection_of``."""
 
 MATCH_CLAIM_SCHEMA = _table_schema("MatchClaim")
 """The MatchClaim table: one row per MatchClaim, one column per property,
@@ -213,28 +211,21 @@ each MatchClaim addressed by its ID alone."""
 INTEGRITY_TYPE = _arrow_type("integrity")
 """The integrity of a source file: its digest's ``algorithm`` and ``digest``."""
 
-PROJECTION_SCHEMA = _table_schema("Projection")
-"""The pre-parsed Projection table: one row per Projection, its ``id`` and
-the event it stands for; its timeline and its position are its registry
-row's."""
-
 REGISTRY_SCHEMA = _table_schema("Registry")
-"""The registry: one row per resolvable ID of a package, an event row or an
-non-event row."""
+"""The registry: one row per resolvable ID of a package, an event row or a
+non-event row; a Projection's event row names the event it stands for in its
+``projection_of``."""
 
-EXTRACTION_SCHEMA = _table_schema("Extraction")
-"""The Extraction table: one row per run of a parser over a source file."""
+PARSE_SCHEMA = _table_schema("Parse")
+"""The Parse table: one row per parse, a run of a parser over a source file,
+or of a tool without one, that made events."""
 
 MATCH_CLAIM_COLUMNS = tuple(MATCH_CLAIM_SCHEMA.names)
-PROJECTION_COLUMNS = tuple(PROJECTION_SCHEMA.names)
 REGISTRY_COLUMNS = tuple(REGISTRY_SCHEMA.names)
-EXTRACTION_COLUMNS = tuple(EXTRACTION_SCHEMA.names)
+PARSE_COLUMNS = tuple(PARSE_SCHEMA.names)
 
 MATCH_CLAIM_REQUIRED = _required("MatchClaim")
 """The columns of the MatchClaim table that hold no null, in its order."""
-
-PROJECTION_REQUIRED = _required("Projection")
-"""The columns of the Projection table that hold no null, in its order."""
 
 REGISTRY_REQUIRED = _required("Registry")
 """The columns of the registry that hold no null in any row, in its order."""
@@ -244,25 +235,25 @@ REGISTRY_EVENT_REQUIRED = (
     "unit",
     "number_type",
     "start",
-    "extraction_id",
+    "parse_id",
 )
 """The further columns of the registry that hold no null in an event row."""
 
-EXTRACTION_REQUIRED = _required("Extraction")
-"""The columns of the Extraction table that hold no null, in its order."""
+PARSE_REQUIRED = _required("Parse")
+"""The columns of the Parse table that hold no null, in its order."""
 
 NON_EVENT_KINDS: tuple[str, ...] = tuple(
     _TABLES["tables"]["Registry"]["non_event_kinds"]
 )
 """The kinds of the registry's non-event rows: the schema's names of the manifest
-elements, ``MatchClaim`` and ``Extraction``. A row of any other kind is an
+elements, ``MatchClaim`` and ``Parse``. A row of any other kind is an
 event row, its kind its event's type."""
 
 ELEMENT_KINDS: tuple[str, ...] = tuple(
-    kind for kind in NON_EVENT_KINDS if kind not in ("MatchClaim", "Extraction")
+    kind for kind in NON_EVENT_KINDS if kind not in ("MatchClaim", "Parse")
 )
 """The kinds of the non-event rows of manifest elements: the schema's names of
-their definitions, the non-event kinds but ``MatchClaim`` and ``Extraction``."""
+their definitions, the non-event kinds but ``MatchClaim`` and ``Parse``."""
 
 
 _INT64 = (-(2**63), 2**63 - 1)
@@ -346,9 +337,8 @@ def fixture_path(name: str) -> Path:
     """The path of one file of the table fixture, by its name.
 
     The fixture is a manifest (``manifest.yaml``), its MatchClaim table
-    (``match_claims.parquet``), its registry (``registry.parquet``), the
-    pre-parsed Projection table the registry names (``projections.parquet``)
-    and the anchors and potential MatchStamps expected of the MatchClaim
-    table (``expected.yaml``).
+    (``match_claims.parquet``), its registry (``registry.parquet``), its
+    Parse table (``parses.parquet``) and the anchors and potential
+    MatchStamps expected of the MatchClaim table (``expected.yaml``).
     """
     return data_root() / "fixtures" / "tables" / SCHEMA_VERSION / name

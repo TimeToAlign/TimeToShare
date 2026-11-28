@@ -1,7 +1,7 @@
 problems:
   -
     code: column_type_mismatch
-    file: tables/Projection/
+    file: tables/Note/
     message: "the column 'velocity' is int64 in 'part_a.parquet' and string in 'part_b.parquet'"
     path: [velocity]
     row: null

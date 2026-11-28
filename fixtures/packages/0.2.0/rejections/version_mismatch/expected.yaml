@@ -1,7 +1,7 @@
 problems:
   -
     code: version_mismatch
-    file: tables/Projection/part_b.parquet
+    file: tables/Note/part_b.parquet
     message: "the file declares the version '0.1.0', the package '0.2.0'"
     path: []
     row: null

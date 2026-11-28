@@ -40,7 +40,7 @@ const withManifest = (members: Node): Node => ({
   tables: [],
   ...members,
 });
-const FOLDER = { type: "Projection", url: "tables/Projection/" };
+const FOLDER = { type: "Note", url: "tables/Note/" };
 const FILE = { type: "MatchClaim", url: "match_claims.parquet" };
 const DIGEST = { algorithm: "SHA-256", digest: "00ff" };
 
@@ -77,7 +77,6 @@ describe("validatePackage", () => {
       "axis_mismatch",
       "claim_across_manifests",
       "column_in_two_types",
-      "extraction_table_listed_twice",
       "file_in_a_listed_folder",
       "file_of_another_type",
       "folder_with_size",
@@ -85,9 +84,10 @@ describe("validatePackage", () => {
       "locator_twice",
       "missing_content",
       "non_event_row_with_a_position",
-      "projection_id_in_two_files",
+      "parse_table_listed_twice",
       "projection_of_its_own_timeline",
       "projection_of_no_timeline",
+      "projection_of_on_another_kind",
       "registry_folder",
       "registry_id_twice",
       "registry_listed_twice",
@@ -97,10 +97,10 @@ describe("validatePackage", () => {
       "stale_non_event_row",
       "table_listed_twice",
       "timeline_unlisted",
-      "unknown_extraction",
       "unknown_location",
+      "unknown_parse",
       "unregistered_id",
-      "vanished_in_an_unknown_extraction",
+      "vanished_in_an_unknown_parse",
       "version_mismatch",
     ]);
   });
@@ -141,7 +141,7 @@ describe("validatePackage", () => {
       [
         "duplicate_url",
         ["tables", 1, "url"],
-        "the table 'tables/Projection/' of the type Projection is listed twice, first at #/tables/0/url",
+        "the table 'tables/Note/' of the type Note is listed twice, first at #/tables/0/url",
       ],
     ],
     [
@@ -149,7 +149,7 @@ describe("validatePackage", () => {
       [
         "folder_descriptor",
         ["tables", 1, "size"],
-        "'tables/Projection/' names a folder, which has no size",
+        "'tables/Note/' names a folder, which has no size",
       ],
     ],
     [
@@ -157,7 +157,7 @@ describe("validatePackage", () => {
       [
         "folder_descriptor",
         ["tables", 0, "integrity"],
-        "'tables/Projection/' names a folder, which has no integrity",
+        "'tables/Note/' names a folder, which has no integrity",
       ],
     ],
     [

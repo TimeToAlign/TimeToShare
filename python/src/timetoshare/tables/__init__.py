@@ -1,13 +1,14 @@
-"""The table types of a TimeToShare package: the registry, the Extraction
+"""The table types of a TimeToShare package: the registry, the Parse
 table, the pre-parsed tables and the MatchClaim tables.
 
 A package's registry holds one row per resolvable ID: an event row for each
-event (its timeline, its position on the root's axis, its extraction and
-the pre-parsed table holding its content), a non-event row for each element of
-the manifests, each MatchClaim and each extraction. The Extraction table
-records each run of a parser over a source file; a pre-parsed table holds
-the content of events of one type by their IDs, the Projection table the
-event each Projection stands for; a manifest names its MatchClaims in a
+event (its timeline, its position on the root's axis, its parse, the
+pre-parsed table holding its content and, for a Projection, the event it
+stands for), a non-event row for each element of the manifests, each
+MatchClaim and each parse. The Parse table records each parse, a run of a
+parser over a source file or of a tool without one; a pre-parsed table holds
+the content of events of one type by their IDs, and a kind whose events hold
+nothing but their IDs has none; a manifest names its MatchClaims in a
 MatchClaim table. This module declares their columns, read from the
 schema's ``tables.json``, reads a table, a file or a folder of files,
 keeping the rows of some timelines or IDs (``read_table``), checks a table
@@ -45,14 +46,12 @@ from .checks import (
     TableCode,
     TableError,
     TableProblem,
-    check_extractions,
     check_match_claims,
-    check_projections,
+    check_parses,
     check_registry,
     check_succession,
-    extraction_problems,
     match_claim_problems,
-    projection_problems,
+    parse_problems,
     registry_problems,
     row_provenance,
     succession_problems,
@@ -65,9 +64,6 @@ from .columns import (
     COORDINATE_KEYS,
     COORDINATE_TYPE,
     ELEMENT_KINDS,
-    EXTRACTION_COLUMNS,
-    EXTRACTION_REQUIRED,
-    EXTRACTION_SCHEMA,
     INTEGRITY_TYPE,
     MATCH_CLAIM_COLUMNS,
     MATCH_CLAIM_REQUIRED,
@@ -77,10 +73,10 @@ from .columns import (
     NUMBER_KEYS,
     NUMBER_MEMBERS,
     NUMBER_TYPE,
-    PROJECTION_COLUMNS,
+    PARSE_COLUMNS,
+    PARSE_REQUIRED,
+    PARSE_SCHEMA,
     PROJECTION_OF_TYPE,
-    PROJECTION_REQUIRED,
-    PROJECTION_SCHEMA,
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
     PROVENANCE_TYPE,
@@ -133,9 +129,9 @@ __all__ = [
     "COORDINATE_KEYS",
     "COORDINATE_TYPE",
     "ELEMENT_KINDS",
-    "EXTRACTION_COLUMNS",
-    "EXTRACTION_REQUIRED",
-    "EXTRACTION_SCHEMA",
+    "PARSE_COLUMNS",
+    "PARSE_REQUIRED",
+    "PARSE_SCHEMA",
     "NON_EVENT_KINDS",
     "INTEGRITY_TYPE",
     "MATCH_CLAIM_COLUMNS",
@@ -145,10 +141,7 @@ __all__ = [
     "NUMBER_KEYS",
     "NUMBER_MEMBERS",
     "NUMBER_TYPE",
-    "PROJECTION_COLUMNS",
     "PROJECTION_OF_TYPE",
-    "PROJECTION_REQUIRED",
-    "PROJECTION_SCHEMA",
     "PROVENANCE_KEYS",
     "PROVENANCE_METADATA_KEY",
     "PROVENANCE_TYPE",
@@ -166,19 +159,17 @@ __all__ = [
     "TimelineCoordinate",
     "alignment_anchors",
     "believed_rows",
-    "check_extractions",
+    "check_parses",
     "check_match_claims",
-    "check_projections",
     "check_registry",
     "check_succession",
     "coordinate_value",
-    "extraction_problems",
+    "parse_problems",
     "fixture_path",
     "non_event_rows",
     "match_claim_problems",
     "number_cell",
     "potential_matchstamps",
-    "projection_problems",
     "registry_problems",
     "resolve",
     "row_provenance",

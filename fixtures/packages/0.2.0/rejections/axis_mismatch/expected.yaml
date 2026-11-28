@@ -4,5 +4,5 @@ problems:
     file: registry.parquet
     message: "a coordinate in seconds (float) on the timeline 'dpt_1' in samples (int)"
     path: [unit]
-    row: 21
+    row: 29
 reason: "An event row on the samples timeline dpt_1 is written in seconds."

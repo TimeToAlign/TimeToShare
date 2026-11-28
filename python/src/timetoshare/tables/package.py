@@ -64,17 +64,15 @@ from .checks import (
     _schema_problems,
     _shape,
     _shared_provenance,
-    extraction_problems,
     is_non_event,
     match_claim_problems,
-    projection_problems,
+    parse_problems,
     registry_problems,
 )
 from .columns import (
     ELEMENT_KINDS,
-    EXTRACTION_SCHEMA,
     MATCH_CLAIM_SCHEMA,
-    PROJECTION_SCHEMA,
+    PARSE_SCHEMA,
     PROVENANCE_METADATA_KEY,
     REGISTRY_SCHEMA,
 )
@@ -96,7 +94,7 @@ __all__ = [
 ]
 
 TYPE_METADATA_KEY = "timetoshare:type"
-"""The schema-metadata key holding a file's table type, such as ``Projection``."""
+"""The schema-metadata key holding a file's table type, such as ``Registry``."""
 
 VERSION_METADATA_KEY = "timetoshare:version"
 """The schema-metadata key holding the format version of a file."""
@@ -106,7 +104,7 @@ PackageCode = Literal[
     "missing_registry",
     "duplicate_registry",
     "registry_not_a_file",
-    "duplicate_extraction",
+    "duplicate_parse",
     "table_type",
     "column_type_mismatch",
     "version_mismatch",
@@ -116,7 +114,7 @@ PackageCode = Literal[
     "unlisted_timeline",
     "claim_across_manifests",
     "axis_mismatch",
-    "unknown_extraction",
+    "unknown_parse",
     "unknown_location",
     "missing_content",
     "unregistered_id",
@@ -127,9 +125,7 @@ PackageCode = Literal[
 carry the code of a manifest's validation (``timetoshare.ValidationCode``)
 or of a table check (:data:`~timetoshare.tables.TableCode`); two package
 rules use such codes as well: ``duplicate_url`` for a file two table entries
-reach, ``schema_violation`` for a row whose timeline is null,
-``invalid_projection_of`` for a Projection standing for an event of its own
-timeline."""
+reach, ``schema_violation`` for a row whose timeline is null."""
 
 ProblemCode = PackageCode | TableCode | ValidationCode
 """The code of a package problem: a package rule's, a table check's or a
@@ -396,8 +392,7 @@ def _read(
 
 _DECLARED = {
     "Registry": REGISTRY_SCHEMA,
-    "Extraction": EXTRACTION_SCHEMA,
-    "Projection": PROJECTION_SCHEMA,
+    "Parse": PARSE_SCHEMA,
     "MatchClaim": MATCH_CLAIM_SCHEMA,
 }
 """The table types the format defines, with their declared columns."""
@@ -432,7 +427,7 @@ def read_table(
     ``type``; where both are stated they agree. The table returned states
     its type alone in its metadata. An empty folder gives no rows, in the
     declared columns of a type the format declares (``Registry``,
-    ``Extraction``, ``Projection``, ``MatchClaim``), in none for another
+    ``Parse``, ``MatchClaim``), in none for another
     type.
 
     Raises:
@@ -472,7 +467,7 @@ def is_table_resource(resource: Mapping[str, Any]) -> bool:
     """Whether a resource of a manifest names a table.
 
     A resource names a table when its type is one the format declares
-    (``Registry``, ``Extraction``, ``Projection``, ``MatchClaim``), its URL
+    (``Registry``, ``Parse``, ``MatchClaim``), its URL
     names a folder (ends in ``/``) or a Parquet file
     (ends in ``.parquet``), or its media type is Parquet's. Any other
     resource, a recording, an image or a score file, is carried with its
@@ -552,8 +547,8 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     problem there ends the check, another version being
     ``version_mismatch``), then its registry: no table of the type
     ``Registry`` (``missing_registry``, at ``tables``), a second one
-    (``duplicate_registry``) or a second table of the type ``Extraction``
-    (``duplicate_extraction``), each at the later entry's ``type``; only the
+    (``duplicate_registry``) or a second table of the type ``Parse``
+    (``duplicate_parse``), each at the later entry's ``type``; only the
     first of each is read. A Registry entry whose URL names a folder (ends in
     ``/``) is no registry: the registry is one Parquet file
     (``registry_not_a_file``, at the entry's ``url``; nothing at the URL is
@@ -568,7 +563,7 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     another version (``version_mismatch``) than its entry and the package,
     a column of two Arrow types in two files (``column_type_mismatch``, at
     the folder; its rows are not read), and a table of another type than
-    ``Registry``, ``Extraction`` and ``MatchClaim`` whose files hold no
+    ``Registry``, ``Parse`` and ``MatchClaim`` whose files hold no
     ``id`` column of strings, a carried table of audio features for instance
     (``foreign_table``, at the table; its rows are not read, and no location
     or resource naming it is checked against its rows). Then the rules the manifests and
@@ -581,7 +576,7 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
       table entry of the resource's type, or leads outside the package
       (:func:`is_table_resource`); any other resource, a recording, an
       image or a score file, is carried and not checked against the tables;
-    - ``duplicate_id``: in the registry, an event, MatchClaim or Extraction
+    - ``duplicate_id``: in the registry, an event, MatchClaim or Parse
       ID held twice among all of these rows, a manifest element's ID twice
       at one ``location``; an event ID twice among the rows of the
       pre-parsed tables, every type and file; a MatchClaim ID twice among
@@ -594,8 +589,8 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
       no manifest's ``MatchClaim`` resource naming its table lists;
     - ``axis_mismatch``: an event row whose unit and number type are not
       its timeline's in a manifest holding it, once per distinct axis;
-    - ``unknown_extraction``: an event row's ``extraction_id`` or
-      ``vanished_in`` naming no row of the Extraction table;
+    - ``unknown_parse``: an event row's ``parse_id`` or
+      ``vanished_in`` naming no row of the Parse table;
     - ``unknown_location``: an event row's ``location``, a relative
       reference, naming no table entry of the row's kind; a ``location``
       that is an absolute URI names a resource outside the package and is
@@ -604,11 +599,8 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
       of its ID;
     - ``unregistered_id``: a row of a pre-parsed table whose ID has no
       event row of the table's type;
-    - ``invalid_projection_of``, then ``unknown_timeline``: a pre-parsed
-      Projection standing for an event of its own registry row's timeline,
-      or of a timeline no manifest holds;
     - ``stale_non_event_row``: a non-event row of the registry that no
-      manifest element, MatchClaim or extraction gives at its location (an
+      manifest element, MatchClaim or parse gives at its location (an
       extra row), or whose ``kind`` or ``timeline_id`` differs from what
       they give, in the registry's order; then each non-event row they give
       that the registry lacks, by location and ID (a missing row). A
@@ -619,10 +611,12 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
 
     These read the identifying columns of each table, column by column, the
     registry's from the one reading of it whole its table check uses. Last,
-    the table checks: of the registry (:func:`registry_problems`; its
-    ``axis_mismatch``, a matter of the manifests, is the package rule's), the
-    Extraction table (:func:`extraction_problems`) and each pre-parsed
-    Projection table (:func:`projection_problems`), each once and whole;
+    the table checks: of the registry (:func:`registry_problems`, given the
+    timelines of every manifest as those a Projection's ``projection_of``
+    may name, so that one naming a timeline no manifest holds is
+    ``unknown_timeline``; its ``axis_mismatch``, a matter of the manifests,
+    is the package rule's), the Parse table (:func:`parse_problems`), each
+    once and whole;
     then, manifest by manifest, of each MatchClaim table its resources name,
     in the order they first name it, over the rows of the timelines those
     resources list (:func:`match_claim_problems`): each row's manifests are
@@ -665,8 +659,8 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
 
 
 def _registry_entries(value: Mapping[str, Any], problems: _Problems) -> None:
-    """``missing_registry``, ``duplicate_registry``, ``duplicate_extraction``."""
-    by_type: dict[str, list[int]] = {"Registry": [], "Extraction": []}
+    """``missing_registry``, ``duplicate_registry``, ``duplicate_parse``."""
+    by_type: dict[str, list[int]] = {"Registry": [], "Parse": []}
     for index, entry in enumerate(value["tables"]):
         if entry["type"] in by_type:
             by_type[entry["type"]].append(index)
@@ -680,7 +674,7 @@ def _registry_entries(value: Mapping[str, Any], problems: _Problems) -> None:
         )
     for kind, code in (
         ("Registry", "duplicate_registry"),
-        ("Extraction", "duplicate_extraction"),
+        ("Parse", "duplicate_parse"),
     ):
         indices = by_type[kind]
         for later in indices[1:]:
@@ -836,7 +830,7 @@ def _entries(
                 None,
                 (),
                 f"the table '{entry['url']}' of type '{kind}' has no 'id' column: a "
-                "package's tables hold the registry, the Extraction table, "
+                "package's tables hold the registry, the Parse table, "
                 "MatchClaim tables and pre-parsed tables of events keyed by 'id'",
             )
             continue
@@ -868,7 +862,7 @@ _REGISTRY_COLUMNS = (
     "timeline_id",
     "unit",
     "number_type",
-    "extraction_id",
+    "parse_id",
     "locator",
     "vanished_in",
 )
@@ -909,11 +903,10 @@ def _any_of(*masks: pa.Array) -> pa.Array:
 
 _WHOLE = {
     "Registry": registry_problems,
-    "Extraction": extraction_problems,
-    "Projection": projection_problems,
+    "Parse": parse_problems,
 }
 """The table checks run once over a whole table."""
-_TABLE_KINDS = ("Registry", "Extraction", "MatchClaim")
+_TABLE_KINDS = ("Registry", "Parse", "MatchClaim")
 """The types of the tables that hold no event's content."""
 
 
@@ -964,9 +957,9 @@ def non_event_rows_of(manifest: Mapping[str, Any], location: str) -> pa.Table:
 def table_non_event_rows(
     ids: pa.Array, kind: str, location: str | pa.Array
 ) -> pa.Table:
-    """The non-event rows of the MatchClaims or the extractions of a table:
+    """The non-event rows of the MatchClaims or the parses of a table:
     one per non-null ID of ``ids``, of ``kind`` (``MatchClaim`` or
-    ``Extraction``), at ``location``, the table entry's URL, one for all
+    ``Parse``), at ``location``, the table entry's URL, one for all
     or one per ID; in the columns of :func:`non_event_rows_of`."""
     kept = pc.is_valid(ids)
     ids = ids.filter(kept)
@@ -1141,14 +1134,12 @@ class _Check:
         self.unread |= {
             url
             for url, kind in listed
-            if kind in ("MatchClaim", "Extraction") and (url, kind) not in read
+            if kind in ("MatchClaim", "Parse") and (url, kind) not in read
         }
         self.registry = next(
             (entry for entry in entries if entry.kind == "Registry"), None
         )
-        self.extraction = next(
-            (entry for entry in entries if entry.kind == "Extraction"), None
-        )
+        self.parse = next((entry for entry in entries if entry.kind == "Parse"), None)
 
     def run(self) -> None:
         self._timelines()
@@ -1157,18 +1148,17 @@ class _Check:
         events = registry.filter(pc.invert(is_non_event(registry["kind"])))
         contents = self._rows(_content=True)
         claims = self._rows(_content=False)
-        extractions = self._column_rows(self.extraction, "id")
+        parses = self._column_rows(self.parse, "id")
         self._registry_duplicates(registry)
         self._duplicates(contents, "event ID")
         self._duplicates(claims, "MatchClaim ID")
         self._unknown(events, ("timeline_id",))
         self._unlisted(events, ("timeline_id",))
         self._axes(events)
-        self._extractions(events, extractions)
+        self._parses(events, parses)
         located = self._locations(events)
         self._content(events, located, contents)
-        self._projections()
-        self._stale(registry, claims, extractions)
+        self._stale(registry, claims, parses)
         self._unknown(claims, MATCH_CLAIM_TIMELINES)
         self._unlisted(claims, MATCH_CLAIM_TIMELINES)
         self._across(claims)
@@ -1402,7 +1392,7 @@ class _Check:
         self._add_rows("duplicate_id", located, again, "id", message)
 
     def _registry_duplicates(self, registry: pa.Table) -> None:
-        """The registry's IDs: an event, MatchClaim or Extraction ID once
+        """The registry's IDs: an event, MatchClaim or Parse ID once
         among these rows, a manifest element's once per location."""
         kinds = _array(registry, "kind")
         element = _held(pc.is_in(kinds, value_set=_ELEMENTS))
@@ -1528,22 +1518,22 @@ class _Check:
                 message,
             )
 
-    def _extractions(self, events: pa.Table, extractions: pa.Table) -> None:
-        """An event row's ``extraction_id`` or ``vanished_in`` naming no
-        extraction."""
-        known = _array(extractions, "id")
-        for column in ("extraction_id", "vanished_in"):
+    def _parses(self, events: pa.Table, parses: pa.Table) -> None:
+        """An event row's ``parse_id`` or ``vanished_in`` naming no
+        parse."""
+        known = _array(parses, "id")
+        for column in ("parse_id", "vanished_in"):
             values = _array(events, column)
             unknown = pc.and_(
                 pc.is_valid(values), pc.invert(pc.is_in(values, value_set=known))
             )
             self._add_rows(
-                "unknown_extraction",
+                "unknown_parse",
                 events,
                 unknown,
                 column,
                 lambda row, column=column: (
-                    f"no extraction of the package has the ID '{row[column]}'"
+                    f"no parse of the package has the ID '{row[column]}'"
                 ),
             )
 
@@ -1607,7 +1597,6 @@ class _Check:
                 f"the table '{row['location']}' holds no row of the ID '{row['id']}'"
             ),
         )
-        self.events = events
         if self.registry is None:
             return
         placed = contents.append_column("order", _arange(len(contents)))
@@ -1634,69 +1623,9 @@ class _Check:
             ),
         )
 
-    def _projections(self) -> None:
-        """A pre-parsed Projection standing for an event of its registry
-        row's own timeline (``invalid_projection_of``), or of a timeline no
-        manifest holds (``unknown_timeline``)."""
-        if self.registry is None:
-            return
-        events = self.events.select(["kind", "id", "timeline_id"])
-        events = events.filter(pc.equal(events["kind"], pa.scalar("Projection")))
-        for number, entry in enumerate(self.entries):
-            if entry.kind != "Projection":
-                continue
-            try:
-                read = _read(entry.files, entry.schemas, entry.kind)
-            except TableError:
-                continue
-            table = read.table
-            if _schema_problems(table.schema.empty_table(), PROJECTION_SCHEMA):
-                continue
-            files, rows = _origins(self.first_file[number], read.lengths)
-            source = _array(table, "projection_of")
-            frame = pa.table(
-                {
-                    "id": _strings(table, "id"),
-                    "source": pc.struct_field(source, "timeline_id"),
-                    "file": files,
-                    "row": rows,
-                    "order": _arange(len(table)),
-                }
-            )
-            joined = frame.join(
-                events.select(["id", "timeline_id"]), keys="id", join_type="left outer"
-            ).sort_by("order")
-            own = _held(pc.equal(joined["source"], joined["timeline_id"]))
-            self._add_rows(
-                "invalid_projection_of",
-                joined,
-                own,
-                ("projection_of", "timeline_id"),
-                lambda row: (
-                    "a Projection stands for an event of another timeline than "
-                    f"'{row['timeline_id']}'"
-                ),
-            )
-            sources = _array(joined, "source")
-            unknown = pc.and_(
-                _held(pc.not_equal(sources, pa.scalar(""))),
-                pc.is_null(self._owners(sources)),
-            )
-            self._add_rows(
-                "unknown_timeline",
-                joined,
-                unknown,
-                ("projection_of", "timeline_id"),
-                lambda row: (
-                    f"no manifest of the package has the timeline '{row['source']}'"
-                ),
-            )
-
-    def _expected_non_event_rows(
-        self, claims: pa.Table, extractions: pa.Table
-    ) -> pa.Table:
+    def _expected_non_event_rows(self, claims: pa.Table, parses: pa.Table) -> pa.Table:
         """The non-event rows the manifests, the MatchClaim tables and the
-        Extraction table give, each manifest's at its path from the root,
+        Parse table give, each manifest's at its path from the root,
         each table's at its entry's URL."""
         parts = [
             non_event_rows_of(manifest.bare, manifest.file)
@@ -1704,16 +1633,14 @@ class _Check:
         ]
         urls = pa.array([entry.url for entry in self.entries], pa.string())
         numbers = pa.array([entry.index for entry in self.entries], pa.int64())
-        for table, kind in ((claims, "MatchClaim"), (extractions, "Extraction")):
+        for table, kind in ((claims, "MatchClaim"), (parses, "Parse")):
             locations = urls.take(
                 pc.index_in(_array(table, "entry"), value_set=numbers)
             )
             parts.append(table_non_event_rows(_array(table, "id"), kind, locations))
         return pa.concat_tables(parts) if parts else _NON_EVENT_ROW.empty_table()
 
-    def _stale(
-        self, registry: pa.Table, claims: pa.Table, extractions: pa.Table
-    ) -> None:
+    def _stale(self, registry: pa.Table, claims: pa.Table, parses: pa.Table) -> None:
         """The registry's non-event rows against the rows the sources give
         (:func:`stale_problems`); rows at a manifest or table that could not
         be read are not compared."""
@@ -1722,7 +1649,7 @@ class _Check:
             return
         non_events = registry.filter(is_non_event(registry["kind"]))
         held = non_events.select([*_NON_EVENT_ROW.names, "row"])
-        expected = self._expected_non_event_rows(claims, extractions)
+        expected = self._expected_non_event_rows(claims, parses)
         self.problems.found.extend(
             stale_problems(held, expected, entry.url, self.unread)
         )
@@ -1771,13 +1698,13 @@ class _Check:
 
     def _table_checks(self) -> None:
         """The table checks: the registry's (its ``axis_mismatch`` left to
-        the package rule, which compares each manifest's axis), the
-        Extraction table's and each pre-parsed Projection table's, once and
-        whole, in the order of the entries; then each MatchClaim table's,
-        once per manifest whose resources name it, over that manifest's rows
-        alone: each row's manifests are found once, by its timelines'
-        listings, and the rows ordered by manifest, so that every manifest is
-        checked on its own run of rows."""
+        the package rule, which compares each manifest's axis; a Projection's
+        projected timeline checked against the timelines of every manifest)
+        and the Parse table's, once and whole, in the order of the entries;
+        then each MatchClaim table's, once per manifest whose resources name
+        it, over that manifest's rows alone: each row's manifests are found
+        once, by its timelines' listings, and the rows ordered by manifest,
+        so that every manifest is checked on its own run of rows."""
         self.package = {
             (problem.code, problem.file, problem.row, problem.path)
             for problem in self.problems.found
@@ -1786,8 +1713,8 @@ class _Check:
         for entry in self.entries:
             whole = _WHOLE.get(entry.kind)
             if whole is None or (
-                entry.kind in ("Registry", "Extraction")
-                and entry not in (self.registry, self.extraction)
+                entry.kind in ("Registry", "Parse")
+                and entry not in (self.registry, self.parse)
             ):
                 continue
             if entry is self.registry:
@@ -1797,9 +1724,12 @@ class _Check:
             if read is None:
                 continue
             everything = _arange(len(read.table))
+            options: dict[str, Any] = {}
+            if entry is self.registry:
+                options["projected_timelines"] = self.timeline_ids.to_pylist()
             checked = [
                 problem
-                for problem in whole(read.table)
+                for problem in whole(read.table, **options)
                 if not (entry.kind == "Registry" and problem.code == "axis_mismatch")
             ]
             self._place(entry, read, everything, checked)

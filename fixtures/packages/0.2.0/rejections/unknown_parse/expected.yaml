@@ -1,0 +1,8 @@
+problems:
+  -
+    code: unknown_parse
+    file: registry.parquet
+    message: "no parse of the package has the ID 'parse_9'"
+    path: [parse_id]
+    row: 30
+reason: "An event row of Handel's names parse_9, which the Parse table does not hold."

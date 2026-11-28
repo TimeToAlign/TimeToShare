@@ -13,18 +13,18 @@ tables:
     url: registry.parquet
   -
     media_type: application/vnd.apache.parquet
-    type: Extraction
-    url: tables/extractions.parquet
+    type: Parse
+    url: tables/parses.parquet
   -
     media_type: application/vnd.apache.parquet
     type: MatchClaim
     url: tables/MatchClaim/
   -
     media_type: application/vnd.apache.parquet
-    type: Projection
-    url: tables/Projection/
+    type: Note
+    url: tables/Note/
   -
     media_type: application/vnd.apache.parquet
-    type: Projection
-    url: tables/Projection/part_b.parquet
+    type: Note
+    url: tables/Note/part_b.parquet
 timetoshare: "0.2.0"

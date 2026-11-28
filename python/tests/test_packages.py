@@ -42,7 +42,6 @@ from timetoshare.tables import (  # noqa: E402
     Resolution,
     TableError,
     check_match_claims,
-    check_projections,
     check_registry,
     is_table_resource,
     package_fixture_path,
@@ -203,7 +202,7 @@ def _package(**members: Any) -> dict[str, Any]:
     }
 
 
-FOLDER = {"type": "Projection", "url": "tables/Projection/"}
+FOLDER = {"type": "Note", "url": "tables/Note/"}
 FILE = {"type": "MatchClaim", "url": "match_claims.parquet"}
 DIGEST = {"algorithm": "SHA-256", "digest": "00ff"}
 
@@ -238,7 +237,7 @@ PACKAGE_REFUSALS = [
         (
             "duplicate_url",
             ("tables", 1, "url"),
-            "the table 'tables/Projection/' of the type Projection is listed twice, "
+            "the table 'tables/Note/' of the type Note is listed twice, "
             "first at #/tables/0/url",
         ),
     ),
@@ -247,7 +246,7 @@ PACKAGE_REFUSALS = [
         (
             "folder_descriptor",
             ("tables", 1, "size"),
-            "'tables/Projection/' names a folder, which has no size",
+            "'tables/Note/' names a folder, which has no size",
         ),
     ),
     (
@@ -255,7 +254,7 @@ PACKAGE_REFUSALS = [
         (
             "folder_descriptor",
             ("tables", 0, "integrity"),
-            "'tables/Projection/' names a folder, which has no integrity",
+            "'tables/Note/' names a folder, which has no integrity",
         ),
     ),
     (
@@ -319,7 +318,7 @@ def test_a_resource_reads_its_rows_from_a_shared_folder(
     check = check_match_claims if resource["type"] == "MatchClaim" else check_registry
     check(table, _read(SHARED / manifest))
     if resource["type"] == "Registry":
-        assert set(table.column("kind").to_pylist()) == {"Projection"}
+        assert set(table.column("kind").to_pylist()) == {"Note", "Projection"}
 
 
 def test_the_expected_reads_are_stated() -> None:
@@ -327,6 +326,10 @@ def test_the_expected_reads_are_stated() -> None:
         "bach/manifest.yaml": {
             "resource_1": ["claim_1", "claim_2", "claim_5"],
             "resource_2": [
+                "note_1",
+                "note_2",
+                "note_3",
+                "note_4",
                 "projection_1",
                 "projection_2",
                 "projection_7",
@@ -336,6 +339,9 @@ def test_the_expected_reads_are_stated() -> None:
         "handel/manifest.yaml": {
             "resource_1": ["claim_3", "claim_4"],
             "resource_2": [
+                "note_5",
+                "note_6",
+                "note_7",
                 "projection_3",
                 "projection_4",
                 "projection_5",
@@ -373,14 +379,14 @@ def test_a_match_claim_with_either_timeline_listed_is_kept() -> None:
 
 def test_without_timelines_every_row_and_with_none_no_row() -> None:
     assert len(read_table(SHARED / "tables" / "MatchClaim")) == 5
-    assert len(read_table(SHARED / "tables" / "Projection")) == 9
-    assert len(read_table(SHARED / "registry.parquet")) == 25
+    assert len(read_table(SHARED / "tables" / "Note")) == 7
+    assert len(read_table(SHARED / "registry.parquet")) == 33
     assert len(read_table(SHARED / "registry.parquet", timelines=[])) == 0
 
 
 def test_ids_keep_the_rows_of_those_ids() -> None:
     registry = SHARED / "registry.parquet"
-    table = read_table(registry, ids=["resource_1", "projection_5", "ghost"])
+    table = read_table(registry, ids=["resource_1", "note_5", "projection_5", "ghost"])
     assert sorted(
         zip(
             table.column("id").to_pylist(),
@@ -388,7 +394,8 @@ def test_ids_keep_the_rows_of_those_ids() -> None:
             strict=True,
         )
     ) == [
-        ("projection_5", "tables/Projection/"),
+        ("note_5", "tables/Note/"),
+        ("projection_5", None),
         ("resource_1", "bach/manifest.yaml"),
         ("resource_1", "handel/manifest.yaml"),
     ]
@@ -398,13 +405,8 @@ def test_ids_keep_the_rows_of_those_ids() -> None:
     )
     assert both.column("id").to_pylist() == ["projection_5"]
     assert len(read_table(registry, ids=[])) == 0
-    content = read_table(SHARED / "tables" / "Projection", ids=["projection_9"])
-    assert content.to_pylist() == [
-        {
-            "id": "projection_9",
-            "projection_of": {"timeline_id": "clt_1", "event_id": "note_4"},
-        }
-    ]
+    content = read_table(SHARED / "tables" / "Note", ids=["note_4"])
+    assert content.to_pylist() == [{"id": "note_4", "midi_pitch": 64}]
 
 
 def test_each_resolution_states_a_row_of_the_registry() -> None:
@@ -448,12 +450,12 @@ def test_each_resolution_states_a_row_of_the_registry() -> None:
 
 
 def test_a_folder_holds_its_parquet_files_alone(tmp_path: Path) -> None:
-    source = SHARED / "tables" / "Projection"
+    source = SHARED / "tables" / "Note"
     assert [file.name for file in table_files(source)] == [
         "part_a.parquet",
         "part_b.parquet",
     ]
-    folder = tmp_path / "Projection"
+    folder = tmp_path / "Note"
     shutil.copytree(source, folder)
     for name in (".part_c.parquet", "_part_d.parquet"):
         shutil.copy(source / "part_a.parquet", folder / name)
@@ -466,12 +468,7 @@ def test_a_folder_holds_its_parquet_files_alone(tmp_path: Path) -> None:
     ]
     assert read_table(folder).equals(read_table(source))
     single = read_table(source / "part_b.parquet")
-    assert single.column("id").to_pylist() == [
-        "projection_6",
-        "projection_7",
-        "projection_8",
-        "projection_9",
-    ]
+    assert single.column("id").to_pylist() == ["note_7", "note_3", "note_4"]
 
 
 def _copied(tmp_path: Path) -> Path:
@@ -514,7 +511,7 @@ def _with_velocity(kind: Any) -> Any:
 
 
 def test_a_column_of_two_types_in_one_folder_is_refused(tmp_path: Path) -> None:
-    folder = _copied(tmp_path) / "tables" / "Projection"
+    folder = _copied(tmp_path) / "tables" / "Note"
     _rewrite(folder / "part_a.parquet", _with_velocity(pa.int64()))
     _rewrite(folder / "part_b.parquet", _with_velocity(pa.string()))
     assert _table_refusal(lambda: read_table(folder)) == (
@@ -527,26 +524,25 @@ def test_a_column_of_two_types_in_one_folder_is_refused(tmp_path: Path) -> None:
 
 
 def test_a_column_a_file_lacks_reads_as_null(tmp_path: Path) -> None:
-    folder = _copied(tmp_path) / "tables" / "Projection"
+    folder = _copied(tmp_path) / "tables" / "Note"
     _rewrite(folder / "part_a.parquet", _with_velocity(pa.int64()))
-    assert read_table(folder).column("velocity").to_pylist() == [64] * 5 + [None] * 4
+    assert read_table(folder).column("velocity").to_pylist() == [64] * 4 + [None] * 3
 
 
 def test_the_type_of_a_table(tmp_path: Path) -> None:
-    folder = _copied(tmp_path) / "tables" / "Projection"
+    folder = _copied(tmp_path) / "tables" / "Note"
     assert _table_refusal(lambda: read_table(folder, type="MatchClaim")) == (
         "table_type",
         None,
         (),
-        "'part_a.parquet' holds the type Projection, not MatchClaim",
+        "'part_a.parquet' holds the type Note, not MatchClaim",
     )
     _rewrite(folder / "part_b.parquet", **{TYPE_METADATA_KEY: "MatchClaim"})
     assert _table_refusal(lambda: read_table(folder)) == (
         "table_type",
         None,
         (),
-        "'part_a.parquet' holds the type Projection and 'part_b.parquet' the type "
-        "MatchClaim",
+        "'part_a.parquet' holds the type Note and 'part_b.parquet' the type MatchClaim",
     )
     for name in ("part_a.parquet", "part_b.parquet"):
         _rewrite(folder / name, **{TYPE_METADATA_KEY: None})
@@ -556,8 +552,8 @@ def test_the_type_of_a_table(tmp_path: Path) -> None:
         (),
         "the table names no type: no file states 'timetoshare:type'",
     )
-    table = read_table(folder, type="Projection", ids=["projection_7", "projection_1"])
-    assert sorted(table.column("id").to_pylist()) == ["projection_1", "projection_7"]
+    table = read_table(folder, type="Note", ids=["note_3", "note_1"])
+    assert sorted(table.column("id").to_pylist()) == ["note_1", "note_3"]
 
 
 def test_a_row_stating_provenance_beside_its_file(tmp_path: Path) -> None:
@@ -599,7 +595,7 @@ def test_timelines_need_the_column_naming_a_rows_timeline(tmp_path: Path) -> Non
     package = _copied(tmp_path)
     # A pre-parsed table holds no timeline: its rows are read by ID.
     assert _table_refusal(
-        lambda: read_table(package / "tables" / "Projection", timelines=["dpt_1"])
+        lambda: read_table(package / "tables" / "Note", timelines=["dpt_1"])
     ) == (
         "schema_violation",
         None,
@@ -608,7 +604,7 @@ def test_timelines_need_the_column_naming_a_rows_timeline(tmp_path: Path) -> Non
     )
     registry = package / "registry.parquet"
     _rewrite(registry, lambda table: table.drop_columns(["timeline_id", "id"]))
-    assert len(read_table(registry)) == 25
+    assert len(read_table(registry)) == 33
     assert _table_refusal(lambda: read_table(registry, timelines=["dpt_1"])) == (
         "schema_violation",
         None,
@@ -725,6 +721,7 @@ def test_the_recording_is_the_one_change() -> None:
 
 def test_a_shared_timeline_keeps_its_event_rows_in_both_manifests() -> None:
     directory = package_fixture_path("acceptances", "timeline_in_two_manifests")
+    package = ["clt_1", "dpt_1", "clt_2", "dpt_2"]
     for name in ("bach/manifest.yaml", "handel/manifest.yaml"):
         manifest = with_bare_ids(_read(directory / name))
         resource = manifest["resources"][1]
@@ -736,7 +733,14 @@ def test_a_shared_timeline_keeps_its_event_rows_in_both_manifests() -> None:
             "projection_7",
             "projection_9",
         ]
-        check_registry(table, _read(directory / name))
+        check_registry(table, _read(directory / name), projected_timelines=package)
+    # The Projections on dpt_1 stand for Bach's notes on clt_1: read for
+    # Handel without the package's timelines, they name a timeline Handel's
+    # manifest lacks.
+    check_registry(table, _read(directory / "bach/manifest.yaml"))
+    with pytest.raises(TableError) as error:
+        check_registry(table, _read(directory / "handel/manifest.yaml"))
+    assert str(error.value) == "the manifest has no timeline 'clt_1'"
 
 
 def test_every_rejection_is_stated() -> None:
@@ -744,7 +748,6 @@ def test_every_rejection_is_stated() -> None:
         "axis_mismatch",
         "claim_across_manifests",
         "column_in_two_types",
-        "extraction_table_listed_twice",
         "file_in_a_listed_folder",
         "file_of_another_type",
         "folder_with_size",
@@ -752,9 +755,10 @@ def test_every_rejection_is_stated() -> None:
         "locator_twice",
         "missing_content",
         "non_event_row_with_a_position",
-        "projection_id_in_two_files",
+        "parse_table_listed_twice",
         "projection_of_its_own_timeline",
         "projection_of_no_timeline",
+        "projection_of_on_another_kind",
         "registry_folder",
         "registry_id_twice",
         "registry_listed_twice",
@@ -764,10 +768,10 @@ def test_every_rejection_is_stated() -> None:
         "stale_non_event_row",
         "table_listed_twice",
         "timeline_unlisted",
-        "unknown_extraction",
         "unknown_location",
+        "unknown_parse",
         "unregistered_id",
-        "vanished_in_an_unknown_extraction",
+        "vanished_in_an_unknown_parse",
         "version_mismatch",
     ]
 
@@ -780,11 +784,7 @@ def test_each_rejected_package(case: str) -> None:
 
 EXPECTED = {
     "row_of_no_manifest": [
-        ("unknown_timeline", "registry.parquet", 25, ["timeline_id"])
-    ],
-    "projection_id_in_two_files": [
-        ("duplicate_id", "tables/Projection/part_b.parquet", 3, ["id"]),
-        ("missing_content", "registry.parquet", 20, ["location"]),
+        ("unknown_timeline", "registry.parquet", 33, ["timeline_id"])
     ],
     "claim_across_manifests": [
         (
@@ -795,11 +795,9 @@ EXPECTED = {
         )
     ],
     "column_in_two_types": [
-        ("column_type_mismatch", "tables/Projection/", None, ["velocity"])
+        ("column_type_mismatch", "tables/Note/", None, ["velocity"])
     ],
-    "version_mismatch": [
-        ("version_mismatch", "tables/Projection/part_b.parquet", None, [])
-    ],
+    "version_mismatch": [("version_mismatch", "tables/Note/part_b.parquet", None, [])],
     "resource_naming_no_table": [
         ("unknown_table", "bach/manifest.yaml", None, ["resources", 2, "url"])
     ],
@@ -807,13 +805,11 @@ EXPECTED = {
         ("folder_descriptor", "package.yaml", None, ["tables", 3, "size"])
     ],
     "timeline_unlisted": [
-        ("unlisted_timeline", "registry.parquet", 16, ["timeline_id"]),
-        ("unlisted_timeline", "registry.parquet", 17, ["timeline_id"]),
+        ("unlisted_timeline", "registry.parquet", 24, ["timeline_id"]),
+        ("unlisted_timeline", "registry.parquet", 25, ["timeline_id"]),
     ],
-    "axis_mismatch": [("axis_mismatch", "registry.parquet", 21, ["unit"])],
-    "file_of_another_type": [
-        ("table_type", "tables/Projection/part_b.parquet", None, [])
-    ],
+    "axis_mismatch": [("axis_mismatch", "registry.parquet", 29, ["unit"])],
+    "file_of_another_type": [("table_type", "tables/Note/part_b.parquet", None, [])],
     "table_listed_twice": [
         ("duplicate_url", "package.yaml", None, ["tables", 4, "url"])
     ],
@@ -824,22 +820,18 @@ EXPECTED = {
     "registry_listed_twice": [
         ("duplicate_registry", "package.yaml", None, ["tables", 4, "type"])
     ],
-    "extraction_table_listed_twice": [
-        ("duplicate_extraction", "package.yaml", None, ["tables", 4, "type"])
+    "parse_table_listed_twice": [
+        ("duplicate_parse", "package.yaml", None, ["tables", 4, "type"])
     ],
-    "unknown_extraction": [
-        ("unknown_extraction", "registry.parquet", 22, ["extraction_id"])
+    "unknown_parse": [("unknown_parse", "registry.parquet", 30, ["parse_id"])],
+    "vanished_in_an_unknown_parse": [
+        ("unknown_parse", "registry.parquet", 30, ["vanished_in"])
     ],
-    "vanished_in_an_unknown_extraction": [
-        ("unknown_extraction", "registry.parquet", 22, ["vanished_in"])
-    ],
-    "unknown_location": [("unknown_location", "registry.parquet", 19, ["location"])],
-    "missing_content": [("missing_content", "registry.parquet", 22, ["location"])],
-    "unregistered_id": [
-        ("unregistered_id", "tables/Projection/part_b.parquet", 4, ["id"])
-    ],
-    "locator_twice": [("duplicate_locator", "registry.parquet", 21, ["locator"])],
-    "registry_id_twice": [("duplicate_id", "registry.parquet", 25, ["id"])],
+    "unknown_location": [("unknown_location", "registry.parquet", 18, ["location"])],
+    "missing_content": [("missing_content", "registry.parquet", 21, ["location"])],
+    "unregistered_id": [("unregistered_id", "tables/Note/part_b.parquet", 3, ["id"])],
+    "locator_twice": [("duplicate_locator", "registry.parquet", 29, ["locator"])],
+    "registry_id_twice": [("duplicate_id", "registry.parquet", 33, ["id"])],
     "registry_folder": [
         ("registry_not_a_file", "package.yaml", None, ["tables", 0, "url"]),
         ("registry_not_a_file", "bach/manifest.yaml", None, ["resources", 1, "url"]),
@@ -858,18 +850,16 @@ EXPECTED = {
     "projection_of_its_own_timeline": [
         (
             "invalid_projection_of",
-            "tables/Projection/part_a.parquet",
-            1,
+            "registry.parquet",
+            26,
             ["projection_of", "timeline_id"],
         )
     ],
     "projection_of_no_timeline": [
-        (
-            "unknown_timeline",
-            "tables/Projection/part_b.parquet",
-            1,
-            ["projection_of", "timeline_id"],
-        )
+        ("unknown_timeline", "registry.parquet", 29, ["projection_of", "timeline_id"])
+    ],
+    "projection_of_on_another_kind": [
+        ("invalid_projection_of", "registry.parquet", 17, ["projection_of"])
     ],
 }
 """The problems of each case, as the README's table states them."""
@@ -902,18 +892,24 @@ def test_the_package_check_words_its_new_rules() -> None:
         "no manifest of the package holds both the timeline 'clt_1' and the "
         "timeline 'dpt_2'"
     )
-    assert first("unknown_extraction") == (
-        "no extraction of the package has the ID 'extraction_9'"
-    )
+    assert first("unknown_parse") == ("no parse of the package has the ID 'parse_9'")
     assert first("unknown_location") == (
-        "the location 'tables/Note/' names no table of the type Projection in the "
-        "package"
+        "the location 'tables/Box/' names no table of the type Note in the package"
     )
     assert first("missing_content") == (
-        "the table 'tables/Projection/' holds no row of the ID 'projection_10'"
+        "the table 'tables/Note/' holds no row of the ID 'note_8'"
     )
     assert first("unregistered_id") == (
-        "no event row of the type Projection in the registry has the ID 'projection_10'"
+        "no event row of the type Note in the registry has the ID 'note_9'"
+    )
+    assert first("projection_of_its_own_timeline") == (
+        "a Projection stands for an event of another timeline than 'dpt_1'"
+    )
+    assert first("projection_of_no_timeline") == (
+        "no manifest of the package has the timeline 'clt_9'"
+    )
+    assert first("projection_of_on_another_kind") == (
+        "'projection_of' is set on a row of the kind 'Note'"
     )
     assert [
         problem["message"]
@@ -941,26 +937,9 @@ def test_the_package_check_words_its_new_rules() -> None:
     ]
     assert first("foreign_table") == (
         "the table 'tables/features.parquet' of type 'Features' has no 'id' column: "
-        "a package's tables hold the registry, the Extraction table, MatchClaim "
+        "a package's tables hold the registry, the Parse table, MatchClaim "
         "tables and pre-parsed tables of events keyed by 'id'"
     )
-
-
-def test_each_manifest_alone_passes_the_repeated_id() -> None:
-    directory = package_fixture_path("rejections", "projection_id_in_two_files")
-    check_projections(
-        read_table(directory / "tables" / "Projection" / "part_a.parquet")
-    )
-    check_projections(
-        read_table(directory / "tables" / "Projection" / "part_b.parquet")
-    )
-    for name in ("bach/manifest.yaml", "handel/manifest.yaml"):
-        manifest = with_bare_ids(_read(directory / name))
-        resource = manifest["resources"][1]
-        table = read_table(
-            directory / "registry.parquet", timelines=resource["timelines"]
-        )
-        check_registry(table, _read(directory / name))
 
 
 def _write_yaml(path: Path, value: Any) -> None:
@@ -1060,7 +1039,7 @@ def test_only_a_table_resource_names_a_table(tmp_path: Path) -> None:
         ("Recording", "#dpt_1", "take.parquet", None),
         ("Scan", "#clt_1", "scans/", None),
         ("Sheet", "#dpt_1", "sheet.bin", "application/vnd.apache.parquet"),
-        ("Projection", "#clt_1", "more.arrow", None),
+        ("Parse", "#clt_1", "more.arrow", None),
     ]
     for number, (kind, timeline, url, media_type) in enumerate(added, start=3):
         resource = {
@@ -1086,7 +1065,7 @@ def test_only_a_table_resource_names_a_table(tmp_path: Path) -> None:
             (4, ("Recording", "take.parquet")),
             (5, ("Scan", "scans/")),
             (6, ("Sheet", "sheet.bin")),
-            (7, ("Projection", "more.arrow")),
+            (7, ("Parse", "more.arrow")),
         )
     ] + [_lacks(f"resource_{number}") for number in range(3, 9)]
 
@@ -1102,16 +1081,14 @@ def test_the_rule_is_public_and_answers_each_branch() -> None:
             "url": "sheet.bin",
             "media_type": "application/vnd.apache.parquet",
         },
-        {"type": "Projection", "url": "more.arrow"},
         {"type": "MatchClaim", "url": "claims.arrow"},
         {"type": "Note", "url": "Note.parquet?v=1#rows"},
         {"type": "Registry", "url": "registry.arrow"},
-        {"type": "Extraction", "url": "runs.arrow"},
+        {"type": "Parse", "url": "runs.arrow"},
     ]
     assert [is_table_resource(resource) for resource in resources] == [
         False,
         False,
-        True,
         True,
         True,
         True,
@@ -1259,7 +1236,7 @@ def test_an_event_id_is_unique_across_every_type(tmp_path: Path) -> None:
     directory = _copied(tmp_path)
     _write_table(
         directory / "tables" / "Box" / "part_a.parquet",
-        [{"id": "projection_1", "label": "a box"}],
+        [{"id": "note_1", "label": "a box"}],
         BOX,
         "Box",
     )
@@ -1273,8 +1250,8 @@ def test_an_event_id_is_unique_across_every_type(tmp_path: Path) -> None:
             "file": "tables/Box/part_a.parquet",
             "row": 0,
             "path": ["id"],
-            "message": "the event ID 'projection_1' is given twice, first in "
-            "'tables/Projection/part_a.parquet' at row 1",
+            "message": "the event ID 'note_1' is given twice, first in "
+            "'tables/Note/part_a.parquet' at row 1",
         },
         {
             "code": "unregistered_id",
@@ -1282,7 +1259,7 @@ def test_an_event_id_is_unique_across_every_type(tmp_path: Path) -> None:
             "row": 0,
             "path": ["id"],
             "message": "no event row of the type Box in the registry has the ID "
-            "'projection_1'",
+            "'note_1'",
         },
     ]
 
@@ -1294,7 +1271,7 @@ def _foreign(url: str, kind: str) -> dict[str, Any]:
         "row": None,
         "path": [],
         "message": f"the table '{url}' of type '{kind}' has no 'id' column: a "
-        "package's tables hold the registry, the Extraction table, MatchClaim "
+        "package's tables hold the registry, the Parse table, MatchClaim "
         "tables and pre-parsed tables of events keyed by 'id'",
     }
 
@@ -1338,7 +1315,7 @@ def test_a_large_package_checks_each_row_once(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     directory = _copied(tmp_path)
-    for file in (directory / "tables" / "Projection").iterdir():
+    for file in (directory / "tables" / "Note").iterdir():
         file.unlink()
     registry = directory / "registry.parquet"
     non_events = [
@@ -1355,7 +1332,7 @@ def test_a_large_package_checks_each_row_once(
             "unit": "samples",
             "number_type": "int",
             "start": {"numerator": index, "denominator": None, "value": None},
-            "extraction_id": "extraction_1",
+            "parse_id": "parse_1",
         }
         for index in range(20000)
     ]
@@ -1365,10 +1342,13 @@ def test_a_large_package_checks_each_row_once(
     registry_check = package_module._WHOLE["Registry"]
     claim_check = package_module.match_claim_problems
 
-    def registry(table: Any) -> Any:
+    projected: list[list[str]] = []
+
+    def registry(table: Any, projected_timelines: list[str]) -> Any:
         seen = set(table.column("timeline_id").to_pylist())
         calls.append(("Registry", None, len(table), seen))
-        return registry_check(table)
+        projected.append(projected_timelines)
+        return registry_check(table, projected_timelines=projected_timelines)
 
     def claims(table: Any, manifest: Any) -> Any:
         seen = {
@@ -1386,17 +1366,18 @@ def test_a_large_package_checks_each_row_once(
         {
             "code": "duplicate_id",
             "file": "registry.parquet",
-            "row": 15016,
+            "row": 15017,
             "path": ["id"],
             "message": "the ID 'onset_11' is given twice, first in "
-            "'registry.parquet' at row 27",
+            "'registry.parquet' at row 28",
         }
     ]
     assert calls == [
-        ("Registry", None, 20016, {"dpt_1", "dpt_2", None}),
+        ("Registry", None, 20017, {"dpt_1", "dpt_2", None}),
         ("MatchClaim", "Bach", 3, {"clt_1", "dpt_1"}),
         ("MatchClaim", "Handel", 2, {"clt_2", "dpt_2"}),
     ]
+    assert projected == [["clt_1", "dpt_1", "clt_2", "clt_3", "dpt_2"]]
 
 
 def test_the_fixture_files_are_the_scripts() -> None:
@@ -1409,8 +1390,8 @@ def test_the_fixture_files_are_the_scripts() -> None:
         },
         {
             "media_type": "application/vnd.apache.parquet",
-            "type": "Extraction",
-            "url": "tables/extractions.parquet",
+            "type": "Parse",
+            "url": "tables/parses.parquet",
         },
         {
             "media_type": "application/vnd.apache.parquet",
@@ -1419,23 +1400,23 @@ def test_the_fixture_files_are_the_scripts() -> None:
         },
         {
             "media_type": "application/vnd.apache.parquet",
-            "type": "Projection",
-            "url": "tables/Projection/",
+            "type": "Note",
+            "url": "tables/Note/",
         },
     ]
     for name, kind in (
         ("registry.parquet", "Registry"),
-        ("tables/extractions.parquet", "Extraction"),
+        ("tables/parses.parquet", "Parse"),
         ("tables/MatchClaim/part_a.parquet", "MatchClaim"),
-        ("tables/Projection/part_a.parquet", "Projection"),
-        ("tables/Projection/part_b.parquet", "Projection"),
+        ("tables/Note/part_a.parquet", "Note"),
+        ("tables/Note/part_b.parquet", "Note"),
     ):
         metadata = pq.read_schema(SHARED / name).metadata
         assert metadata[TYPE_METADATA_KEY.encode()] == kind.encode()
         assert metadata[VERSION_METADATA_KEY.encode()] == b"0.2.0"
         assert (PROVENANCE_METADATA_KEY.encode() in metadata) is (kind == "MatchClaim")
     rows = pq.read_table(SHARED / "registry.parquet").to_pylist()
-    assert len(rows) == 25
+    assert len(rows) == 33
     kinds = [row["kind"] in NON_EVENT_KINDS for row in rows]
     # The non-event rows first, then the event rows.
     assert kinds == sorted(kinds, reverse=True)
@@ -1447,7 +1428,7 @@ def test_the_fixture_files_are_the_scripts() -> None:
         "Timeline",
         "Resource",
         "MatchClaim",
-        "Extraction",
+        "Parse",
     }
     order = [
         (
@@ -1458,20 +1439,30 @@ def test_the_fixture_files_are_the_scripts() -> None:
         for row in events
     ]
     assert order == sorted(order)
-    for extraction, located in (("extraction_1", True), ("extraction_2", False)):
-        made = [row for row in events if row["extraction_id"] == extraction]
+    for parse, located in (("parse_1", True), ("parse_2", False), ("parse_3", False)):
+        made = [row for row in events if row["parse_id"] == parse]
         assert made
         assert all((row["locator"] is not None) is located for row in made)
-    assert {row["extraction_id"] for row in events} == {"extraction_1", "extraction_2"}
+    assert {row["parse_id"] for row in events} == {"parse_1", "parse_2", "parse_3"}
+    # A Projection lies in the registry alone, a note's content in its table.
+    assert {(row["kind"], row["location"]) for row in events} == {
+        ("Note", "tables/Note/"),
+        ("Projection", None),
+    }
+    assert all(
+        (row["projection_of"] is not None) is (row["kind"] == "Projection")
+        for row in rows
+    )
     child = [row for row in events if row["timeline_id"] == "clt_3"]
     assert [(row["id"], row["timeline_id"], row["start"]) for row in child] == [
         ("projection_5", "clt_3", {"numerator": 9, "denominator": 2, "value": None}),
         ("projection_8", "clt_3", {"numerator": 11, "denominator": 2, "value": None}),
     ]
-    runs = pq.read_table(SHARED / "tables" / "extractions.parquet").to_pylist()
+    runs = pq.read_table(SHARED / "tables" / "parses.parquet").to_pylist()
     source = (SHARED / runs[0]["source"]).read_bytes()
     assert runs[0]["source_integrity"] == {
         "algorithm": "SHA-256",
         "digest": hashlib.sha256(source).hexdigest(),
     }
     assert runs[1]["source"] is None
+    assert runs[2]["source"] is None

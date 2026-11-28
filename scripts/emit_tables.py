@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-"""Write the table fixture: a manifest, its MatchClaim table, its registry,
-the pre-parsed Projection table and the Extraction table the registry names,
-and the AlignmentAnchors and potential MatchStamps expected of the MatchClaim
-table, to ``fixtures/tables/<version>/``.
+"""Write the table fixture: a manifest, its MatchClaim table, its registry
+and the Parse table the registry names, and the AlignmentAnchors and
+potential MatchStamps expected of the MatchClaim table, to
+``fixtures/tables/<version>/``.
 
 Every value is written here by hand; the expected anchors and MatchStamps in
 particular are literal data, never computed by the derivation they test. The
@@ -52,14 +52,14 @@ the fraction interval name no MatchClaim. ``inserted_1``, an int instant on
 the samples timeline, is the one Projection of no event the package holds
 (``projection_of`` null). A CHUNK side is no Projection, and the
 Projections keep their numbers, so ``projection_6`` and ``projection_7``
-are not held. Every event row names ``extraction_1``, the aligner's run
-without a source file, and the pre-parsed Projection table
-``projections.parquet`` holding each Projection's ``projection_of``. The
-registry is one file: its non-event rows (the extraction at
-``extractions.parquet``, each timeline and resource at ``manifest.yaml``,
-each MatchClaim at ``match_claims.parquet``) sorted by location and ID, then its
-event rows sorted by timeline, start and ID; the pre-parsed rows lie in the
-order of the event rows.
+are not held. Every event row names ``parse_1``, the aligner's run
+without a source file, and the event its Projection stands for in its
+``projection_of``; its ``location`` is null, a Projection holding nothing
+but its ID and that event, so it has no pre-parsed table. The
+registry is one file: its non-event rows (each timeline and resource at
+``manifest.yaml``, each MatchClaim at ``match_claims.parquet``, the parse at
+``parses.parquet``) sorted by location and ID, then its
+event rows sorted by timeline, start and ID.
 
 A number is written by its number type alone (``numerator`` for an int,
 ``numerator`` and ``denominator`` for a fraction, ``value`` for a float), the
@@ -83,14 +83,12 @@ import pyarrow.parquet as pq
 from timetoshare import FORMAT_CONTEXT, SCHEMA_VERSION, dumps, validate, with_file_ids
 from timetoshare.tables import (
     CHUNK_SENTINEL,
-    EXTRACTION_SCHEMA,
     MATCH_CLAIM_SCHEMA,
     NOMATCH_SENTINEL,
-    PROJECTION_SCHEMA,
+    PARSE_SCHEMA,
     REGISTRY_SCHEMA,
-    check_extractions,
     check_match_claims,
-    check_projections,
+    check_parses,
     check_registry,
 )
 
@@ -147,7 +145,7 @@ RESOURCES: list[dict[str, Any]] = [
 ]
 """The two tables the manifest names, IDs bare; :func:`manifest` adds each
 file's size and SHA-256 digest as written. The registry's rows name the
-pre-parsed Projection table and the Extraction table."""
+Parse table."""
 
 
 def manifest(directory: Path = TABLE_DIR) -> dict[str, Any]:
@@ -422,7 +420,7 @@ def _projection(
 ) -> dict[str, Any]:
     """A Projection from coordinate cells on its root's axis: its event row
     states their unit and number type once, ``start`` and ``duration`` hold
-    the numbers, and ``projection_of`` goes to the pre-parsed row. An int
+    the numbers, ``projection_of`` the event it stands for. An int
     ``identifier`` numbers a ``projection_<n>``; a string is the ID itself."""
 
     def members(cell: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -433,13 +431,13 @@ def _projection(
     return {
         "id": identifier if isinstance(identifier, str) else f"projection_{identifier}",
         "kind": "Projection",
-        "location": "projections.parquet",
+        "location": None,
         "timeline_id": timeline,
         "unit": start["unit"],
         "number_type": start["number_type"],
         "start": members(start),
         "duration": members(duration),
-        "extraction_id": EXTRACTION,
+        "parse_id": PARSE,
         "locator": None,
         "vanished_in": None,
         "projection_of": None
@@ -448,7 +446,7 @@ def _projection(
     }
 
 
-EXTRACTION = "extraction_1"
+PARSE = "parse_1"
 
 PROJECTIONS: list[dict[str, Any]] = [
     _projection(1, "dpt_1", samples(0), ("clt_1", "note_1")),
@@ -494,7 +492,6 @@ def _non_event(identifier: str, kind: str, location: str) -> dict[str, Any]:
 
 
 NON_EVENTS: list[dict[str, Any]] = [
-    _non_event(EXTRACTION, "Extraction", "extractions.parquet"),
     _non_event("clt_1", "Timeline", "manifest.yaml"),
     _non_event("clt_2", "Timeline", "manifest.yaml"),
     _non_event("cpt_1", "Timeline", "manifest.yaml"),
@@ -505,12 +502,13 @@ NON_EVENTS: list[dict[str, Any]] = [
         _non_event(f"claim_{number}", "MatchClaim", "match_claims.parquet")
         for number in (1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 2, 3, 4, 5, 6, 7, 8, 9)
     ),
+    _non_event(PARSE, "Parse", "parses.parquet"),
 ]
 """The registry's non-event rows, by location and ID (code point), listed by hand."""
 
-EXTRACTIONS: list[dict[str, Any]] = [
+PARSES: list[dict[str, Any]] = [
     {
-        "id": EXTRACTION,
+        "id": PARSE,
         "source": None,
         "source_integrity": None,
         "parser": "https://example.org/aligner",
@@ -720,12 +718,8 @@ def registry_table() -> pa.Table:
     return pa.Table.from_pylist(rows, schema=REGISTRY_SCHEMA)
 
 
-def projections_table() -> pa.Table:
-    return pa.Table.from_pylist(_events(), schema=PROJECTION_SCHEMA)
-
-
-def extractions_table() -> pa.Table:
-    return pa.Table.from_pylist(EXTRACTIONS, schema=EXTRACTION_SCHEMA)
+def parses_table() -> pa.Table:
+    return pa.Table.from_pylist(PARSES, schema=PARSE_SCHEMA)
 
 
 def _write_text(path: Path, text: str) -> None:
@@ -750,18 +744,16 @@ def main() -> int:
     if tag in tagged:
         raise SystemExit(f"{tag} is released; its tables in {TABLE_DIR} are frozen.")
     claims, registry = match_claims_table(), registry_table()
-    projections, extractions = projections_table(), extractions_table()
+    parses = parses_table()
     TABLE_DIR.mkdir(parents=True, exist_ok=True)
     _write_table(TABLE_DIR / "match_claims.parquet", claims)
     _write_table(TABLE_DIR / "registry.parquet", registry)
-    _write_table(TABLE_DIR / "projections.parquet", projections)
-    _write_table(TABLE_DIR / "extractions.parquet", extractions)
+    _write_table(TABLE_DIR / "parses.parquet", parses)
     named = manifest()
     validate(named)
     check_match_claims(claims, named)
     check_registry(registry, named)
-    check_projections(projections, named)
-    check_extractions(extractions)
+    check_parses(parses)
     _write_text(TABLE_DIR / "manifest.yaml", dumps(named))
     _write_text(TABLE_DIR / "expected.yaml", dumps(EXPECTED))
     return 0

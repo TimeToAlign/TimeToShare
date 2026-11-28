@@ -4,5 +4,5 @@ problems:
     file: registry.parquet
     message: "the ID 'claim_1' is given twice, first in 'registry.parquet' at row 9"
     path: [id]
-    row: 25
+    row: 33
 reason: "An onset of Handel's has the ID claim_1, a MatchClaim's; an event ID and a MatchClaim ID are held once among the registry's rows."

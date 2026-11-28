@@ -4,16 +4,16 @@
 
 A version case is two trees, ``old/`` and ``new/``, beside an
 ``expected.yaml`` of the step and the findings ``tree_step`` gives. The
-cases of tables are packages: ``package.yaml``, the manifest ``score.yaml``,
-the registry ``registry.parquet``, the Extraction table
-``extractions.parquet`` and the pre-parsed Projection table
-``tables/Projection/part.parquet``. Their YAML
-files and ``expected.yaml`` are written by hand; this script writes their
-Parquet files. Every row is literal data here, never computed by the code
-the cases test: each ``old/`` tree holds the same three event rows (the
-MIDI notes ``note_1`` and ``note_2`` and the Projection ``proj_1`` on the
-quarters timeline ``score``), one extraction and one pre-parsed Projection,
-and each ``new/`` tree the one change of its case. The non-event rows of each
+cases of tables are packages: ``package.yaml``, the manifest ``score.yaml``
+(the quarters timeline ``score`` and the seconds timeline ``take``), the
+registry ``registry.parquet`` and the Parse table ``parses.parquet``. Their
+YAML files and ``expected.yaml`` are written by hand; this script writes
+their Parquet files. Every row is literal data here, never computed by the
+code the cases test: each ``old/`` tree holds the same three event rows on
+``score`` (the MIDI notes ``note_1`` and ``note_2``, re-parsable from their
+parse's source file, and the Projection ``proj_1`` of the onset ``onset_1``
+on ``take``, which lies in the registry alone) and one parse, and each
+``new/`` tree the one change of its case. The non-event rows of each
 tree's registry are then written into it by
 ``timetoshare.tables.write_non_event_rows`` from the tree's hand-written
 manifest and tables, so that no case's non-event rows are stale.
@@ -40,8 +40,7 @@ import pyarrow.parquet as pq
 
 from timetoshare import SCHEMA_VERSION
 from timetoshare.tables import (
-    EXTRACTION_SCHEMA,
-    PROJECTION_SCHEMA,
+    PARSE_SCHEMA,
     REGISTRY_SCHEMA,
     TYPE_METADATA_KEY,
     VERSION_METADATA_KEY,
@@ -52,8 +51,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 VERSIONS_DIR = REPOSITORY_ROOT / "fixtures" / "versions"
 
 REGISTRY = "registry.parquet"
-EXTRACTIONS = "extractions.parquet"
-PROJECTIONS = "tables/Projection/part.parquet"
+PARSES = "parses.parquet"
 
 
 def number(value: Fraction) -> dict[str, Any]:
@@ -71,27 +69,31 @@ def event(
     *,
     kind: str = "MidiNote",
     duration: Fraction | None = Fraction(1),
-    location: str | None = None,
     locator: str | None = None,
     vanished_in: str | None = None,
+    projection_of: str | None = None,
 ) -> dict[str, Any]:
-    """An event row on the quarters timeline ``score``, of the first extraction."""
+    """An event row on the quarters timeline ``score``, of the first parse; a
+    Projection's stands for an event of ``take``."""
     return {
         "id": identifier,
         "kind": kind,
-        "location": location,
+        "location": None,
         "timeline_id": "score",
         "unit": "quarters",
         "number_type": "fraction",
         "start": number(start),
         "duration": None if duration is None else number(duration),
-        "extraction_id": "ext_1",
+        "parse_id": "parse_1",
         "locator": locator,
         "vanished_in": vanished_in,
+        "projection_of": None
+        if projection_of is None
+        else {"timeline_id": "take", "event_id": projection_of},
     }
 
 
-def extraction(identifier: str, date: str) -> dict[str, Any]:
+def parse(identifier: str, date: str) -> dict[str, Any]:
     """A run of a MIDI parser over ``score.mid``."""
     return {
         "id": identifier,
@@ -107,14 +109,6 @@ def extraction(identifier: str, date: str) -> dict[str, Any]:
     }
 
 
-def projection(identifier: str, event_id: str) -> dict[str, Any]:
-    """A pre-parsed Projection standing for an event of ``score``."""
-    return {
-        "id": identifier,
-        "projection_of": {"timeline_id": "score", "event_id": event_id},
-    }
-
-
 EVENTS: list[dict[str, Any]] = [
     event("note_1", Fraction(0), locator="track 0 message 0"),
     event("note_2", Fraction(1), locator="track 0 message 1"),
@@ -123,13 +117,12 @@ EVENTS: list[dict[str, Any]] = [
         Fraction(2),
         kind="Projection",
         duration=None,
-        location="tables/Projection/",
+        projection_of="onset_1",
     ),
 ]
 """The event rows of every ``old/`` tree, sorted by timeline, start and ID."""
 
-EXTRACTION_ROWS = [extraction("ext_1", "2026-11-27T00:00:00Z")]
-PROJECTION_ROWS = [projection("proj_1", "note_1")]
+PARSE_ROWS = [parse("parse_1", "2026-11-27T00:00:00Z")]
 
 
 class Tree:
@@ -137,17 +130,12 @@ class Tree:
 
     def __init__(self) -> None:
         self.tables: dict[str, tuple[list[dict[str, Any]], pa.Schema, str]] = {
-            EXTRACTIONS: (
-                copy.deepcopy(EXTRACTION_ROWS),
-                EXTRACTION_SCHEMA,
-                "Extraction",
+            PARSES: (
+                copy.deepcopy(PARSE_ROWS),
+                PARSE_SCHEMA,
+                "Parse",
             ),
             REGISTRY: (copy.deepcopy(EVENTS), REGISTRY_SCHEMA, "Registry"),
-            PROJECTIONS: (
-                copy.deepcopy(PROJECTION_ROWS),
-                PROJECTION_SCHEMA,
-                "Projection",
-            ),
         }
 
     def rows(self, name: str) -> list[dict[str, Any]]:
@@ -177,8 +165,8 @@ def _projection_moved(tree: Tree) -> None:
 
 
 def _row_vanished(tree: Tree) -> None:
-    tree.rows(REGISTRY)[1]["vanished_in"] = "ext_2"
-    tree.rows(EXTRACTIONS).append(extraction("ext_2", "2026-11-28T00:00:00Z"))
+    tree.rows(REGISTRY)[1]["vanished_in"] = "parse_2"
+    tree.rows(PARSES).append(parse("parse_2", "2026-11-28T00:00:00Z"))
 
 
 def _non_event_rows_only(tree: Tree) -> None:
@@ -186,12 +174,11 @@ def _non_event_rows_only(tree: Tree) -> None:
 
 
 def _projection_edited(tree: Tree) -> None:
-    tree.rows(PROJECTIONS)[0]["projection_of"]["event_id"] = "note_2"
+    tree.rows(REGISTRY)[2]["projection_of"]["event_id"] = "onset_2"
 
 
 def _projection_removed(tree: Tree) -> None:
     del tree.rows(REGISTRY)[2]
-    tree.rows(PROJECTIONS).clear()
 
 
 CASES: dict[str, Callable[[Tree], None]] = {

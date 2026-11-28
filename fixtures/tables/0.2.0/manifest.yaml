@@ -69,9 +69,9 @@ resources:
     id: "#resource_2"
     integrity:
       algorithm: SHA-256
-      digest: a80dfbad94cc4a372b0c852ad7709786cfba888c06134b58480ed115d0713dad
+      digest: fa1410a5a2020060b7fec0159f67af99d51e2352790b0b0375a117bf4e7705c6
     media_type: application/vnd.apache.parquet
-    size: 4968
+    size: 5596
     timelines: ["#clt_2", "#dpt_1", "#cpt_1"]
     type: Registry
     url: registry.parquet

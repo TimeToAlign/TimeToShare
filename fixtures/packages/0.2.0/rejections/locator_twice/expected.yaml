@@ -2,7 +2,7 @@ problems:
   -
     code: duplicate_locator
     file: registry.parquet
-    message: "the locator 'row 1' is given twice in the extraction 'extraction_1'"
+    message: "the locator 'row 1' is given twice in the parse 'parse_1'"
     path: [locator]
-    row: 21
-reason: "Two event rows of Bach's extraction give the locator 'row 1'."
+    row: 29
+reason: "Two event rows of Bach's parse give the locator 'row 1'."

@@ -27,8 +27,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# The table types (`timetoshare.tables`): the MatchClaim table and the
-# Projections table, read and checked as Arrow tables.
+# The table types (`timetoshare.tables`): the registry, the Parse table, the
+# pre-parsed tables and the MatchClaim tables, read and checked as Arrow tables.
 tables = ["pyarrow>=25.0.0,<26"]
 
 [project.scripts]

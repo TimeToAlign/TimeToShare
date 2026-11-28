@@ -50,7 +50,7 @@ element's ID."""
 
 SENTINELS = (NOMATCH_SENTINEL, CHUNK_SENTINEL)
 """The two reserved strings: an event ID column holds them besides event
-IDs, and no element, event or Projection takes either as its ID."""
+IDs, and no element, event, MatchClaim or parse takes either as its ID."""
 
 Shape = Literal["id", "ref", "ids", "order"]
 """How a member holds IDs.

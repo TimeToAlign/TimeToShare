@@ -41,7 +41,7 @@
   minimum_pre_commit_version: "3.2.0"
 - id: timetoshare-registry
   name: check the non-event rows of the package's registry
-  description: Refuses a commit whose registry's non-event rows disagree with the manifests, MatchClaim tables and Extraction table of the package at the repository's root; `timetoshare registry` rewrites them.
+  description: Refuses a commit whose registry's non-event rows disagree with the manifests, MatchClaim tables and Parse table of the package at the repository's root; `timetoshare registry` rewrites them.
   entry: timetoshare registry --check
   language: python
   additional_dependencies: ["./python[tables]"]

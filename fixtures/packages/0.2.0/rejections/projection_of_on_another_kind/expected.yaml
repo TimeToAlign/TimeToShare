@@ -1,0 +1,8 @@
+problems:
+  -
+    code: invalid_projection_of
+    file: registry.parquet
+    message: "'projection_of' is set on a row of the kind 'Note'"
+    path: [projection_of]
+    row: 17
+reason: "A note's event row names an event it would stand for; only a Projection's row states its projection_of."

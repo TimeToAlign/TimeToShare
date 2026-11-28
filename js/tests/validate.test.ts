@@ -235,7 +235,6 @@ const REJECTIONS = [
   "resource_folder_size",
   "resource_integrity_algorithm_unknown",
   "resource_match_claim_twice",
-  "resource_projection_twice",
   "resource_timeline_unknown",
   "root_missing_marker",
   "root_missing_timelines",
@@ -1503,8 +1502,6 @@ describe("the MatchStamp and resource rules", () => {
     resource_timeline_unknown: "'take_3' names no timeline or virtual timeline of this manifest",
     resource_match_claim_twice:
       "'score' is listed by the resource 'resource_1' of the type MatchClaim already",
-    resource_projection_twice:
-      "'take_1' is listed by the resource 'resource_2' of the type Projection already",
     resource_event_timeline_twice:
       "'take_2' is listed by the resource 'resource_2' of the type Box already",
     resource_folder_size: "'../tables/MatchClaim/' names a folder, which has no size",
@@ -1526,7 +1523,7 @@ describe("the MatchStamp and resource rules", () => {
 
   it("admit one timeline listed by a resource of each of two types", () => {
     const value = resourceCase("resource_match_claim_twice");
-    (resources(value)[1] as JsonObject).type = "Projection";
+    (resources(value)[1] as JsonObject).type = "Box";
     expect(() => timetoshare.validate(value)).not.toThrow();
   });
 

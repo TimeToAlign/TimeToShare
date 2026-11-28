@@ -2,7 +2,7 @@ problems:
   -
     code: duplicate_url
     file: package.yaml
-    message: "the file 'tables/Projection/part_b.parquet' is read by the table 'tables/Projection/' already"
+    message: "the file 'tables/Note/part_b.parquet' is read by the table 'tables/Note/' already"
     path: [tables, 4, url]
     row: null
-reason: "package.yaml lists part_b, a file of the listed folder of Projections, as a table of its own; its rows would be read twice."
+reason: "package.yaml lists part_b, a file of the listed folder of notes, as a table of its own; its rows would be read twice."

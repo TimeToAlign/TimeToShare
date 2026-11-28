@@ -3,12 +3,12 @@
 A package's registry is the table of the type ``Registry`` its
 ``package.yaml`` lists: one Parquet file, one row per resolvable ID. An
 **event row** gives an event's position on the axis of the root of its
-timeline's family, its extraction and its locator; a **non-event row** names
-an element of a manifest, a MatchClaim or an Extraction by its ``kind`` and
+timeline's family, its parse and its locator; a **non-event row** names
+an element of a manifest, a MatchClaim or a Parse by its ``kind`` and
 its ``location``. The non-event rows are the rows whose ``kind`` is one of
 :data:`~timetoshare.tables.NON_EVENT_KINDS`, a filter on the one file. They
 are derived: :func:`non_event_rows` builds them from the manifests, the
-MatchClaim tables and the Extraction table, :func:`write_non_event_rows`
+MatchClaim tables and the Parse table, :func:`write_non_event_rows`
 rewrites them inside the registry file, and :func:`stale_non_event_rows`
 lists where the file disagrees with them, as the package check does.
 :func:`write_registry` writes a registry file in the order of the format.
@@ -73,10 +73,12 @@ class Resolution:
 
     Attributes:
         kind: The row's ``kind``: an event type, ``MatchClaim``,
-            ``Extraction`` or the schema's name of a manifest element.
+            ``Parse`` or the schema's name of a manifest element.
         location: The row's ``location``, a URI reference against the
-            package root; ``None`` for an event only re-parsable from its
-            extraction's source.
+            package root; ``None`` for an event whose content lies nowhere
+            but its registry row (a Projection, any kind whose events hold
+            nothing but their IDs) or is only re-parsable from its parse's
+            source file.
         manifest: The manifest the resolution belongs to, its path from the
             package root: the manifest resolved through, or, through the
             package, an element's own manifest; ``None`` otherwise.
@@ -154,7 +156,7 @@ class _Package:
 
     def sources(self) -> _Sources:
         """The non-event rows of the valid manifests (each at its URL as
-        ``package.yaml`` lists it) and of the MatchClaim and Extraction
+        ``package.yaml`` lists it) and of the MatchClaim and Parse
         tables (at their entries' URLs), and what could not be read: a
         missing or invalid manifest, a missing or unreadable table."""
         parts = []
@@ -171,7 +173,7 @@ class _Package:
                 unread.add(path)
                 continue
             parts.append(non_event_rows_of(with_bare_ids(manifest), url))
-        for kind in ("MatchClaim", "Extraction"):
+        for kind in ("MatchClaim", "Parse"):
             for url in self.urls("tables", kind):
                 path = package_path(url)
                 if path is None or not (self.root / path).exists():
@@ -219,7 +221,7 @@ def non_event_rows(package_root: str | os.PathLike[str]) -> pa.Table:
     manifest's URL as ``package.yaml`` lists it, ``timeline_id`` the timeline
     holding a region or a flow-control element and the ``timeline`` of a
     named timestamp or an elision), one per row of each MatchClaim table and
-    of the Extraction table (``location`` the table entry's URL); built by
+    of the Parse table (``location`` the table entry's URL); built by
     :func:`~timetoshare.tables.package.non_event_rows_of` and
     :func:`~timetoshare.tables.package.table_non_event_rows`, as the package
     check builds them. Every other column is null. The rows are sorted by
@@ -525,21 +527,19 @@ def _rows_with(root: Path, paths: Iterable[str], id: str) -> pa.Table:
     return pa.concat_tables(found, promote_options="default")
 
 
-def _names_extraction(
-    root: Path, paths: Iterable[str], id: str, listed: pa.Array
-) -> bool:
+def _names_parse(root: Path, paths: Iterable[str], id: str, listed: pa.Array) -> bool:
     """Whether an event row of the ``listed`` timelines in one of the
-    registries names the extraction ``id``: the rows of those timelines read
-    in their ``extraction_id`` alone, the timeline filter pushed into the
+    registries names the parse ``id``: the rows of those timelines read
+    in their ``parse_id`` alone, the timeline filter pushed into the
     reader."""
     for path in dict.fromkeys(paths):
         rows = read_table(
             root / path,
             type="Registry",
             timelines=listed.to_pylist(),
-            columns=["extraction_id"],
+            columns=["parse_id"],
         )
-        if pc.any(pc.equal(_strings(rows, "extraction_id"), id)).as_py():
+        if pc.any(pc.equal(_strings(rows, "parse_id"), id)).as_py():
             return True
     return False
 
@@ -610,12 +610,10 @@ def _through_manifest(file: Path, id: str) -> list[Resolution]:
         pc.equal(kinds, "MatchClaim"),
         pc.fill_null(pc.is_in(resolved, value_set=tables), False),
     )
-    extraction = pc.equal(kinds, "Extraction")
-    if pc.any(extraction).as_py() and not _names_extraction(
-        root, registries, id, listed
-    ):
-        extraction = pc.and_(extraction, pa.scalar(False))
-    for mask in (events, claims, extraction):
+    parse = pc.equal(kinds, "Parse")
+    if pc.any(parse).as_py() and not _names_parse(root, registries, id, listed):
+        parse = pc.and_(parse, pa.scalar(False))
+    for mask in (events, claims, parse):
         for row in with_id.filter(pc.fill_null(mask, False)).to_pylist():
             found.append(_resolution(row, location))
     return found
@@ -631,12 +629,12 @@ def resolve(path: str | os.PathLike[str], id: str) -> list[Resolution]:
     lacks it),
     then the rows of its Registry resources' registries that belong to it:
     an event row on a timeline those resources list, a MatchClaim row of a
-    table its MatchClaim resources name, an Extraction row one of its event
+    table its MatchClaim resources name, a Parse row one of its event
     rows names; each with the manifest. The ID is bare; a written ``#id``
     is read as the bare ID, one ``#`` stripped. Each registry is read with
     the filter of the ID pushed into the reader (``read_table(ids=...)``);
-    an Extraction row found through a manifest is checked against the
-    ``extraction_id`` of the event rows of the timelines listed, read with
+    a Parse row found through a manifest is checked against the
+    ``parse_id`` of the event rows of the timelines listed, read with
     the timeline filter pushed in.
 
     Returns:

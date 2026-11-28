@@ -2,7 +2,7 @@ problems:
   -
     code: folder_descriptor
     file: package.yaml
-    message: "'tables/Projection/' names a folder, which has no size"
+    message: "'tables/Note/' names a folder, which has no size"
     path: [tables, 3, size]
     row: null
-reason: "package.yaml states a size for the folder of Projections; a folder has none."
+reason: "package.yaml states a size for the folder of notes; a folder has none."

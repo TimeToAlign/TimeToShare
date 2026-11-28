@@ -4,5 +4,5 @@ problems:
     file: registry.parquet
     message: "no manifest of the package has the timeline 'dpt_9'"
     path: [timeline_id]
-    row: 25
+    row: 33
 reason: "An event row lies on dpt_9, a timeline no manifest of the package holds."

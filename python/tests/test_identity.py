@@ -1554,9 +1554,9 @@ def test_resources_matchstamps_and_anchors_take_any_id() -> None:
         },
         {
             "id": "#resource_0a1b2c3d4e5f6",
-            "type": "Projection",
+            "type": "Note",
             "timelines": ["#take_2"],
-            "url": "projections.parquet",
+            "url": "notes.parquet",
         },
     ]
     assert timetoshare.identity_problems(value) == []

@@ -2,7 +2,7 @@ problems:
   -
     code: duplicate_url
     file: package.yaml
-    message: "the table 'tables/Projection/' of the type Projection is listed twice, first at #/tables/3/url"
+    message: "the table 'tables/Note/' of the type Note is listed twice, first at #/tables/3/url"
     path: [tables, 4, url]
     row: null
-reason: "package.yaml lists the folder of Projections twice; a table is listed once under its URL and type."
+reason: "package.yaml lists the folder of notes twice; a table is listed once under its URL and type."

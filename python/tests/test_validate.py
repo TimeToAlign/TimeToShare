@@ -235,7 +235,6 @@ REJECTIONS = [
     "resource_folder_size",
     "resource_integrity_algorithm_unknown",
     "resource_match_claim_twice",
-    "resource_projection_twice",
     "resource_timeline_unknown",
     "root_missing_marker",
     "root_missing_timelines",
@@ -1644,9 +1643,6 @@ MATCHSTAMP_MESSAGES = {
     "resource_match_claim_twice": (
         "'score' is listed by the resource 'resource_1' of the type MatchClaim already"
     ),
-    "resource_projection_twice": (
-        "'take_1' is listed by the resource 'resource_2' of the type Projection already"
-    ),
     "resource_event_timeline_twice": (
         "'take_2' is listed by the resource 'resource_2' of the type Box already"
     ),
@@ -1679,7 +1675,7 @@ def test_resources_of_one_type_over_disjoint_timelines_validate() -> None:
 
 def test_a_timeline_listed_once_by_each_of_two_types_validates() -> None:
     value = _resource_case("resource_match_claim_twice")
-    value["resources"][1]["type"] = "Projection"
+    value["resources"][1]["type"] = "Box"
     timetoshare.validate(value)
 
 

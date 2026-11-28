@@ -1,10 +1,10 @@
 read:
   bach/manifest.yaml:
     resource_1: [claim_1, claim_2, claim_5]
-    resource_2: [projection_1, projection_2, projection_7, projection_9]
+    resource_2: [note_1, note_2, note_3, note_4, projection_1, projection_2, projection_7, projection_9]
   handel/manifest.yaml:
     resource_1: [claim_3, claim_4]
-    resource_2: [projection_3, projection_4, projection_5, projection_6, projection_8]
+    resource_2: [note_5, note_6, note_7, projection_3, projection_4, projection_5, projection_6, projection_8]
 resolutions:
   -
     found:
@@ -14,12 +14,13 @@ resolutions:
         manifest: bach/manifest.yaml
         row:
           duration: null
-          extraction_id: null
           id: dpt_1
           kind: Timeline
           location: bach/manifest.yaml
           locator: null
           number_type: null
+          parse_id: null
+          projection_of: null
           start: null
           timeline_id: null
           unit: null
@@ -30,16 +31,19 @@ resolutions:
     found:
       -
         kind: Projection
-        location: tables/Projection/
+        location: null
         manifest: bach/manifest.yaml
         row:
           duration: null
-          extraction_id: extraction_1
           id: projection_1
           kind: Projection
-          location: tables/Projection/
+          location: null
           locator: "row 1"
           number_type: int
+          parse_id: parse_1
+          projection_of:
+            event_id: note_1
+            timeline_id: clt_1
           start:
             denominator: null
             numerator: 0
@@ -61,12 +65,13 @@ resolutions:
         manifest: bach/manifest.yaml
         row:
           duration: null
-          extraction_id: null
           id: claim_1
           kind: MatchClaim
           location: tables/MatchClaim/
           locator: null
           number_type: null
+          parse_id: null
+          projection_of: null
           start: null
           timeline_id: null
           unit: null
@@ -76,44 +81,48 @@ resolutions:
   -
     found:
       -
-        kind: Extraction
-        location: tables/extractions.parquet
+        kind: Parse
+        location: tables/parses.parquet
         manifest: bach/manifest.yaml
         row:
           duration: null
-          extraction_id: null
-          id: extraction_1
-          kind: Extraction
-          location: tables/extractions.parquet
+          id: parse_1
+          kind: Parse
+          location: tables/parses.parquet
           locator: null
           number_type: null
+          parse_id: null
+          projection_of: null
           start: null
           timeline_id: null
           unit: null
           vanished_in: null
-    id: extraction_1
+    id: parse_1
     path: bach/manifest.yaml
   -
     found: []
-    id: extraction_2
+    id: parse_2
     path: bach/manifest.yaml
   -
     found:
       -
         kind: Projection
-        location: tables/Projection/
+        location: null
         manifest: handel/manifest.yaml
         row:
           duration:
             denominator: 2
             numerator: 1
             value: null
-          extraction_id: extraction_2
           id: projection_5
           kind: Projection
-          location: tables/Projection/
+          location: null
           locator: null
           number_type: fraction
+          parse_id: parse_2
+          projection_of:
+            event_id: onset_1
+            timeline_id: dpt_2
           start:
             denominator: 2
             numerator: 9
@@ -131,12 +140,13 @@ resolutions:
         manifest: bach/manifest.yaml
         row:
           duration: null
-          extraction_id: null
           id: resource_1
           kind: Resource
           location: bach/manifest.yaml
           locator: null
           number_type: null
+          parse_id: null
+          projection_of: null
           start: null
           timeline_id: null
           unit: null
@@ -147,12 +157,13 @@ resolutions:
         manifest: handel/manifest.yaml
         row:
           duration: null
-          extraction_id: null
           id: resource_1
           kind: Resource
           location: handel/manifest.yaml
           locator: null
           number_type: null
+          parse_id: null
+          projection_of: null
           start: null
           timeline_id: null
           unit: null
@@ -163,19 +174,22 @@ resolutions:
     found:
       -
         kind: Projection
-        location: tables/Projection/
+        location: null
         manifest: null
         row:
           duration:
             denominator: 2
             numerator: 1
             value: null
-          extraction_id: extraction_2
           id: projection_5
           kind: Projection
-          location: tables/Projection/
+          location: null
           locator: null
           number_type: fraction
+          parse_id: parse_2
+          projection_of:
+            event_id: onset_1
+            timeline_id: dpt_2
           start:
             denominator: 2
             numerator: 9

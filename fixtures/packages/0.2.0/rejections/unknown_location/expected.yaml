@@ -2,7 +2,7 @@ problems:
   -
     code: unknown_location
     file: registry.parquet
-    message: "the location 'tables/Note/' names no table of the type Projection in the package"
+    message: "the location 'tables/Box/' names no table of the type Note in the package"
     path: [location]
-    row: 19
-reason: "An event row names tables/Note/ as its content's table, which package.yaml does not list."
+    row: 18
+reason: "A note's event row names tables/Box/ as its content's table, which package.yaml does not list."

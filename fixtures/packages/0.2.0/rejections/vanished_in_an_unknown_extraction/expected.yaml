@@ -1,8 +1,0 @@
-problems:
-  -
-    code: unknown_extraction
-    file: registry.parquet
-    message: "no extraction of the package has the ID 'extraction_3'"
-    path: [vanished_in]
-    row: 22
-reason: "An event row of Handel's vanished in extraction_3, which the Extraction table does not hold."

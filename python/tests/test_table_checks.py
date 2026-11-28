@@ -21,13 +21,11 @@ from timetoshare.tables import (  # noqa: E402
     CHUNK_SENTINEL,
     MATCH_CLAIM_SCHEMA,
     NOMATCH_SENTINEL,
-    PROJECTION_SCHEMA,
     PROVENANCE_METADATA_KEY,
     REGISTRY_SCHEMA,
     checks,
     fixture_path,
     match_claim_problems,
-    projection_problems,
     registry_problems,
     succession_problems,
 )
@@ -41,7 +39,6 @@ from .test_tables import (  # noqa: E402
     CLAIMS,
     MANIFEST,
     PROJECTION_CASES,
-    PROJECTIONS,
     PROVENANCE,
     PROVENANCE_CASES,
     REGISTRY,
@@ -50,7 +47,6 @@ from .test_tables import (  # noqa: E402
     changed,
     claims_table,
     number,
-    projections_table,
     q,
     registry_table,
     sec,
@@ -93,12 +89,6 @@ def assert_same_claim_problems(table: Any, manifest: Any) -> list:
     return expected[1] if expected[0] == "problems" else ["raised"]
 
 
-def assert_same_projection_problems(table: Any, manifest: Any) -> list:
-    expected = _outcome(reference.projection_problems, table, manifest)
-    assert _outcome(projection_problems, table, manifest) == expected
-    return expected[1] if expected[0] == "problems" else ["raised"]
-
-
 def assert_same_registry_problems(table: Any, manifest: Any) -> list:
     expected = _outcome(reference.registry_problems, table, manifest)
     assert _outcome(registry_problems, table, manifest) == expected
@@ -113,10 +103,8 @@ def assert_same_registry_problems(table: Any, manifest: Any) -> list:
 )
 def test_the_fixture_tables(manifest: Any) -> None:
     claims = pq.read_table(fixture_path("match_claims.parquet"))
-    projections = pq.read_table(fixture_path("projections.parquet"))
     registry = pq.read_table(fixture_path("registry.parquet"))
     assert assert_same_claim_problems(claims, manifest) == []
-    assert assert_same_projection_problems(projections, manifest) == []
     assert assert_same_registry_problems(registry, manifest) == []
     assert succession_problems(claims, claims) == []
 
@@ -140,8 +128,8 @@ def test_each_admitted_row(case: tuple, manifest: Any) -> None:
 @pytest.mark.parametrize("case", PROJECTION_CASES, ids=lambda case: case[0])
 @pytest.mark.parametrize("manifest", [None, MANIFEST], ids=["alone", "manifest"])
 def test_each_projection_case(case: tuple, manifest: Any) -> None:
-    table = projections_table(changed(PROJECTIONS, case[1]))
-    assert assert_same_projection_problems(table, manifest) != []
+    table = registry_table(changed(REGISTRY, case[1]))
+    assert assert_same_registry_problems(table, manifest) != []
 
 
 @pytest.mark.parametrize("case", REGISTRY_CASES, ids=lambda case: case[0])
@@ -259,8 +247,8 @@ _POOLS: dict[str, list[Any]] = {
     "coordinate": [None, q(1), q(2, 4), smp(3), sec(0.5), q(-1, 2)],
     "provenance": [None, *_PROVENANCE_POOL],
     "kind": ["Projection", "MidiNote", "Timeline", "MatchClaim", "", None],
-    "location": ["projections.parquet", "manifest.yaml", "", None],
-    "extraction_id": ["extraction_1", "extraction_2", None],
+    "location": ["tables/Note/", "manifest.yaml", "", None],
+    "parse_id": ["parse_1", "parse_2", None],
     "locator": ["track 0, message 4", "track 0, message 9", None],
     "projection_of": [
         None,
@@ -303,7 +291,7 @@ _KEY_POOLS = {
     "event_a_id": "event",
     "event_b_id": "event",
     "event_id": "event",
-    "vanished_in": "extraction_id",
+    "vanished_in": "parse_id",
     "event_a_name": "name",
     "event_b_name": "name",
     "timeline_a_id": "timeline",
@@ -553,10 +541,6 @@ _CLAIM_BASES = [
     (CLAIMS, MANIFEST),
     ([{**row, "provenance": PROVENANCE} for row in CLAIMS], CONTEXT_MANIFEST),
 ]
-_PROJECTION_BASES = [
-    (_fixture_rows("projections.parquet"), FIXTURE_MANIFEST),
-    (PROJECTIONS, MANIFEST),
-]
 _REGISTRY_BASES = [
     (_fixture_rows("registry.parquet"), FIXTURE_MANIFEST),
     (REGISTRY, MANIFEST),
@@ -608,23 +592,6 @@ def test_mutated_registries() -> None:
     for kind, counts in outcomes.items():
         if counts:
             assert counts["problems"] > 0 and counts["none"] > 0, (kind, counts)
-
-
-_PROJECTION_KINDS = ("null", "value", "duplicate", "timeline", "rows", "chunks")
-"""The kinds that change a pre-parsed Projection table, which holds no axis,
-number or provenance."""
-
-
-def test_mutated_projection_tables() -> None:
-    outcomes: dict[str, Counter] = {kind: Counter() for kind in _PROJECTION_KINDS}
-    for kind in _PROJECTION_KINDS:
-        for n in range(100):
-            table, _, manifest = mutated(kind, n, _PROJECTION_BASES, PROJECTION_SCHEMA)
-            problems = assert_same_projection_problems(table, manifest)
-            outcomes[kind]["problems" if problems else "none"] += 1
-    assert sum(sum(counts.values()) for counts in outcomes.values()) == 600
-    for kind, counts in outcomes.items():
-        assert counts["problems"] > 0 and counts["none"] > 0, (kind, counts)
 
 
 # The succession rule
@@ -847,11 +814,11 @@ def test_text_that_is_no_utf8_raises_as_reading_it_does(
 @pytest.mark.parametrize("manifest", [None, MANIFEST], ids=["alone", "manifest"])
 def test_a_projection_that_is_no_utf8(manifest: Any) -> None:
     rows = changed(
-        PROJECTIONS, lambda rows: rows[0]["projection_of"].update(event_id=_HOLE)
+        REGISTRY, lambda rows: rows[0]["projection_of"].update(event_id=_HOLE)
     )
-    table = _broken(projections_table(rows))
-    assert assert_same_projection_problems(table, manifest) == ["raised"]
-    assert _outcome(projection_problems, table, manifest) == _undecodable(0)
+    table = _broken(registry_table(rows))
+    assert assert_same_registry_problems(table, manifest) == ["raised"]
+    assert _outcome(registry_problems, table, manifest) == _undecodable(0)
 
 
 @pytest.mark.parametrize("manifest", [None, MANIFEST], ids=["alone", "manifest"])
@@ -877,32 +844,32 @@ def test_bytes_that_are_never_read() -> None:
     )
     for manifest in (None, MANIFEST):
         assert assert_same_claim_problems(table, manifest) == []
-    projections = projections_table(PROJECTIONS)
-    source = projections.column("projection_of").combine_chunks()
+    registry = registry_table(REGISTRY)
+    source = registry.column("projection_of").combine_chunks()
+    rows = len(registry)
     events = pa.Array.from_buffers(
         pa.string(),
-        3,
+        rows,
         [
             None,
-            pa.array([0, 6, 9, 9], pa.int32()).buffers()[1],
+            pa.array([0, 6, *[9] * (rows - 1)], pa.int32()).buffers()[1],
             pa.py_buffer(b"note_1\xff\xfe\xfd"),
         ],
     )
     source = pa.StructArray.from_arrays(
         [source.field("timeline_id"), events],
         names=["timeline_id", "event_id"],
-        mask=pa.array([False, True, True]),
+        mask=pa.array([False, *[True] * (rows - 1)]),
     )
     assert source.to_pylist() == [
         {"timeline_id": "clt_1", "event_id": "note_1"},
-        None,
-        None,
+        *[None] * (rows - 1),
     ]
-    projections = projections.set_column(
-        projections.column_names.index("projection_of"), "projection_of", source
+    registry = registry.set_column(
+        registry.column_names.index("projection_of"), "projection_of", source
     )
     for manifest in (None, MANIFEST):
-        assert assert_same_projection_problems(projections, manifest) == []
+        assert assert_same_registry_problems(registry, manifest) == []
 
 
 # Every flagged cell has its message

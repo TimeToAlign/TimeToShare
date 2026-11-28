@@ -73,10 +73,9 @@ UNDETERMINED = "undetermined"
 """The step of a change this package cannot judge: a table it cannot read, a
 manifest of another format version, a manifest that no longer reads."""
 
-TABLE_TYPES = ("MatchClaim", "Projection", "Registry")
+TABLE_TYPES = ("MatchClaim", "Registry")
 """The table types whose rows are compared by their ``id``: a manifest's
-MatchClaim tables, and a package's registry (its event rows) and pre-parsed
-Projection tables."""
+MatchClaim tables and a package's registry (its event rows)."""
 
 _RANK = {step: rank for rank, step in enumerate(STEPS)}
 
@@ -948,9 +947,6 @@ class _Registry:
 
     root: str
     namers: list[_Namer]
-    projections: dict[str, str]
-    """The pre-parsed Projection tables by their path in the tree, each with
-    its location as ``package.yaml`` or the registry writes it."""
 
     def owners(self, timeline: Any) -> list[_Namer]:
         """The manifests whose Registry resource lists ``timeline``, else the
@@ -995,7 +991,7 @@ def _registries(
     found: dict[str, _Registry] = {}
 
     def add(path: str, root: str, namer: _Namer) -> None:
-        registry = found.setdefault(path, _Registry(root, [], {}))
+        registry = found.setdefault(path, _Registry(root, []))
         registry.namers.append(namer)
 
     for root, (path, value) in sorted(packages.items()):
@@ -1024,16 +1020,6 @@ def _registries(
                 root,
                 _Namer(path, _unhashed(resource.get("id")), resource["url"], timelines),
             )
-    for registry in found.values():
-        package = packages.get(registry.root)
-        if package is None:
-            continue
-        path, value = package
-        for entry in _listed(value.get("tables")):
-            if isinstance(entry, Mapping) and entry.get("type") == "Projection":
-                named = _tree_path(path, entry.get("url"))
-                if named is not None:
-                    registry.projections[named] = entry["url"]
     return found
 
 
@@ -1074,20 +1060,6 @@ def _strings_of(table: Any, name: str) -> Any:
     from .tables.package import _strings
 
     return _strings(table, name)
-
-
-def _projection_locations(registry: Any, root: str) -> dict[str, str]:
-    """The pre-parsed Projection tables a registry's Projection rows locate,
-    by their path in the tree."""
-    import pyarrow.compute as pc
-
-    rows = registry.filter(pc.equal(_strings_of(registry, "kind"), "Projection"))
-    found = {}
-    for location in pc.unique(_strings_of(rows, "location")).to_pylist():
-        named = _tree_path(f"{root}/{PACKAGE_FILE}" if root else PACKAGE_FILE, location)
-        if named is not None:
-            found[named] = location
-    return found
 
 
 def _differs(old: Any, new: Any) -> Any:
@@ -1227,8 +1199,7 @@ def _package_findings(
     before: Mapping[str, tuple[str, dict[str, Any]]],
     after: Mapping[str, tuple[str, dict[str, Any]]],
 ) -> tuple[list[Finding], frozenset[str]]:
-    """The findings of the registries both trees name and of their
-    pre-parsed Projection tables, and the paths of those tables."""
+    """The findings of the registries both trees name, and their paths."""
     old_registries, new_registries = _registries(before), _registries(after)
     findings: list[Finding] = []
     handled: set[str] = set()
@@ -1250,15 +1221,6 @@ def _package_findings(
         registry_changed = not _same_bytes(old_root / path, new_root / path)
         missing = _without_pyarrow()
         if missing is not None:
-            for table in sorted(old.projections.keys() & new.projections.keys()):
-                handled.add(table)
-                if _held(old_root, table) and not _same_bytes(
-                    old_root / table, new_root / table
-                ):
-                    location = new.projections[table]
-                    findings.append(
-                        _undetermined(fallback, f"{location} changed; {missing}")
-                    )
             if registry_changed:
                 findings.append(
                     _undetermined(fallback, f"{fallback.url} changed; {missing}")
@@ -1276,43 +1238,26 @@ def _package_findings(
                 )
             )
             continue
+        if not registry_changed:
+            continue
         old_events, new_events = _event_rows(old_rows), _event_rows(new_rows)
-        if registry_changed:
-            try:
-                changes = _row_changes(old_events, new_events)
-            except (KeyError, pa.ArrowException) as error:
-                findings.append(
-                    _undetermined(
-                        fallback,
-                        f"{fallback.url} changed and cannot be read by rows: {error}",
-                    )
-                )
-                changes = []
-            for change in changes:
-                registry = old if change.kind == "removed_row" else new
-                findings.extend(_placed(registry, change, None))
-        old_tables = {**old.projections, **_projection_locations(old_events, old.root)}
-        new_tables = {**new.projections, **_projection_locations(new_events, new.root)}
-        for table in sorted(old_tables.keys() & new_tables.keys()):
-            handled.add(table)
-            findings.extend(
-                _projection_findings(
-                    old_root,
-                    new_root,
-                    table,
-                    new_tables[table],
-                    old,
-                    new,
-                    old_events,
-                    new_events,
+        try:
+            changes = _row_changes(old_events, new_events)
+        except (KeyError, pa.ArrowException) as error:
+            findings.append(
+                _undetermined(
+                    fallback,
+                    f"{fallback.url} changed and cannot be read by rows: {error}",
                 )
             )
+            changes = []
+        for change in changes:
+            registry = old if change.kind == "removed_row" else new
+            findings.extend(_placed(registry, change))
     return findings, frozenset(handled)
 
 
-def _placed(
-    registry: _Registry, change: _RowChange, location: str | None
-) -> list[Finding]:
+def _placed(registry: _Registry, change: _RowChange) -> list[Finding]:
     """A row's change at each manifest holding the row, worded with the URL
     that names the table there."""
     namers: dict[str, _Namer] = {}
@@ -1321,71 +1266,11 @@ def _placed(
             namers.setdefault(namer.path, namer)
     found = []
     for namer in namers.values():
-        detail = f"row {change.id} of {location or namer.url}"
+        detail = f"row {change.id} of {namer.url}"
         if change.kind == "vanished_row":
-            detail += f", vanished in the extraction {change.vanished_in}"
+            detail += f", vanished in the parse {change.vanished_in}"
         found.append(Finding(change.kind, change.step, namer.path, change.id, detail))
     return found
-
-
-def _projection_findings(
-    old_root: Path,
-    new_root: Path,
-    path: str,
-    location: str,
-    old: _Registry,
-    new: _Registry,
-    old_events: Any,
-    new_events: Any,
-) -> list[Finding]:
-    """The findings of a pre-parsed Projection table, each row placed by the
-    timeline of its registry row."""
-    import pyarrow as pa
-    import pyarrow.parquet  # noqa: F401
-
-    from .tables import read_table
-
-    fallback = new.owners(None)[0]
-    old_held, new_held = _held(old_root, path), _held(new_root, path)
-    if not old_held and not new_held:
-        return []
-    if old_held != new_held:
-        side = "earlier" if not old_held else "later"
-        return [_undetermined(fallback, f"{location} is missing from the {side} tree")]
-    if _same_bytes(old_root / path, new_root / path):
-        return []
-    try:
-        old_rows = read_table(old_root / path, type="Projection")
-        new_rows = read_table(new_root / path, type="Projection")
-        changes = _row_changes(
-            old_rows,
-            new_rows,
-            _timelines_of(old_rows, old_events),
-            _timelines_of(new_rows, new_events),
-        )
-    except (OSError, ValueError, KeyError, pa.ArrowException) as error:
-        return [
-            _undetermined(
-                fallback, f"{location} changed and cannot be read by rows: {error}"
-            )
-        ]
-    found = []
-    for change in changes:
-        registry = old if change.kind == "removed_row" else new
-        found.extend(_placed(registry, change, location))
-    return found
-
-
-def _timelines_of(rows: Any, events: Any) -> Any:
-    """The timeline of each pre-parsed row: its own ``timeline_id`` where the
-    table holds one, else its registry row's; a pre-parsed table holds no
-    position, so this places a finding and is never compared."""
-    import pyarrow.compute as pc
-
-    if "timeline_id" in rows.column_names:
-        return _strings_of(rows, "timeline_id")
-    found = pc.index_in(_strings_of(rows, "id"), value_set=_strings_of(events, "id"))
-    return _strings_of(events, "timeline_id").take(found)
 
 
 def tree_step(old_root: Path, new_root: Path) -> StepReport:
@@ -1397,21 +1282,21 @@ def tree_step(old_root: Path, new_root: Path) -> StepReport:
     another serialization is the same manifest. A file that is a manifest in
     one tree and cannot be read in the other gives ``unreadable_manifest``,
     undetermined, never a removal or an addition. For a resource of the type
-    ``MatchClaim`` or ``Projection`` in both states whose file's bytes
+    ``MatchClaim`` in both states whose file's bytes
     differ, the rows are compared by their ``id``, which needs pyarrow;
     without it, or for a table of any other type, the change is
     undetermined.
 
     A registry, the table of the type ``Registry`` that a ``package.yaml``
     lists or a manifest's resource names (one Parquet file), is
-    compared once by its event rows, and so is every pre-parsed Projection
-    table, one a ``package.yaml`` lists or a registry's Projection rows
-    locate: a row removed is major, one added minor, a cell changed minor
-    (``edited_row``: a Projection moved is a changed cell), ``vanished_in``
+    compared once by its event rows, a Projection's among them: a row
+    removed is major, one added minor, a cell changed minor (``edited_row``:
+    a Projection moved, or its ``projection_of`` changed, is a changed
+    cell), ``vanished_in``
     newly set and nothing else changed minor (``vanished_row``). Non-event rows
     are not compared: the manifests and tables they are derived from are. A
     finding lies at each manifest whose Registry resource lists the row's
-    timeline (a pre-parsed row's, its registry row's), else at the
+    timeline, else at the
     ``package.yaml`` listing the registry. Rows are paired by their first
     occurrence of an ``id``; a row without one is not compared.
 
@@ -1597,33 +1482,14 @@ def _held_files(files: Mapping[str, str], named: str) -> Iterator[str]:
             yield path
 
 
-def _located_tables(target: Path) -> set[str]:
-    """The pre-parsed Projection tables the registries written into
-    ``target`` locate; none without pyarrow."""
-    if _without_pyarrow() is not None:
-        return set()
-    documents, _ = _manifests(target)
-    found: set[str] = set()
-    for path, registry in _registries(documents).items():
-        if not _held(target, path):
-            continue
-        try:
-            rows = _registry_table(target, path)
-        except (OSError, ValueError, KeyError):
-            continue
-        found.update(_projection_locations(_event_rows(rows), registry.root))
-    return found
-
-
 def _materialise(repo: Path, ref: str | None, target: Path) -> None:
     """Write the manifests of a reference's tree, or of the index for ``None``,
     and the table files their resources name, into ``target``.
 
     Only files ending ``.yaml``, ``.yml`` or ``.json``, the files the
     resources of those that are manifests name (a folder's files directly
-    inside it), the tables a ``package.yaml`` lists and the pre-parsed tables
-    the registries locate are read from git, whatever the repository's
-    ``export-ignore`` attributes say.
+    inside it) and the tables a ``package.yaml`` lists are read from git,
+    whatever the repository's ``export-ignore`` attributes say.
     """
     target.mkdir(parents=True, exist_ok=True)
     files = _files(repo, ref)
@@ -1640,13 +1506,6 @@ def _materialise(repo: Path, ref: str | None, target: Path) -> None:
         if held not in written
     }
     _write_files(repo, files, target, written, named)
-    located = {
-        held
-        for table in _located_tables(target)
-        for held in _held_files(files, table)
-        if held not in written and held not in named
-    }
-    _write_files(repo, files, target, {}, located)
 
 
 def _write_files(

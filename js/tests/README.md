@@ -1028,10 +1028,10 @@ directory names, in code-point
 order, are stated literally) under
 `fixtures/packages/0.2.0/` but
 `folder_with_size` and `table_listed_twice`, whose problem is the one
-their `expected.yaml` lists (`folder_descriptor`, `[tables, 1, size]`,
-`'tables/Projection/' names a folder, which has no size`; `duplicate_url`,
-`[tables, 2, url]`, `the table 'tables/Projection/' of the type
-Projection is listed twice, first at #/tables/1/url`), and `validate`
+their `expected.yaml` lists (`folder_descriptor`, `[tables, 3, size]`,
+`'tables/Note/' names a folder, which has no size`; `duplicate_url`,
+`[tables, 4, url]`, `the table 'tables/Note/' of the type
+Note is listed twice, first at #/tables/3/url`), and `validate`
 accepts every manifest of
 those packages, so a package's faults beyond `package.yaml` stay the
 Python check's. Each inline refusal of the Python list is thrown here with

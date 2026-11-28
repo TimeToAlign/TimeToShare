@@ -12,7 +12,6 @@ from timetoshare.tables import (
     CHUNK_SENTINEL,
     MATCH_CLAIM_SCHEMA,
     NOMATCH_SENTINEL,
-    PROJECTION_SCHEMA,
 )
 
 ACTOR = "https://orcid.org/0000-0002-1825-0097"
@@ -138,31 +137,4 @@ def many_claims(rows: int = 250_000, provenance: bool = False) -> pa.Table:
     return pa.table(
         [pa.array(data[field.name], type=field.type) for field in MATCH_CLAIM_SCHEMA],
         schema=MATCH_CLAIM_SCHEMA,
-    )
-
-
-def many_projections(rows: int = 250_000) -> pa.Table:
-    """A valid Projections table of ``rows`` rows: Projection ``k`` (from 0)
-    stands on ``dpt_1`` at the sample ``22050 k`` for ``note_<k+1>`` of
-    ``clt_1``, every tenth lasting 22050 samples."""
-    data: dict[str, list[Any]] = {name: [] for name in PROJECTION_SCHEMA.names}
-    for k in range(rows):
-        data["id"].append(f"projection_{k + 1}")
-        data["timeline_id"].append("dpt_1")
-        data["unit"].append("samples")
-        data["number_type"].append("int")
-        data["start"].append(
-            {"numerator": k * 22050, "denominator": None, "value": None}
-        )
-        data["duration"].append(
-            {"numerator": 22050, "denominator": None, "value": None}
-            if k % 10 == 0
-            else None
-        )
-        data["projection_of"].append(
-            {"timeline_id": "clt_1", "event_id": f"note_{k + 1}"}
-        )
-    return pa.table(
-        [pa.array(data[field.name], type=field.type) for field in PROJECTION_SCHEMA],
-        schema=PROJECTION_SCHEMA,
     )

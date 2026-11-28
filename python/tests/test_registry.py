@@ -48,14 +48,18 @@ REGISTRY = pa.schema(
         ("number_type", pa.string()),
         ("start", NUMBER),
         ("duration", NUMBER),
-        ("extraction_id", pa.string()),
+        ("parse_id", pa.string()),
         ("locator", pa.string()),
         ("vanished_in", pa.string()),
+        (
+            "projection_of",
+            pa.struct([("timeline_id", pa.string()), ("event_id", pa.string())]),
+        ),
     ]
 )
 """The registry's columns as the format declares them."""
 
-EXTRACTION = pa.schema(
+PARSE = pa.schema(
     [
         ("id", pa.string()),
         ("source", pa.string()),
@@ -70,15 +74,6 @@ EXTRACTION = pa.schema(
         ("id_length", pa.int64()),
         ("seed", pa.string()),
         ("date", pa.string()),
-    ]
-)
-PROJECTION = pa.schema(
-    [
-        ("id", pa.string()),
-        (
-            "projection_of",
-            pa.struct([("timeline_id", pa.string()), ("event_id", pa.string())]),
-        ),
     ]
 )
 CLAIMS = pa.schema(
@@ -254,9 +249,10 @@ def event(
     unit: str,
     number_type: str,
     start: dict,
-    extraction: str,
+    parse: str,
     location: str | None = None,
     locator: str | None = None,
+    projection_of: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     return {
         "id": id,
@@ -267,9 +263,10 @@ def event(
         "number_type": number_type,
         "start": start,
         "duration": None,
-        "extraction_id": extraction,
+        "parse_id": parse,
         "locator": locator,
         "vanished_in": None,
+        "projection_of": projection_of,
     }
 
 
@@ -291,7 +288,7 @@ PROJ_1 = event(
     "float",
     number(None, None, 1.5),
     "ext_1",
-    location="tables/Projection/",
+    projection_of={"timeline_id": "score", "event_id": "note_1"},
 )
 NOTE_2 = event(
     "note_2",
@@ -305,7 +302,7 @@ NOTE_2 = event(
 )
 
 
-def extraction(id: str, source: str) -> dict[str, Any]:
+def parse(id: str, source: str) -> dict[str, Any]:
     return {
         "id": id,
         "source": source,
@@ -346,9 +343,8 @@ def package(root: Path, registry: str = "registry.parquet") -> Path:
                 "manifests": [{"url": BACH}, {"url": HANDEL}],
                 "tables": [
                     {"type": "Registry", "url": registry},
-                    {"type": "Extraction", "url": "extractions.parquet"},
+                    {"type": "Parse", "url": "parses.parquet"},
                     {"type": "MatchClaim", "url": "tables/MatchClaim/"},
-                    {"type": "Projection", "url": "tables/Projection/"},
                 ],
             }
         ),
@@ -356,10 +352,10 @@ def package(root: Path, registry: str = "registry.parquet") -> Path:
     )
     parquet(root / REGISTRY_FILE, [NOTE_1, PROJ_1, NOTE_2], REGISTRY, "Registry")
     parquet(
-        root / "extractions.parquet",
-        [extraction("ext_1", "bach/take.mid"), extraction("ext_2", "handel/aria.mid")],
-        EXTRACTION,
-        "Extraction",
+        root / "parses.parquet",
+        [parse("ext_1", "bach/take.mid"), parse("ext_2", "handel/aria.mid")],
+        PARSE,
+        "Parse",
     )
     parquet(
         root / "tables/MatchClaim/a.parquet",
@@ -372,17 +368,6 @@ def package(root: Path, registry: str = "registry.parquet") -> Path:
         [{"id": "claim_2", "timeline_a_id": "shared", "timeline_b_id": "score"}],
         CLAIMS,
         "MatchClaim",
-    )
-    parquet(
-        root / "tables/Projection/part.parquet",
-        [
-            {
-                "id": "proj_1",
-                "projection_of": {"timeline_id": "score", "event_id": "note_1"},
-            }
-        ],
-        PROJECTION,
-        "Projection",
     )
     return root
 
@@ -397,9 +382,10 @@ def row(id: str, kind: str, location: str, timeline=None) -> dict:
         "number_type": None,
         "start": None,
         "duration": None,
-        "extraction_id": None,
+        "parse_id": None,
         "locator": None,
         "vanished_in": None,
+        "projection_of": None,
     }
 
 
@@ -424,11 +410,11 @@ NON_EVENTS = [
     row("ts_1", "Timestamp", BACH, "score"),
     row("ts_m1", "Timestamp", BACH, "score"),
     row("ts_m2", "Timestamp", BACH, "shared"),
-    row("ext_1", "Extraction", "extractions.parquet"),
-    row("ext_2", "Extraction", "extractions.parquet"),
     row("aria", "Timeline", HANDEL),
     row("handel_registry", "Resource", HANDEL),
     row("shared", "Timeline", HANDEL),
+    row("ext_1", "Parse", "parses.parquet"),
+    row("ext_2", "Parse", "parses.parquet"),
     row("claim_1", "MatchClaim", "tables/MatchClaim/"),
     row("claim_2", "MatchClaim", "tables/MatchClaim/"),
 ]
@@ -582,10 +568,10 @@ def test_write_registry_orders_the_rows(tmp_path: Path) -> None:
         return event(id, "MidiNote", timeline, "quarters", number_type, start, "ext_1")
 
     expected = [
-        row("ext_1", "Extraction", "extractions.parquet"),
         row("a", "Timeline", "m/a.yaml"),
         row("b", "Timeline", "m/a.yaml"),
         row("a", "Timeline", "m/b.yaml"),
+        row("ext_1", "Parse", "parses.parquet"),
         at("e_near", "f", "fraction", number(near, 2**54, None)),
         at("e_third", "f", "fraction", number(1, 3, None)),
         at("e_half_b", "f", "fraction", number(1, 2, None)),
@@ -806,9 +792,7 @@ def test_the_registry_names_are_public() -> None:
     assert "ELEMENT_KINDS" in tables.__all__
     assert tables.ELEMENT_KINDS is columns.ELEMENT_KINDS
     assert tables.ELEMENT_KINDS == tuple(
-        kind
-        for kind in tables.NON_EVENT_KINDS
-        if kind not in ("MatchClaim", "Extraction")
+        kind for kind in tables.NON_EVENT_KINDS if kind not in ("MatchClaim", "Parse")
     )
 
 
@@ -838,10 +822,10 @@ def test_resolve_through_the_package(written: Path) -> None:
     ]
     assert resolve(written, "ext_2") == [
         Resolution(
-            "Extraction",
-            "extractions.parquet",
+            "Parse",
+            "parses.parquet",
             None,
-            row_of(NON_EVENTS, "ext_2", "extractions.parquet"),
+            row_of(NON_EVENTS, "ext_2", "parses.parquet"),
         )
     ]
     assert resolve(written, "nothing") == []
@@ -857,10 +841,10 @@ def test_resolve_through_a_manifest(written: Path) -> None:
         Resolution("Timeline", BACH, BACH, row_of(NON_EVENTS, "shared"))
     ]
     assert resolve(through_bach, "proj_1") == [
-        Resolution("Projection", "tables/Projection/", BACH, PROJ_1)
+        Resolution("Projection", None, BACH, PROJ_1)
     ]
     assert resolve(through_handel, "proj_1") == [
-        Resolution("Projection", "tables/Projection/", HANDEL, PROJ_1)
+        Resolution("Projection", None, HANDEL, PROJ_1)
     ]
     assert resolve(through_bach, "note_2") == []
     assert resolve(through_handel, "note_2") == [
@@ -871,17 +855,17 @@ def test_resolve_through_a_manifest(written: Path) -> None:
         Resolution("MatchClaim", "tables/MatchClaim/", BACH, claim)
     ]
     assert resolve(through_handel, "claim_2") == []
-    first = row_of(NON_EVENTS, "ext_1", "extractions.parquet")
-    second = row_of(NON_EVENTS, "ext_2", "extractions.parquet")
+    first = row_of(NON_EVENTS, "ext_1", "parses.parquet")
+    second = row_of(NON_EVENTS, "ext_2", "parses.parquet")
     assert resolve(through_bach, "ext_1") == [
-        Resolution("Extraction", "extractions.parquet", BACH, first)
+        Resolution("Parse", "parses.parquet", BACH, first)
     ]
     assert resolve(through_bach, "ext_2") == []
     assert resolve(through_handel, "ext_2") == [
-        Resolution("Extraction", "extractions.parquet", HANDEL, second)
+        Resolution("Parse", "parses.parquet", HANDEL, second)
     ]
     assert resolve(through_handel, "ext_1") == [
-        Resolution("Extraction", "extractions.parquet", HANDEL, first)
+        Resolution("Parse", "parses.parquet", HANDEL, first)
     ]
 
 
@@ -898,14 +882,14 @@ def test_resolving_reads_filtered(
         return original(*arguments, **keywords)
 
     monkeypatch.setattr(registry, "read_table", recorded)
-    first = row_of(NON_EVENTS, "ext_1", "extractions.parquet")
+    first = row_of(NON_EVENTS, "ext_1", "parses.parquet")
     claim = row_of(NON_EVENTS, "claim_2", "tables/MatchClaim/")
     assert resolve(written, "note_1") == [Resolution("MidiNote", None, None, NOTE_1)]
     assert resolve(written, "claim_2") == [
         Resolution("MatchClaim", "tables/MatchClaim/", None, claim)
     ]
     assert resolve(written / BACH, "ext_1") == [
-        Resolution("Extraction", "extractions.parquet", BACH, first)
+        Resolution("Parse", "parses.parquet", BACH, first)
     ]
     assert resolve(written / BACH, "claim_2") == [
         Resolution("MatchClaim", "tables/MatchClaim/", BACH, claim)
@@ -929,7 +913,7 @@ def test_resolving_reads_filtered(
         ["claim_2"],
         ["note_2"],
     ]
-    assert calls[3]["columns"] == ["extraction_id"]
+    assert calls[3]["columns"] == ["parse_id"]
 
 
 def test_a_written_id_is_read_bare(written: Path) -> None:

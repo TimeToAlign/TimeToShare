@@ -9,12 +9,13 @@ resolutions:
         manifest: bach/manifest.yaml
         row:
           duration: null
-          extraction_id: null
           id: dpt_1
           kind: Timeline
           location: bach/manifest.yaml
           locator: null
           number_type: null
+          parse_id: null
+          projection_of: null
           start: null
           timeline_id: null
           unit: null
@@ -29,12 +30,13 @@ resolutions:
         manifest: handel/manifest.yaml
         row:
           duration: null
-          extraction_id: null
           id: dpt_1
           kind: Timeline
           location: handel/manifest.yaml
           locator: null
           number_type: null
+          parse_id: null
+          projection_of: null
           start: null
           timeline_id: null
           unit: null
@@ -45,16 +47,19 @@ resolutions:
     found:
       -
         kind: Projection
-        location: tables/Projection/
+        location: null
         manifest: handel/manifest.yaml
         row:
           duration: null
-          extraction_id: extraction_1
           id: projection_1
           kind: Projection
-          location: tables/Projection/
+          location: null
           locator: "row 1"
           number_type: int
+          parse_id: parse_1
+          projection_of:
+            event_id: note_1
+            timeline_id: clt_1
           start:
             denominator: null
             numerator: 0
@@ -72,12 +77,13 @@ resolutions:
         manifest: bach/manifest.yaml
         row:
           duration: null
-          extraction_id: null
           id: dpt_1
           kind: Timeline
           location: bach/manifest.yaml
           locator: null
           number_type: null
+          parse_id: null
+          projection_of: null
           start: null
           timeline_id: null
           unit: null
@@ -88,12 +94,13 @@ resolutions:
         manifest: handel/manifest.yaml
         row:
           duration: null
-          extraction_id: null
           id: dpt_1
           kind: Timeline
           location: handel/manifest.yaml
           locator: null
           number_type: null
+          parse_id: null
+          projection_of: null
           start: null
           timeline_id: null
           unit: null
